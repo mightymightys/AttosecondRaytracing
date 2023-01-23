@@ -110,20 +110,28 @@ class MirrorParabolic:
         eqn z = ((x+xc)**2 + y**2)/(2p) where p is the semi latus rectum.
         The effective focal length is related to the semi latus rectum by 
         SemiLatusRectum = FocalEffective1*(1+np.cos(offAxisAngle/180*np.pi)).
+        OffAxisAngle is given in deg, but stored in rad !
     """
     def __init__(self, FocalEffective :float, OffAxisAngle :float, Support):
-        self.offaxisangle = np.deg2rad(OffAxisAngle) 
+        self._offaxisangle = np.deg2rad(OffAxisAngle) 
         self.support = Support
         self.type = 'Parabolic Mirror'
-        self.feff = FocalEffective  #effective focal length
-        self.p = self.feff *(1+np.cos(self.offaxisangle)) #semi latus rectum
-        
+        self._feff = FocalEffective  #effective focal length
+        self._p = FocalEffective *(1+np.cos(self.offaxisangle)) #semi latus rectum
+    
+    @property
+    def offaxisangle(self): 
+        return self._offaxisangle
+       
+    @offaxisangle.setter 
+    def offaxisangle(self, OffAxisAngle): 
+        self._offaxisangle = np.deg2rad(OffAxisAngle)
+        self._p = self._feff *(1+np.cos(self._offaxisangle)) #make sure to always update p
         
     @property
     def feff(self): 
         return self._feff
        
-    # a setter function 
     @feff.setter 
     def feff(self, FocalEffective): 
         self._feff = FocalEffective
@@ -133,7 +141,6 @@ class MirrorParabolic:
     def p(self): 
         return self._p
        
-    # a setter function 
     @p.setter 
     def p(self, SemiLatusRectum): 
         self._p = SemiLatusRectum
