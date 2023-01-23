@@ -129,15 +129,22 @@ class OpticalChain:
         
         return fig
     
-#%%        
-    def shift_source(self,distance):
+#%%  methods to (mis-)align the optical chain; just uses the corresponding methods of the OpticalElement class...
+      
+    def shift_source(self, distance :float):
         """ shift source ray bundle by angle in a random direction, distance in mm"""
-        translation_vector = mgeo.Normalize(np.array([np.random.random(),np.random.random(),np.random.random()]))
+        if type(distance) not in [int, float, np.float64]:
+            raise ValueError('The "distance"-argument must be an int or float number.')
         
+        translation_vector = mgeo.Normalize(np.array([np.random.random(),np.random.random(),np.random.random()]))
         self.source_rays = mgeo.TranslationRayList(self.source_rays, distance*translation_vector)
+
     
-    def tilt_source(self, angle):
+    def tilt_source(self, angle :float):
         """ rotate source ray bundle by angle in a random direction, angle in deg """
+        if type(angle) not in [int, float, np.float64]:
+            raise ValueError('The "angle"-argument must be an int or float number.')
+
         central_ray = mp.FindCentralRay(self.source_rays)
         #a normal vector perpendicular to the central ray, of length tan(angle), such that (central_ray.vector + perp_vector)
         #has an angle "angle" with the central_ray.vector
@@ -147,5 +154,51 @@ class OpticalChain:
         tilted_central_vector =  central_ray.vector + perp_vector # tilted by angle alpha, a little longer than "1" but doesn't matter
         
         self.source_rays = mgeo.RotationRayList(self.source_rays, central_ray.vector, tilted_central_vector)
+
         
+    def rotate_OE(self, OEindx :int, axis :str, angle :float):
+        """
+        rotate the optical element OpticalChain.optical_elements[OEindx] about
+        axis specified by "pitch", "roll", or "yaw". angle in deg.
+        """
+        if abs(OEindx) > len(self.optical_elements):
+            raise ValueError('The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.')     
+        if type(angle) not in [int, float, np.float64]:
+            raise ValueError('The "angle"-argument must be an int or float number.')
+            
+        if axis == "pitch":
+            self.optical_elements[OEindx].rotate_pitch_by(angle)
+        elif axis == "roll":
+            self.optical_elements[OEindx].rotate_roll_by(angle)
+        elif axis == "yaw":
+            self.optical_elements[OEindx].rotate_yaw_by(angle)
+        else:
+            raise ValueError('The "axis"-argument must be a string out of ["pitch", "roll", "yaw"].')
+
+            
+    def shift_OE(self, OEindx :int, axis :str, distance :float):
+        """
+        shift the optical element OpticalChain.optical_elements[OEindx] along
+        axis specified by "normal", "major", or "cross". dist in mm.
+        """
+        if abs(OEindx) > len(self.optical_elements):
+            raise ValueError('The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.')
+        if type(distance) not in [int, float, np.float64]:
+            raise ValueError('The "dist"-argument must be an int or float number.')
+            
+        if axis == "normal":
+            self.optical_elements[OEindx].shift_along_normal(distance)
+        elif axis == "major":
+            self.optical_elements[OEindx].shift_along_major(distance)
+        elif axis == "cross":
+            self.optical_elements[OEindx].shift_along_cross(distance)
+        else: 
+            raise ValueError('The "axis"-argument must be a string out of ["normal", "major", "cross"].')
+            
+        # some function that randomly misalings one, or several or all ? 
         
+        # some function that produces a loop-list of OpticalChains, taking as input the OEnumber, axis
+    def get_loop_list(self, OEindx :int, loop_variable_name :str, loop_variable_values :np.ndarray):
+        if abs(OEindx) > len(self.optical_elements):
+            raise ValueError('The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.')  
+        pass

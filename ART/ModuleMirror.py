@@ -111,12 +111,34 @@ class MirrorParabolic:
         The effective focal length is related to the semi latus rectum by 
         SemiLatusRectum = FocalEffective1*(1+np.cos(offAxisAngle/180*np.pi)).
     """
-    def __init__(self, SemiLatusRectum, OffAxisAngle, Support):
-        self.p = SemiLatusRectum
-        self.offaxisangle = OffAxisAngle * np.pi/180
+    def __init__(self, FocalEffective :float, OffAxisAngle :float, Support):
+        self.offaxisangle = np.deg2rad(OffAxisAngle) 
         self.support = Support
         self.type = 'Parabolic Mirror'
-        self.fs = self.p / (1+np.cos(self.offaxisangle))
+        self.feff = FocalEffective  #effective focal length
+        self.p = self.feff *(1+np.cos(self.offaxisangle)) #semi latus rectum
+        
+        
+    @property
+    def feff(self): 
+        return self._feff
+       
+    # a setter function 
+    @feff.setter 
+    def feff(self, FocalEffective): 
+        self._feff = FocalEffective
+        self._p = self._feff *(1+np.cos(self.offaxisangle)) #make sure to always update p
+        
+    @property
+    def p(self): 
+        return self._p
+       
+    # a setter function 
+    @p.setter 
+    def p(self, SemiLatusRectum): 
+        self._p = SemiLatusRectum
+        self._feff = self._p/(1+np.cos(self.offaxisangle))  #make sure to always update feff
+ 
     
     def get_intersection(self, Ray):
         """  Return the intersection point between the ray and the parabola  """
@@ -151,12 +173,12 @@ class MirrorParabolic:
          return mgeo.Normalize(Gradient)
     
     def get_centre(self):
-        return np.array([self.fs*np.sin(self.offaxisangle),0,self.p*0.5 - self.fs*np.cos(self.offaxisangle)])
+        return np.array([self.feff*np.sin(self.offaxisangle),0,self.p*0.5 - self.feff*np.cos(self.offaxisangle)])
     
     def get_grid3D(self,NbPoint):
         ListCoordXYZ = []
         ListCoordXY = self.support.get_grid(NbPoint)
-        xc = self.fs*np.sin(self.offaxisangle)
+        xc = self.feff*np.sin(self.offaxisangle)
         for k in ListCoordXY:
             z = ((k[0]+xc)**2 + k[1]**2)/2/self.p
             ListCoordXYZ.append(np.array([k[0]+xc,k[1],z]))

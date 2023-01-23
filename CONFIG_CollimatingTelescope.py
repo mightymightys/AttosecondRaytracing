@@ -30,8 +30,8 @@ MirrorCX = mmirror.MirrorSpherical(-1500, msupp.SupportRound(25))
 MirrorCC = mmirror.MirrorSpherical(2500, msupp.SupportRound(25)) 
 
 offAxisAngle = 90     # in deg
-SemiLatusRectum = 100 # in mm, SemiLatusRectum =  2*focal length of the "mother parabola"
-Parabola = mmirror.MirrorParabolic(SemiLatusRectum, offAxisAngle, msupp.SupportRound(25) ) 
+FocalEffective = 100 # in mm
+Parabola = mmirror.MirrorParabolic(FocalEffective, offAxisAngle, msupp.SupportRound(25) ) 
 
 #% creating the optical chain
 OpticsList = [MirrorCX, MirrorCC, Parabola]
@@ -50,7 +50,7 @@ OpticalChain = mp.OEPlacement(SourceProperties, OpticsList, DistanceList, Incide
 DetectorOptions = {
     'ReflectionNumber' : -1, # analyse ray bundle after last optical element
     'ManualDetector' : False, # do not place the detector manually, i.e. let ART do it automatically
-    'DistanceDetector' : SemiLatusRectum/(1+np.cos(offAxisAngle/180*np.pi)),  # set the detector at this distance from the last optical element
+    'DistanceDetector' : FocalEffective,  # set the detector at this distance from the last optical element
     'AutoDetectorDistance' : False,  # search for the optimal detector distance and shift the detector there to use it for further analysis ?
     'OptFor' : "intensity"   # metric for which to optimize the detector position
 }

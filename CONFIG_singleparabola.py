@@ -35,8 +35,7 @@ Support =  msupp.SupportRoundHole(30,5,10,5)
 
 offAxisAngle = 90 #in deg
 FocalEffective = 100 # in mm
-SemiLatusRectum = FocalEffective*(1+np.cos(offAxisAngle/180*np.pi)) # in mm
-Parabola = mmirror.MirrorParabolic(SemiLatusRectum, offAxisAngle, Support) 
+Parabola = mmirror.MirrorParabolic(FocalEffective, offAxisAngle, Support) 
 
 # creating the optical chain
 OpticsList = [Parabola]

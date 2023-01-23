@@ -65,9 +65,9 @@ OpticalChainList = []
 #     OpticalChainList.append(ModifiedOpticalChain)
 
 loop_variable_name = "source pointing (mrad)"
-loop_variable =  np.linspace(-1, 1, 21)
+loop_variable_values =  np.linspace(-1, 1, 21)
 
-for angle in loop_variable:
+for angle in loop_variable_values:
     # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
     ModifiedOpticalChain = AlignedOpticalChain.copy_chain()
     ModifiedOpticalChain.loop_variable_name = loop_variable_name
