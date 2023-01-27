@@ -36,7 +36,9 @@ def which_indexes(lst):
 #%%
 # Save an object to a compressed file
 def save_compressed(obj, filename):
-    if not type(filename) == str: filename = 'kept_data_' + datetime.now().strftime("%Y-%m-%d-%Hh%M")
+    if not type(filename) == str:
+        filename = 'kept_data_' + datetime.now().strftime("%Y-%m-%d-%Hh%M")
+    
     i = 0
     while os.path.exists(filename + f'_{i}.xz'):
         i += 1

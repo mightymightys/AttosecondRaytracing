@@ -48,7 +48,9 @@ IncidencePlaneAngleList = [0, 0, 0]
 # loop over the distance between the 2 toroidal mirrors:
 DistanceList = [400, Focal-400, np.linspace(Focal-200, Focal+200, 11)] #one element is an array of values, so a list of optical chains will be created
 
-OpticalChainList =  mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description = Description, render = False)
+# produce a png-image of each of the varied optical chains ?
+render = False
+OpticalChainList =  mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description, render)
 
 #OpticalChainList[0].quickshow()
 
