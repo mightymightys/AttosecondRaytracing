@@ -27,7 +27,7 @@ SourceProperties = {
 
 #%%
 """ OPTICAL SETUP """
-Description = "A 90° off-axis parabola with a hole, illumated by a plane wave."
+Description = "A 90° off-axis parabola with a hole, illuminated by a plane wave."
 
 # Mirror
 Support =  msupp.SupportRoundHole(30,5,10,5)

@@ -250,12 +250,12 @@ def DelayGraph(RayListAnalysed, Detector, Wavelength, DeltaFT, DrawAiryAndFourie
 #%% 
 def RayRenderGraph(OpticalChain,EndDistance=None,maxRays=150,OEpoints=2000):
     from mayavi import mlab
-    
     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
     
     if EndDistance == None:
         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
     
+    print('...rendering image of optical chain...', end='', flush=True) 
     fig = mlab.figure(bgcolor=(1,1,1),size=(1500, 500))
     
     # Ray display
@@ -345,11 +345,10 @@ def RayRenderGraph(OpticalChain,EndDistance=None,maxRays=150,OEpoints=2000):
         
         # mlab.mesh(x_grid, y_grid, z_grid, color=(0.66,0.66,0.66))     
 
-        
-
     fig.scene._lift()
     mlab.view(azimuth=-90, elevation=90, distance='auto')
     
+    print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
     return fig
 
 

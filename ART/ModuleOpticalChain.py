@@ -118,7 +118,6 @@ class OpticalChain:
         QuickOpticalChain = self.copy_chain()
         QuickOpticalChain.source_rays =  np.random.choice(self.source_rays, maxRays, replace=False).tolist()
         quickfig = RayRenderGraph(QuickOpticalChain, None, maxRays, maxOEpoints)
-        
         return quickfig
     
     def render(self):
@@ -126,9 +125,9 @@ class OpticalChain:
         maxRays = 150
         maxOEpoints = 3000
         fig = RayRenderGraph(self, None, maxRays, maxOEpoints)
-        
         return fig
-    
+   
+
 #%%  methods to (mis-)align the optical chain; just uses the corresponding methods of the OpticalElement class...
       
     def shift_source(self, axis: (str, np.ndarray), distance: float):

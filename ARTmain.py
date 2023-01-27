@@ -5,8 +5,8 @@ Created in Jan 2023
 @author: Stefan Haessler
 """
 import os
-from datetime import datetime
 import sys
+from datetime import datetime
 import numpy as np
 import ART.ModuleProcessing as mp
 import ART.ModuleDetector as mdet
@@ -127,15 +127,12 @@ def optimize_detector(RayListAnalysed, Detector, DetectorOptions, verbose=True, 
     Returns the the optimal detector distance, optimal detector object (shifted original Detector),
     and the corresponding value of the optimization-metric..
     """
-    print('...optimizing detector position...', end='', flush=True) 
-
     if len(RayListAnalysed)>maxRaystoConsider:
         RayListForOpt = np.random.choice(RayListAnalysed, maxRaystoConsider, replace=False)
     else: RayListForOpt = RayListAnalysed
 
     OptDetector, OptSizeSpot, OptDuration = mp.FindOptimalDistance(Precision, Detector, RayListForOpt, DetectorOptions["OptFor"], Amplitude, IntensityWeighted, verbose)
     OptDistance = OptDetector.get_distance()
-    print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K        
     
     if verbose:
         resultstring = f"The optimal detector distance is {OptDistance:.3f} mm, with"
@@ -199,8 +196,7 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
 def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, loop = False):
     niceline = '___________________________________________________________________________________________________\n'
     
-    ################
-    mp.tic()
+    #mp.tic() ################
     
     """ THE ACTUAL RAYTRACING CALCULATION """
     output_rays = OpticalChain.get_output_rays()
@@ -224,8 +220,8 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
     else:
         SpotSizeSD, DurationSD = mplots.GetResultSummary(Detector, RayListAnalysed, AnalysisOptions['verbose'])
     
-    mp.toc()
-    ################
+    
+    #mp.toc() ################
     
     if AnalysisOptions["verbose"]: print(niceline)
     
@@ -272,8 +268,6 @@ def main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, s
     # save results if user said so
     if AnalysisOptions["save_results"] == True:
         print('...saving data...', end='', flush=True) 
-        if not type(save_file_name) == str:
-            save_file_name = 'kept_data_' + datetime.now().strftime("%Y-%m-%d-%Hh%M")
         mp.save_compressed(kept_data, save_file_name)
         print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K        
 

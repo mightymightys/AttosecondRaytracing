@@ -50,15 +50,7 @@ AlignedOpticalChain = mp.OEPlacement(SourceProperties, OpticsList, DistanceList,
 OEindx = 0
 loop_axis = "roll"
 loop_variable_values = np.linspace(-0.5, 0.5, 11)
-
-# #loop_variable_values = np.random.normal(loc=0, scale=0.5, size=100)
-# loop_variable_values = 0.1*np.ones(10)
-# loop_axis = "rotate_random"
 OpticalChainList = AlignedOpticalChain.get_OE_loop_list(OEindx, loop_axis, loop_variable_values )
-
-#loop_variable_values = np.random.normal(loc=0, scale=np.rad2deg(1e-3), size=100)
-#loop_axis = "tilt_random"
-#OpticalChainList = AlignedOpticalChain.get_source_loop_list(loop_axis, loop_variable_values)
 
 
 
@@ -112,12 +104,12 @@ TO RUN A SIMULATION, TYPE IN AN ANACONDA-PROMPT (or equivalent):
     
 IF WANT TO RUN THIS CONFIG-SCRIPT DIRECTLY, call the main function of the ARTmain.py-program from here:
 """
-from ARTmain import main
-kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
+# from ARTmain import main
+# kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
     
-#%%    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots()
-ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
-ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
-ax.set_ylabel("DurationSD")
+# #%%    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
+# import matplotlib.pyplot as plt
+# fig, ax = plt.subplots()
+# ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
+# ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
+# ax.set_ylabel("DurationSD")

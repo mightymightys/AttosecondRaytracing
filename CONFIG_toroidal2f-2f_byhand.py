@@ -12,7 +12,7 @@ import ART.ModuleSupport as msupp
 import ART.ModuleOpticalElement as moe
 import ART.ModuleSource as msource
 import ART.ModuleOpticalChain as moc
-import ART.ModuleProcessing as mp
+#import ART.ModuleProcessing as mp
 
 
 #%%########################################################################
