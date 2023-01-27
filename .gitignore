@@ -1,6 +1,11 @@
 #my own config-files
 myCONFIG_*
 
+
+#kept_date save files
+*.xz
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -47,36 +47,20 @@ IncidenceAngleList = [MirrorIncidence] #in deg
 AlignedOpticalChain = mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, Description = Description)
 
 """ then make a list of optical chains, each one with some modification with respect to the aligned one """
-OpticalChainList = []
-# loop_variable_name = "roll misalignement angle (deg)"
-# loop_variable =  np.linspace(-0.5, 0.5, 11)
+OEindx = 0
+loop_axis = "roll"
+loop_variable_values = np.linspace(-0.5, 0.5, 11)
 
-# for angle in loop_variable:
-#     # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
-#     ModifiedOpticalChain = AlignedOpticalChain.copy_chain()
-#     ModifiedOpticalChain.loop_variable_name = loop_variable_name
-#     ModifiedOpticalChain.loop_variable_value = angle
-    
-#     #pick out the optical element you want to mess with and modify its alignment
-#     ModifiedMirrorOE = ModifiedOpticalChain.optical_elements[-1] 
-#     ModifiedMirrorOE.rotate_roll_by(angle)
-    
-#     #append the modified optical chain to the list
-#     OpticalChainList.append(ModifiedOpticalChain)
+# #loop_variable_values = np.random.normal(loc=0, scale=0.5, size=100)
+# loop_variable_values = 0.1*np.ones(10)
+# loop_axis = "rotate_random"
+OpticalChainList = AlignedOpticalChain.get_OE_loop_list(OEindx, loop_axis, loop_variable_values )
 
-loop_variable_name = "source pointing (mrad)"
-loop_variable_values =  np.linspace(-1, 1, 21)
+#loop_variable_values = np.random.normal(loc=0, scale=np.rad2deg(1e-3), size=100)
+#loop_axis = "tilt_random"
+#OpticalChainList = AlignedOpticalChain.get_source_loop_list(loop_axis, loop_variable_values)
 
-for angle in loop_variable_values:
-    # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
-    ModifiedOpticalChain = AlignedOpticalChain.copy_chain()
-    ModifiedOpticalChain.loop_variable_name = loop_variable_name
-    ModifiedOpticalChain.loop_variable_value = angle
-    
-    ModifiedOpticalChain.tilt_source(angle/1000/np.pi*180)
-    
-    #append the modified optical chain to the list
-    OpticalChainList.append(ModifiedOpticalChain)
+
 
 #%%
 """ detector parameters """
@@ -113,7 +97,7 @@ AnalysisOptions = {
     'plot_IntensityMirrorProjection': False, # produce a plot of the ray intensities at the detector projected onto the surface of the preceding mirror?
     'plot_IncidenceMirrorProjection': False,  # produce a plot of the ray incidence angles at the detector projected onto the surface of the preceding mirror?
 
-    'save_results': True        #save the simulation results to disk, to analyse later
+    'save_results': False        #save the simulation results to disk, to analyse later
 }
 
 #%%
@@ -131,7 +115,7 @@ IF WANT TO RUN THIS CONFIG-SCRIPT DIRECTLY, call the main function of the ARTmai
 from ARTmain import main
 kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
     
-#    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
+#%%    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
 import matplotlib.pyplot as plt
 fig, ax = plt.subplots()
 ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])

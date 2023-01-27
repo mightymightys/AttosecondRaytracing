@@ -86,13 +86,13 @@ def SolverQuartic(a,b,c,d,e):
     Solve the quartic equation a*x^4 + b*x^3 +c*x^2 + d*x + e = 0 ; keep only real solutions
     """
     Solution = np.roots([a,b,c,d,e])
-    SolutionReel = []
+    RealSolution = []
 
     for k in range(len(Solution)):
         if abs(Solution[k].imag) < 1e-15:
-            SolutionReel.append(Solution[k].real)
+            RealSolution.append(Solution[k].real)
             
-    return SolutionReel
+    return RealSolution
 
 #%%   
 def KeepPositiveSolution(SolutionList):
@@ -177,8 +177,9 @@ def TranslationPoint(Point, T):
 def TranslationPointList(PointList, T):
     """ Translate all points in PointList by Vector T """
     PointListPrime = []
+    append = PointListPrime.append
     for k in PointList:
-        PointListPrime.append(TranslationPoint(k, T))
+        append(TranslationPoint(k, T))
     return PointListPrime
     
 #%%
@@ -191,10 +192,11 @@ def TranslationRay(Ray, T):
 #%%
 def TranslationRayList(RayList, T):
     """ Translate all rays of RayList by vector T """
-    RayListprime = []
+    RayListPrime = []
+    append = RayListPrime.append
     for k in RayList:
-        RayListprime.append(TranslationRay(k, T))
-    return RayListprime
+        append(TranslationRay(k, T))
+    return RayListPrime
 
 
 #%%##############################################################################################
@@ -202,8 +204,8 @@ def TranslationRayList(RayList, T):
 
 def RotationAroundAxis(Axis, Angle, Vector):
     """    Rotate Vector by Angle (in rad) around Axis   """
-    rot_axis = np.array([0.] + Axis)
-    axis_angle = (Angle*0.5) * rot_axis/np.linalg.norm(rot_axis)
+    rot_axis = Normalize(np.array([0.] + Axis))
+    axis_angle = (Angle*0.5) * rot_axis
     vec = quaternion(*Vector)
     qlog = quaternion(*axis_angle)
     q = np.exp(qlog)
@@ -214,9 +216,9 @@ def RotationAroundAxis(Axis, Angle, Vector):
 def RotationPoint(Point, Axis1, Axis2):
     """  Transform vector Point such that Axis1 in the old coordinate frame becomes vector Axis 2 in the new coordinate system  """
     Angle = AngleBetweenTwoVectors(Axis1,Axis2)
-    if Angle < 1e-12:
+    if Angle < 1e-10:
         Pointprime = Point
-    elif Angle > np.pi - 1e-12:
+    elif abs(Angle - np.pi) < 1e-10:
         Pointprime = -Point
     else:
         N = np.cross(Axis1,Axis2)
@@ -227,8 +229,9 @@ def RotationPoint(Point, Axis1, Axis2):
 def RotationPointList(PointList, Axis1, Axis2):
     """  Transform all vectors Point such that Axis1 in the old coordinate frame becomes vector Axis 2 in the new coordinate system  """
     PointListPrime = []
+    append = PointListPrime.append
     for k in PointList:
-        PointListPrime.append(RotationPoint(k, Axis1, Axis2))
+        append(RotationPoint(k, Axis1, Axis2))
     return PointListPrime
 
 #%%
@@ -248,19 +251,20 @@ def RotationRay(Ray, Axis1, Axis2):
 #%%
 def RotationRayList(ListeRay, Axis1, Axis2):
     """ Like RotationPointList but with a list of Ray objects """
-    ListeRayprime = []
+    RayListPrime = []
+    append = RayListPrime.append
     for k in ListeRay:
-        ListeRayprime.append(RotationRay(k, Axis1, Axis2))
-    return ListeRayprime
+        append(RotationRay(k, Axis1, Axis2))
+    return RayListPrime
 
 #%%
 def RotationAroundAxisRayList(ListeRay, Axis, Angle):
-    """ Like RotationAroundAxis but with a list of Ray objects """
-    ListeRayPrime = []
+    """ Like RotationAroundAxis but with a list of Ray objects. Angle in rad."""
+    RayListPrime = []
+    append = RayListPrime.append
     for k in ListeRay:
         Ray = k.copy_ray()
-        VectorPrime = RotationAroundAxis(Axis, Angle, Ray.vector)
-        Ray.vector = VectorPrime
-        ListeRayPrime.append(Ray)
+        Ray.vector = RotationAroundAxis(Axis, Angle, Ray.vector)
+        append(Ray)
         
-    return ListeRayPrime
+    return RayListPrime

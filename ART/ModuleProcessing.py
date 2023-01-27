@@ -8,6 +8,7 @@ import os
 import pickle
 #import gzip
 import lzma
+from time import time
 import numpy as np
 import ART.ModuleGeometry as mgeo
 import ART.ModuleMirror as mmirror
@@ -45,6 +46,15 @@ def load_compressed(filename):
         obj = pickle.load(f)
     return obj
 
+#%%  tic-toc timer functions
+_tstart_stack = []
+def tic():
+    _tstart_stack.append(time())
+
+def toc(fmt="Elapsed: %s s"):
+    print(fmt % (time() - _tstart_stack.pop()))
+    
+    
 #%%
 def FindCentralRay(RayList):
     for k in RayList:
@@ -82,8 +92,7 @@ def StandardDeviation3D(List):
     return np.sqrt(V / len(List))
 
 def StandardDeviation(List):
-    Condition = type(List[0]) == int or type(List[0]) == float or type(List[0]) == np.float64
-    if Condition:
+    if type(List[0]) in [int, float, np.float64]:
         return StandardDeviation1D(List)
     elif len(List[0]) == 2:
         return StandardDeviation2D(List)
@@ -205,20 +214,22 @@ def DiameterPointList(PointList):
 def CentrePointList(ListPoint):
     ListCoordX = []
     ListCoordY = []
+    appendX = ListCoordX.append
+    appendY = ListCoordY.append
     
     for k in ListPoint:
-        ListCoordX.append(k[0])
-        ListCoordY.append(k[1])
+        appendX(k[0])
+        appendY(k[1])
     
     CentreX = (np.amax(ListCoordX) + np.amin(ListCoordX)) * 0.5
     CentreY = (np.amax(ListCoordY) + np.amin(ListCoordY)) * 0.5
     
     ListPointCentre = []
-    
+    append = ListPointCentre.append
     for k in ListPoint:
         x = k[0] - CentreX
         y = k[1] - CentreY
-        ListPointCentre.append(np.array([x,y]))
+        append(np.array([x,y]))
         
     return ListPointCentre
 
@@ -300,6 +311,7 @@ def FindOptimalDistanceBIS(movingDetector, Amplitude, Step, RayList, OptFor, Int
 
     return movingDetector, OptSizeSpot, OptDuration
 
+
 def FindOptimalDistance(Precision, Detector, RayList, OptFor="intensity", Amplitude=None, IntensityWeighted=False, verbose=False):
     if OptFor not in ["intensity", "size", "duration"]:
         raise NameError("I don`t recognize what you want to optimize the detector distance for. OptFor must be either 'intensity', 'size' or 'duration'.")    
@@ -310,7 +322,9 @@ def FindOptimalDistance(Precision, Detector, RayList, OptFor="intensity", Amplit
     NumericalAperture = ReturnNumericalAperture(RayList, 1)
     if Amplitude is None:
         Amplitude = min(4*np.ceil(SizeSpot / np.tan(np.arcsin(NumericalAperture))), FirstDistance)
-    Step = Amplitude/10
+    #Step = Amplitude/10
+    Step = Amplitude/5
+    
     if verbose: print(f"Searching optimal detector position for *{OptFor}* within [{FirstDistance-Amplitude:.3f}, {FirstDistance+Amplitude:.3f}] mm...")
     movingDetector = Detector.copy_detector()
     for k in range(Precision+1):

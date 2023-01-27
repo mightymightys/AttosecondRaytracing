@@ -101,13 +101,25 @@ class OpticalElement:
     def rotate_yaw_by(self, angle): 
         """ yaw, i.e. rotation about the NormalAxis. angle is given in degrees. """
         self.majoraxis = mgeo.RotationAroundAxis(self.normal, np.deg2rad(angle), self.majoraxis)  
+       
+    def rotate_random_by(self, angle): 
+        """ rotation about a random axis. angle is given in degrees. """
+        self.normal = mgeo.RotationAroundAxis(np.random.random(3), np.deg2rad(angle), self.normal) 
         
 
     def shift_along_normal(self, distance):
+        """ shift along the normal-axis direction. distance is given in mm. """
         self.position += distance*self.normal 
         
     def shift_along_major(self, distance):
+        """ shift along the major-axis direction. distance is given in mm. """
         self.position += distance*self.majoraxis
         
     def shift_along_cross(self, distance):
+        """ shift along the direction (normal x major). distance is given in mm. """
         self.position += distance*mgeo.Normalize(np.cross(self.normal,self.majoraxis))
+        
+    def shift_along_random(self, distance):
+        """ shift along a direction. distance is given in mm. """
+        self.position += distance *mgeo.Normalize(np.random.random(3))
+        
