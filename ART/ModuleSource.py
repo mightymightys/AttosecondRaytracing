@@ -42,7 +42,7 @@ def ExtendedSource(S, Axis, Diameter, Divergence, NbRays):
     for k in range(NbPointSources):
         ShiftedPointSourceRayList = mgeo.TranslationRayList(PointSourceRayList, [MatrixXY[k,0],MatrixXY[k,1],0])
         for l in range(NbRaysPerPointSource):
-            ShiftedPointSourceRayList[l].number += k*NbRaysPerPointSource
+            ShiftedPointSourceRayList[l]._number += k*NbRaysPerPointSource #we allow ourselves exceptionally to modify the "internal" _number attribute
         RayList.extend(ShiftedPointSourceRayList)    
     
     RayList = mgeo.RotationRayList(RayList, np.array([0,0,1]), Axis)

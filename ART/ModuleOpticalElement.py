@@ -81,13 +81,15 @@ class OpticalElement:
         return hash(position_tuple + normal_tuple + majoraxis_tuple) + hash(self.type)
     
     
-#%% It could be useful to define methods to (mis-)align the OE. Pitch, roll and yaw rotations + translations? 
+#%% methods to (mis-)align the OE
 
     def rotate_pitch_by(self, angle): 
-        """ pitch, i.e. rotation about the axis (NormalAxis x MajorAxis). angle is given in degrees.
+        """
+        pitch, i.e. rotation about the axis (NormalAxis x MajorAxis). angle is given in degrees.
         If the plane spanned by NormalAxis and MajorAxis is the incidence plane (normally the case
-        in a "clean alignment" situation, then this is simply a modificaiton of the incidence angle by "angle".
-        But in general, if the optical element has some odd orientation, there is not a direct correspondence."""
+        in a "clean alignment" situation), then this is simply a modificaiton of the incidence angle by "angle".
+        But in general, if the optical element has some odd orientation, there is not a direct correspondence.
+        """
         rotation_axis = np.cross(self.normal,self.majoraxis)
         self.normal = mgeo.RotationAroundAxis(rotation_axis, np.deg2rad(angle), self.normal)  
         #the normal.setter function should take care of the majoraxis remaining perpendicular to the normal.
@@ -99,13 +101,25 @@ class OpticalElement:
     def rotate_yaw_by(self, angle): 
         """ yaw, i.e. rotation about the NormalAxis. angle is given in degrees. """
         self.majoraxis = mgeo.RotationAroundAxis(self.normal, np.deg2rad(angle), self.majoraxis)  
+       
+    def rotate_random_by(self, angle): 
+        """ rotation about a random axis. angle is given in degrees. """
+        self.normal = mgeo.RotationAroundAxis(np.random.random(3), np.deg2rad(angle), self.normal) 
         
-    # translations are just shift self.position along one of the axes
+
     def shift_along_normal(self, distance):
+        """ shift along the normal-axis direction. distance is given in mm. """
         self.position += distance*self.normal 
         
     def shift_along_major(self, distance):
+        """ shift along the major-axis direction. distance is given in mm. """
         self.position += distance*self.majoraxis
         
     def shift_along_cross(self, distance):
+        """ shift along the direction (normal x major). distance is given in mm. """
         self.position += distance*mgeo.Normalize(np.cross(self.normal,self.majoraxis))
+        
+    def shift_along_random(self, distance):
+        """ shift along a direction. distance is given in mm. """
+        self.position += distance *mgeo.Normalize(np.random.random(3))
+        

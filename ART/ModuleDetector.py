@@ -118,8 +118,9 @@ class Detector:
     def get_PointList3D(self, RayList):
         if self.iscomplete():
             ListPointDetector3D = []
+            append = ListPointDetector3D.append
             for k in RayList:
-                ListPointDetector3D.append(mgeo.IntersectionLinePlane(k.point, k.vector, self.centre, self.normal))
+                append(mgeo.IntersectionLinePlane(k.point, k.vector, self.centre, self.normal))
             return ListPointDetector3D
     
     def get_PointList2D(self, RayList):

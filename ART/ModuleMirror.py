@@ -110,13 +110,42 @@ class MirrorParabolic:
         eqn z = ((x+xc)**2 + y**2)/(2p) where p is the semi latus rectum.
         The effective focal length is related to the semi latus rectum by 
         SemiLatusRectum = FocalEffective1*(1+np.cos(offAxisAngle/180*np.pi)).
+        OffAxisAngle is given in deg, but stored in rad !
     """
-    def __init__(self, SemiLatusRectum, OffAxisAngle, Support):
-        self.p = SemiLatusRectum
-        self.offaxisangle = OffAxisAngle * np.pi/180
+    def __init__(self, FocalEffective :float, OffAxisAngle :float, Support):
+        self._offaxisangle = np.deg2rad(OffAxisAngle) 
         self.support = Support
         self.type = 'Parabolic Mirror'
-        self.fs = self.p / (1+np.cos(self.offaxisangle))
+        self._feff = FocalEffective  #effective focal length
+        self._p = FocalEffective *(1+np.cos(self.offaxisangle)) #semi latus rectum
+    
+    @property
+    def offaxisangle(self): 
+        return self._offaxisangle
+       
+    @offaxisangle.setter 
+    def offaxisangle(self, OffAxisAngle): 
+        self._offaxisangle = np.deg2rad(OffAxisAngle)
+        self._p = self._feff *(1+np.cos(self._offaxisangle)) #make sure to always update p
+        
+    @property
+    def feff(self): 
+        return self._feff
+       
+    @feff.setter 
+    def feff(self, FocalEffective): 
+        self._feff = FocalEffective
+        self._p = self._feff *(1+np.cos(self.offaxisangle)) #make sure to always update p
+        
+    @property
+    def p(self): 
+        return self._p
+       
+    @p.setter 
+    def p(self, SemiLatusRectum): 
+        self._p = SemiLatusRectum
+        self._feff = self._p/(1+np.cos(self.offaxisangle))  #make sure to always update feff
+ 
     
     def get_intersection(self, Ray):
         """  Return the intersection point between the ray and the parabola  """
@@ -151,12 +180,12 @@ class MirrorParabolic:
          return mgeo.Normalize(Gradient)
     
     def get_centre(self):
-        return np.array([self.fs*np.sin(self.offaxisangle),0,self.p*0.5 - self.fs*np.cos(self.offaxisangle)])
+        return np.array([self.feff*np.sin(self.offaxisangle),0,self.p*0.5 - self.feff*np.cos(self.offaxisangle)])
     
     def get_grid3D(self,NbPoint):
         ListCoordXYZ = []
         ListCoordXY = self.support.get_grid(NbPoint)
-        xc = self.fs*np.sin(self.offaxisangle)
+        xc = self.feff*np.sin(self.offaxisangle)
         for k in ListCoordXY:
             z = ((k[0]+xc)**2 + k[1]**2)/2/self.p
             ListCoordXYZ.append(np.array([k[0]+xc,k[1],z]))

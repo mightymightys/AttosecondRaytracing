@@ -5,8 +5,8 @@ Created in Jan 2023
 @author: Stefan Haessler
 """
 import os
-from datetime import datetime
 import sys
+from datetime import datetime
 import numpy as np
 import ART.ModuleProcessing as mp
 import ART.ModuleDetector as mdet
@@ -54,9 +54,9 @@ def load_config(config_file):
     # import the required variables from the config-file
     config = __import__(config_file)
     
-    try: OpticalChainList = config.OpticalChain
+    try: OpticalChainList = config.OpticalChainList
     except: 
-        try: OpticalChainList = config.OpticalChainList
+        try: OpticalChainList = config.OpticalChain
         except: print("Could not import an optical-chain-object or list thereof with the name OpticalChain or OpticalChainList.")
                 
     try: SourceProperties = config.SourceProperties
@@ -127,15 +127,12 @@ def optimize_detector(RayListAnalysed, Detector, DetectorOptions, verbose=True, 
     Returns the the optimal detector distance, optimal detector object (shifted original Detector),
     and the corresponding value of the optimization-metric..
     """
-    print('...optimizing detector position...', end='', flush=True) 
-
     if len(RayListAnalysed)>maxRaystoConsider:
         RayListForOpt = np.random.choice(RayListAnalysed, maxRaystoConsider, replace=False)
     else: RayListForOpt = RayListAnalysed
 
     OptDetector, OptSizeSpot, OptDuration = mp.FindOptimalDistance(Precision, Detector, RayListForOpt, DetectorOptions["OptFor"], Amplitude, IntensityWeighted, verbose)
     OptDistance = OptDetector.get_distance()
-    print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K        
     
     if verbose:
         resultstring = f"The optimal detector distance is {OptDistance:.3f} mm, with"
@@ -199,6 +196,8 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
 def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, loop = False):
     niceline = '___________________________________________________________________________________________________\n'
     
+    #mp.tic() ################
+    
     """ THE ACTUAL RAYTRACING CALCULATION """
     output_rays = OpticalChain.get_output_rays()
     RayListAnalysed = output_rays[DetectorOptions['ReflectionNumber']]
@@ -221,8 +220,11 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
     else:
         SpotSizeSD, DurationSD = mplots.GetResultSummary(Detector, RayListAnalysed, AnalysisOptions['verbose'])
     
+    
+    #mp.toc() ################
+    
     if AnalysisOptions["verbose"]: print(niceline)
-        
+    
     """ PRODUCE AND SHOW THE PLOTS AS SELECTED IN AnalysisOptions """
     if not loop or __name__ != "__main__":
         #if any of the keys in AnalysisOptions that start with "plot_" are true; otherwise just do nothing
@@ -254,21 +256,18 @@ def main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, s
         raise ValueError('The supplied OpticalChain is neither an OpticalChain-object, nor a list of those, as it should be.')
     else: loop = True
     
-    # do the simulations
-    i=1
-    for OpticalChain in OpticalChainList:
+    ## do the simulations
+    for i, OpticalChain in enumerate(OpticalChainList):
         print('Optical Chain '+ str(i) +'/' + str(len(OpticalChainList))+' ', end='', flush=True)
         OpticalChain, Detector, ETransmission, SpotSizeSD, DurationSD = \
             run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, loop)
         for name in keeper_names:
             kept_data[name].append(locals()[name])
-        i += 1
+
     
     # save results if user said so
     if AnalysisOptions["save_results"] == True:
         print('...saving data...', end='', flush=True) 
-        if not type(save_file_name) == str:
-            save_file_name = 'kept_data_' + datetime.now().strftime("%Y-%m-%d-%Hh%M")
         mp.save_compressed(kept_data, save_file_name)
         print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K        
 

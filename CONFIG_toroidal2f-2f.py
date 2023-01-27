@@ -47,36 +47,12 @@ IncidenceAngleList = [MirrorIncidence] #in deg
 AlignedOpticalChain = mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, Description = Description)
 
 """ then make a list of optical chains, each one with some modification with respect to the aligned one """
-OpticalChainList = []
-# loop_variable_name = "roll misalignement angle (deg)"
-# loop_variable =  np.linspace(-0.5, 0.5, 11)
+OEindx = 0
+loop_axis = "roll"
+loop_variable_values = np.linspace(-0.5, 0.5, 11)
+OpticalChainList = AlignedOpticalChain.get_OE_loop_list(OEindx, loop_axis, loop_variable_values )
 
-# for angle in loop_variable:
-#     # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
-#     ModifiedOpticalChain = AlignedOpticalChain.copy_chain()
-#     ModifiedOpticalChain.loop_variable_name = loop_variable_name
-#     ModifiedOpticalChain.loop_variable_value = angle
-    
-#     #pick out the optical element you want to mess with and modify its alignment
-#     ModifiedMirrorOE = ModifiedOpticalChain.optical_elements[-1] 
-#     ModifiedMirrorOE.rotate_roll_by(angle)
-    
-#     #append the modified optical chain to the list
-#     OpticalChainList.append(ModifiedOpticalChain)
 
-loop_variable_name = "source pointing (mrad)"
-loop_variable =  np.linspace(-1, 1, 21)
-
-for angle in loop_variable:
-    # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
-    ModifiedOpticalChain = AlignedOpticalChain.copy_chain()
-    ModifiedOpticalChain.loop_variable_name = loop_variable_name
-    ModifiedOpticalChain.loop_variable_value = angle
-    
-    ModifiedOpticalChain.tilt_source(angle/1000/np.pi*180)
-    
-    #append the modified optical chain to the list
-    OpticalChainList.append(ModifiedOpticalChain)
 
 #%%
 """ detector parameters """
@@ -113,7 +89,7 @@ AnalysisOptions = {
     'plot_IntensityMirrorProjection': False, # produce a plot of the ray intensities at the detector projected onto the surface of the preceding mirror?
     'plot_IncidenceMirrorProjection': False,  # produce a plot of the ray incidence angles at the detector projected onto the surface of the preceding mirror?
 
-    'save_results': True        #save the simulation results to disk, to analyse later
+    'save_results': False        #save the simulation results to disk, to analyse later
 }
 
 #%%
@@ -128,12 +104,12 @@ TO RUN A SIMULATION, TYPE IN AN ANACONDA-PROMPT (or equivalent):
     
 IF WANT TO RUN THIS CONFIG-SCRIPT DIRECTLY, call the main function of the ARTmain.py-program from here:
 """
-from ARTmain import main
-kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
+# from ARTmain import main
+# kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
     
-#    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots()
-ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
-ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
-ax.set_ylabel("DurationSD")
+# #%%    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
+# import matplotlib.pyplot as plt
+# fig, ax = plt.subplots()
+# ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
+# ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
+# ax.set_ylabel("DurationSD")

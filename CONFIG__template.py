@@ -43,12 +43,8 @@ OpticalChain = mp.OEPlacement(SourceProperties, OpticsList, DistanceList, Incide
 """
 
 """ 
-You can also create a whole list of such optical chains to loop over, and name it 
-
-In that case, do set for each optical chain in the list the attributes
-ModifiedOpticalChain.loop_variable_name = "name and (unit) of the variable you've modified"
-and
-ModifiedOpticalChain.loop_variable = value of the variable(s) you've modified
+You can also create a whole list of such optical chains to loop over, and name it OpticalChainList.
+The methods "get_source_loop_list" and "get_OE_loop_list" of the OpticalChain class can simplify this.
 """
 
 """

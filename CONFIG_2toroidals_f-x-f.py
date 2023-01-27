@@ -36,16 +36,6 @@ AngleIncidence = 80 #in deg
 OptimalMajorRadius, OptimalMinorRadius = mmirror.ReturnOptimalToroidalRadii(Focal, AngleIncidence)
 ToroidalMirror = mmirror.MirrorToroidal(OptimalMajorRadius, OptimalMinorRadius, Support)
 
-##Winlight's proposed radii
-#DesignMinorRadius = 208.99
-#DesignMajorRadius = (6915.24 - DesignMinorRadius)
-#
-#RminoverRmaj = DesignMinorRadius/DesignMajorRadius*(1+0.0/100) #error on the ratio of radii
-#MajorRadius = DesignMajorRadius*(1+0.0/100) #error on the major radius
-#MinorRadius = RminoverRmaj*MajorRadius
-#
-#ToroidalMirror = mmirror.MirrorToroidal(MajorRadius, MinorRadius, Support)
-
 # a mask
 #placed 400 after source, this selects 35mrad: 
 SupportMask = msupp.SupportRoundHole(Radius=20, RadiusHole=14/2, CenterHoleX=0, CenterHoleY=0) 
@@ -54,22 +44,16 @@ Mask = mmask.Mask(SupportMask)
 # create the optical chain
 OpticsList = [Mask, ToroidalMirror, ToroidalMirror]
 IncidenceAngleList = [0, AngleIncidence, -AngleIncidence] #in deg
-IncidencePlaneAngleList = [0.0, 0.0, 0.0]
+IncidencePlaneAngleList = [0, 0, 0]
+# loop over the distance between the 2 toroidal mirrors:
+DistanceList = [400, Focal-400, np.linspace(Focal-200, Focal+200, 11)] #one element is an array of values, so a list of optical chains will be created
 
-""" LOOP OVER THE DISTANCE BETWEEN THE TWO TOROIDAL MIRRORS """
-OpticalChainList = []
-loop_variable_name = "distance (mm)"
-loop_variable =  np.linspace(Focal-200, Focal+200, 11)
-
-for distance in loop_variable:
-    DistanceList = [400, Focal-400, distance]
-    ModifiedOpticalChain = mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, Description = Description)
-    ModifiedOpticalChain.loop_variable_name = loop_variable_name
-    ModifiedOpticalChain.loop_variable_value = distance
-    
-    OpticalChainList.append(ModifiedOpticalChain)
+# produce a png-image of each of the varied optical chains ?
+render = False
+OpticalChainList =  mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description, render)
 
 #OpticalChainList[0].quickshow()
+
 
 #%%
 """ detector parameters """
@@ -78,7 +62,7 @@ DetectorOptions = {
     'ReflectionNumber' : -1, # analyse ray bundle after last optical element
     'ManualDetector' : False, # do not place the detector manually, i.e. let ART do it automatically
     'DistanceDetector' : Focal ,  # set the detector at this distance from the last optical element
-    'AutoDetectorDistance' : False,  # search for the optimal detector distance and shift the detector there to use it for further analysis ?
+    'AutoDetectorDistance' : True,  # search for the optimal detector distance and shift the detector there to use it for further analysis ?
     'OptFor' : "intensity"   # metric for which to optimize the detector position
 }
 
@@ -121,15 +105,15 @@ TO RUN A SIMULATION, TYPE IN AN ANACONDA-PROMPT (or equivalent):
     
 IF WANT TO RUN THIS CONFIG-SCRIPT DIRECTLY, call the main function of the ARTmain.py-program from here:
 """
-# from ARTmain import main
-# kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
+from ARTmain import main
+kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
     
-# #    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
-# import matplotlib.pyplot as plt
-# fig, ax = plt.subplots()
-# ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
-# ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
-# ax.set_ylabel("DurationSD")
+#    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
+ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
+ax.set_ylabel("DurationSD")
 
 
 
