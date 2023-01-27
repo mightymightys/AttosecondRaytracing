@@ -55,26 +55,6 @@ OpticalChainList =  mp.OEPlacement(SourceProperties, OpticsList, DistanceList, I
 #OpticalChainList[0].quickshow()
 
 
-# # we're not creating the optical chain yet, but will loop over a range of angles
-# # by which the 2nd toroidal mirror will rotate the incidence plane, i.e. the
-# # (optional) IncidencePlaneAngleList-argument to the OpticalChain-constructor 
-
-# OpticalChainList = []
-# loop_variable_name = "IncidencePlaneAngle (deg)"
-# loop_variable =  np.linspace(-90, 90, 15)
-
-# for angle in loop_variable:
-#     IncidencePlaneAngleList = [0, 0, angle]
-#     OpticalChainList.append(mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description = Description))
-#     OpticalChainList[-1].loop_variable_name = loop_variable_name
-#     OpticalChainList[-1].loop_variable_value = angle
-    
-#     #to produce and save renderings of the setup for each iteration in the loop:    
-#     mlab.options.offscreen = True
-#     fig = OpticalChainList[-1].render()
-#     name = "f-f-f_for_{foo:03d}deg.png"
-#     mlab.savefig(name.format(foo=int(angle)), figure=fig, magnification=3)
-
 
 #%%
 """ detector parameters """
