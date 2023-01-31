@@ -26,7 +26,7 @@ SourceProperties = {
 
 #%%
 """ OPTICAL SETUP """
-""" first create a perfectly aligned optical chain as usual """
+""" first create a perfectly aligned optical chain """
 Description = "single toroidal or ellipsoidal in 2f-2f config, possibly misaligned "
 Support = msupp.SupportRectangle(300,50)
 Focal = 500

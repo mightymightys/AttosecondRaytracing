@@ -216,7 +216,7 @@ def RotationAroundAxis(Axis, Angle, Vector):
 def RotationPoint(Point, Axis1, Axis2):
     """  Transform vector Point such that Axis1 in the old coordinate frame becomes vector Axis 2 in the new coordinate system  """
     Angle = AngleBetweenTwoVectors(Axis1,Axis2)
-    if Angle < 1e-10:
+    if abs(Angle) < 1e-10:
         Pointprime = Point
     elif abs(Angle - np.pi) < 1e-10:
         Pointprime = -Point

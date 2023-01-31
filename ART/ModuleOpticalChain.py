@@ -10,7 +10,8 @@ import ART.ModuleProcessing as mp
 import ART.ModuleGeometry as mgeo
 import ART.ModuleOpticalRay as mray
 import ART.ModuleOpticalElement as moe
-from ART.ModuleAnalysisAndPlots import RayRenderGraph
+#from ART.ModuleAnalysisAndPlots import RayRenderGraph
+import ART.ModuleAnalysisAndPlots as mplots
 
 #%%
 class OpticalChain:
@@ -18,8 +19,7 @@ class OpticalChain:
     The OpticalChain represents the whole optical setup to be simulated:
     Its atributes are a list of successive OpticalElements, and an associated list of 
     lists of Rays, each calculated by Ray tracing from one OpticalElement to the next.
-    So OpticalChain._output_rays[N] is the bundle of Rays *after* OpticalElement[N].
-    So for a full list of Ray-bundles, you'd do full_list = source_rays + _output_rays.
+    So OpticalChain.get_output_rays()[i] is the bundle of Rays *after* optical_elements[i].
     The string "description" can contain a short description of the optical setup, or similar notes.
     The OpticalChain can be visualized quicly with the method quickshow(), and more nicely with the method render().
     """
@@ -33,8 +33,8 @@ class OpticalChain:
         self.loop_variable_name = loop_variable_name
         self.loop_variable_value = loop_variable_value
         self._output_rays = None
-        self._last_optical_elements_hash = None #for now we don't care which element was changed
-                                                #but always do the whole raytracing again
+        self._last_optical_elements_hash = None #for now we don't care which element was changed.
+                                                #we just always do the whole raytracing again
         self._last_source_rays_hash = None
 
      
@@ -117,14 +117,14 @@ class OpticalChain:
         maxOEpoints = 1500
         QuickOpticalChain = self.copy_chain()
         QuickOpticalChain.source_rays =  np.random.choice(self.source_rays, maxRays, replace=False).tolist()
-        quickfig = RayRenderGraph(QuickOpticalChain, None, maxRays, maxOEpoints)
+        quickfig = mplots.RayRenderGraph(QuickOpticalChain, None, maxRays, maxOEpoints)
         return quickfig
     
     def render(self):
         """ Create a fairly good-looking 3D rendering of the optical chain. """
         maxRays = 150
         maxOEpoints = 3000
-        fig = RayRenderGraph(self, None, maxRays, maxOEpoints)
+        fig = mplots.RayRenderGraph(self, None, maxRays, maxOEpoints)
         return fig
    
 
