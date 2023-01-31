@@ -76,7 +76,7 @@ AnalysisOptions = {
 
     'DrawAiryAndFourier': True,    # Draw Airy spot and Fourier-limited duration in the following plots?
     
-    'plot_SpotDiagram': False,          # produce an interactive spot diagram without color coding the spots?
+    'plot_SpotDiagram': False,       # produce an interactive spot diagram without color coding the spots?
     'plot_DelaySpotDiagram': False,  # produce an interactive spot diagram with ray delays color coded?
     'plot_IntensitySpotDiagram': False, # produce an interactive spot diagram with ray intensities color coded?
     'plot_IncidenceSpotDiagram': False, # produce an interactive spot diagram with ray incidence angles color coded?

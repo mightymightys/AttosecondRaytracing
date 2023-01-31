@@ -10,25 +10,46 @@ import numpy as np
 #%%
 class Ray:
     """ 
-    Optical ray from geometrical optics
-    Point is point source of the light
-    Vector is the direction of the ray 
-    Wavelength is the wavelength of the light in mm
-    Path is the path length in mm covered by ray *before* it reached its starting point Point 
-    Number is an index needed to link the incident ray and the reflected ray
-    Incidence is the incidence angle in radian of the ray (reflection on a mirror) 
-    Intensity is the intensity in arb.u. carried by the ray 
+    Represents an optical ray from geometrical optics.
     """
     #__slots__ = ('_point', '_vector', '_path', '_number', '_wavelength', '_incidence', '_intensity') #doesn't bring a significant performance improvement
     
     def __init__(self, Point: np.ndarray, Vector: np.ndarray, Path=0.0, Number=None, Wavelength=None, Incidence=None, Intensity=None):
-            self.point = Point
-            self.vector = Vector #the setter normalizes
-            self._path = Path
-            self._wavelength = Wavelength
-            self._number = Number
-            self._incidence = Incidence
-            self._intensity = Intensity
+        """
+        Parameters
+        ----------
+        *Point* : np.ndarray
+            Point source of the ray..
+        
+        *Vector* : np.ndarray
+            Direction unit-vector of the ray..
+        
+        *Path* : float, optional
+            Path length in mm covered by ray *before* it reached its starting Point. . The default is 0.0.
+        
+        *Number* : int, optional
+            Index needed to link the incident ray and the reflected ray. The default is None, but it should be set by afterwards setting the attribute Ray._number.!
+        
+        *Wavelength* : float, optional
+            Wavelength of the light in mm. The default is None.
+        
+        *Incidence* : float, optional
+            Incidence angle in radian of the ray on the optical element *from which it originates*.
+            Gets calculated during ray tracing. The default is None. The source rays therefore have "None" incidence.
+        
+        *Intensity* : float, optional
+            Intensity, or more strictly speaking the fluence fraction in arb.u. carried by the ray. The default is None.
+
+        """
+        self.point = Point   #the setter checks
+        self.vector = Vector #the setter checks and normalizes
+        self._path = Path
+        self._wavelength = Wavelength
+        self._incidence = Incidence
+        self._intensity = Intensity
+        if type(Number) == int or Number is None: 
+                  self._number = Number
+        else: raise TypeError('Ray Number must be an integer.')  
        
     """
     Removing the setters and getters with their checks would gain about 10-30% speed because we use the Ray-class a lot.
@@ -71,7 +92,7 @@ class Ray:
     def number(self): 
         return self._number
     
-    #actually, we don't want to number to be changable afterwards
+    #actually, we don't want to number to be changable afterwards, so not setter
     # @number.setter 
     # def number(self, Number): 
     #     if type(Number) == int or Number is None: 
@@ -114,6 +135,9 @@ class Ray:
 
 #%%    
     def copy_ray(self):
+        """
+        Returns a new OpticalRay object with the same properties.
+        """
         return Ray(self.point,self.vector, self.path,self.number,self.wavelength,self.incidence, self.intensity)
 
 

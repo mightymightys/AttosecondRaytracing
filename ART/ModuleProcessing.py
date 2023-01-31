@@ -262,7 +262,7 @@ def ReturnNumericalAperture(RayList, RefractiveIndex):
 
 #%%
 def ReturnAiryRadius(Wavelength, NumericalAperture):
-    if NumericalAperture > 1e-3: 
+    if NumericalAperture > 1e-3 and Wavelength is not None: 
         return 1.22*0.5*Wavelength/NumericalAperture
     else:
         return 0  #for very small numerical apertures, diffraction effects becomes negligible and the Airy Radius becomes meaningless
@@ -398,6 +398,7 @@ def singleOEPlacement(SourceProperties: dict, OpticsList: list, DistanceList: li
     Divergence = SourceProperties["Divergence"]
     SourceSize = SourceProperties["SourceSize"]
     RayNumber = SourceProperties["NumberRays"]
+    Wavelength = SourceProperties["Wavelength"]
 
     IncidencePlaneAngleList = [np.deg2rad((i%360)) for i in IncidencePlaneAngleList] # wrap angles into [0,360]deg and convert to radian
     IncidenceAngleList = [np.deg2rad((i%360)) for i in IncidenceAngleList]  # wrap angles into [0,360]deg and convert to radian
@@ -413,14 +414,14 @@ def singleOEPlacement(SourceProperties: dict, OpticsList: list, DistanceList: li
                 radius = OpticsList[0].support.radius # otherwise it must be a round support
         else: 
             radius = SourceSize/2;
-        SourceRayList = msource.PlaneWaveDisk(SourcePosition, SourceDirection, radius, RayNumber)
+        SourceRayList = msource.PlaneWaveDisk(SourcePosition, SourceDirection, radius, RayNumber, Wavelength = Wavelength)
     else:
         if SourceSize ==0:
-            SourceRayList = msource.PointSource(SourcePosition, SourceDirection, Divergence, RayNumber)
+            SourceRayList = msource.PointSource(SourcePosition, SourceDirection, Divergence, RayNumber, Wavelength = Wavelength)
         else: 
-            SourceRayList = msource.ExtendedSource(SourcePosition, SourceDirection, SourceSize, Divergence, RayNumber)
+            SourceRayList = msource.ExtendedSource(SourcePosition, SourceDirection, SourceSize, Divergence, RayNumber, Wavelength = Wavelength)
     
-    SourceRayList = msource.ApplyGaussianIntensityToRayList(SourceRayList, 1/np.e**2) #Intensity drops to 1/e^2 at edge of cone
+    SourceRayList = msource.ApplyGaussianIntensityToRayList(SourceRayList, 1/np.e**2) #Intensity drops to 1/e^2 at edge of ray-bundle
     
     # Now successively create and align optical elements 
     SourceRay = [mray.Ray(SourcePosition, SourceDirection)] # a single source ray in the central direction of the ray-bundle created above

@@ -157,36 +157,36 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
         
 
     if AnalysisOptions["plot_DelayMirrorProjection"]:
-        mplots.MirrorProjection(RayListAnalysed,OpticalChain,DetectorOptions["ReflectionNumber"],Detector, 'Delay')
+        mplots.MirrorProjection(OpticalChain,DetectorOptions["ReflectionNumber"],Detector, 'Delay')
     
     if AnalysisOptions["plot_IntensityMirrorProjection"]:
-        mplots.MirrorProjection(RayListAnalysed,OpticalChain,DetectorOptions["ReflectionNumber"],Detector, 'Intensity')
+        mplots.MirrorProjection(OpticalChain,DetectorOptions["ReflectionNumber"],Detector, 'Intensity')
     
     if AnalysisOptions["plot_IncidenceMirrorProjection"]:
-        mplots.MirrorProjection(RayListAnalysed,OpticalChain,DetectorOptions["ReflectionNumber"],Detector, 'Incidence')
+        mplots.MirrorProjection(OpticalChain,DetectorOptions["ReflectionNumber"],Detector, 'Incidence')
     
 
     if AnalysisOptions["plot_SpotDiagram"]: 
-        mplots.SpotDiagram(RayListAnalysed, Detector, SourceProperties["Wavelength"], AnalysisOptions["DrawAiryAndFourier"])
+        mplots.SpotDiagram(RayListAnalysed, Detector, AnalysisOptions["DrawAiryAndFourier"])
     
     if AnalysisOptions["plot_DelaySpotDiagram"]:
-        mplots.SpotDiagram(RayListAnalysed, Detector, SourceProperties["Wavelength"], AnalysisOptions["DrawAiryAndFourier"], 'Delay')
+        mplots.SpotDiagram(RayListAnalysed, Detector, AnalysisOptions["DrawAiryAndFourier"], 'Delay')
     
     if AnalysisOptions["plot_IntensitySpotDiagram"]:
-        mplots.SpotDiagram(RayListAnalysed, Detector, SourceProperties["Wavelength"], AnalysisOptions["DrawAiryAndFourier"], 'Intensity')
+        mplots.SpotDiagram(RayListAnalysed, Detector, AnalysisOptions["DrawAiryAndFourier"], 'Intensity')
     
     if AnalysisOptions["plot_IncidenceSpotDiagram"]:
-        mplots.SpotDiagram(RayListAnalysed, Detector, SourceProperties["Wavelength"], AnalysisOptions["DrawAiryAndFourier"], 'Incidence')
+        mplots.SpotDiagram(RayListAnalysed, Detector, AnalysisOptions["DrawAiryAndFourier"], 'Incidence')
     
 
     if AnalysisOptions["plot_DelayGraph"]:
-        mplots.DelayGraph(RayListAnalysed, Detector, SourceProperties["Wavelength"], SourceProperties["DeltaFT"], AnalysisOptions["DrawAiryAndFourier"], 'Delay')    
+        mplots.DelayGraph(RayListAnalysed, Detector, SourceProperties["DeltaFT"], AnalysisOptions["DrawAiryAndFourier"], 'Delay')    
     
     if AnalysisOptions["plot_IntensityGraph"]:
-        mplots.DelayGraph(RayListAnalysed, Detector, SourceProperties["Wavelength"], SourceProperties["DeltaFT"], AnalysisOptions["DrawAiryAndFourier"], 'Intensity')
+        mplots.DelayGraph(RayListAnalysed, Detector, SourceProperties["DeltaFT"], AnalysisOptions["DrawAiryAndFourier"], 'Intensity')
         
     if AnalysisOptions["plot_IncidenceGraph"]:
-        mplots.DelayGraph(RayListAnalysed, Detector, SourceProperties["Wavelength"], SourceProperties["DeltaFT"], AnalysisOptions["DrawAiryAndFourier"], 'Incidence')
+        mplots.DelayGraph(RayListAnalysed, Detector, SourceProperties["DeltaFT"], AnalysisOptions["DrawAiryAndFourier"], 'Incidence')
     
     if __name__ == "__main__":
         plt.show(block=True)

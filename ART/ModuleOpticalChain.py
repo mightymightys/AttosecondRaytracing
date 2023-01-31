@@ -265,7 +265,7 @@ class OpticalChain:
     def rotate_OE(self, OEindx :int, axis :str, angle :float):
         """
         rotate the optical element OpticalChain.optical_elements[OEindx] about
-        axis specified by "pitch", "roll", "yaw", or "random". angle in deg.
+        axis specified by "pitch", "roll", "yaw", or "random". angle in deg..
         """
         if abs(OEindx) > len(self.optical_elements):
             raise ValueError('The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.')     
