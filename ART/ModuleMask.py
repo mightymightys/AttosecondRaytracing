@@ -23,7 +23,7 @@ class Mask:
         where rays do NOT hit the mask's support """
         t = -Ray.point[2] / Ray.vector[2]
         I = Ray.vector*t + Ray.point
-        if t > 0 and not self.support.IncludeSupport(I):
+        if t > 0 and not self.support._IncludeSupport(I):
             PointIntersection = I
         else: 
             PointIntersection = None
@@ -39,7 +39,7 @@ class Mask:
     
     def get_grid3D(self,NbPoint):
         ListCoordXYZ = []
-        ListCoordXY = self.support.get_grid(NbPoint)
+        ListCoordXY = self.support._get_grid(NbPoint)
         for k in ListCoordXY:
             z = 0
             ListCoordXYZ.append(np.array([k[0],k[1],z]))

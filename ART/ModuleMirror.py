@@ -1,4 +1,12 @@
 """
+Provides classes for different mirror surfaces, which are types of optical elements.
+Think of these as the z-coordinates on top of the x-y-grid provided by the support.
+
+Also provides the function *ReflectionMirrorRayList* that returns the rays reflected on 
+the mirror. Rays that do not hit the support are not further propagated.
+"""
+
+"""
 Created in 2019
 
 @author: Anthony Guillaume and Stefan Haessler and Charles Bourassin-Bouchet
@@ -9,7 +17,7 @@ import numpy as np
 import ART.ModuleGeometry as mgeo
 
 #%%
-def IntersectionRayMirror(PointMirror, ListPointIntersectionMirror):
+def _IntersectionRayMirror(PointMirror, ListPointIntersectionMirror):
     """  when the ray has pierced the mirror twice, select the first point, otherwise just keep that one  """                
     if len(ListPointIntersectionMirror) == 2:
             return mgeo.ClosestPoint(PointMirror, ListPointIntersectionMirror[0], ListPointIntersectionMirror[1])
@@ -21,16 +29,38 @@ def IntersectionRayMirror(PointMirror, ListPointIntersectionMirror):
 
 #%%############################################################################
 class MirrorPlane:
+    """
+    A plane mirror.
     
+    Attributes
+    ----------
+        support : Support-object from ModuleSupport
+        
+        type : 'Plane Mirror'.
+            
+    Methods
+    ----------
+        get_normal(Point)
+        
+        get_centre()
+        
+        get_grid3D(NbPoints)
+    """
     def __init__(self, Support):
+        """
+        Parameters
+        ----------
+            Support : Support-object from ModuleSupport
+
+        """
         self.support = Support
         self.type = 'Plane Mirror'
 
-    def get_intersection(self, Ray):
+    def _get_intersection(self, Ray):
         """  Return the intersection point between Ray and the xy-plane  """
         t = -Ray.point[2] / Ray.vector[2]
         I = Ray.vector*t + Ray.point
-        if t > 0 and self.support.IncludeSupport(I):
+        if t > 0 and self.support._IncludeSupport(I):
             PointIntersection = Ray.vector*t + Ray.point
         else: 
             PointIntersection = None
@@ -38,16 +68,22 @@ class MirrorPlane:
         return PointIntersection
     
     
-    def get_normal(self, Point):
+    def get_normal(self, Point : np.ndarray):
+        """  Return normal unit vector in point 'Point' on the plane mirror. """
         Normal = np.array([0,0,1])
         return Normal
     
     def get_centre(self):
+        """  Return 3D coordinates of the point on the mirror surface at the center of its support. """
         return np.array([0,0,0])
     
-    def get_grid3D(self,NbPoint):
+    def get_grid3D(self, NbPoints : int):
+        """
+        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
+        sampling the support in a number NbPoints of points.
+        """
         ListCoordXYZ = []
-        ListCoordXY = self.support.get_grid(NbPoint)
+        ListCoordXY = self.support._get_grid(NbPoints)
         for k in ListCoordXY:
             z = 0
             ListCoordXYZ.append(np.array([k[0],k[1],z]))
@@ -56,9 +92,39 @@ class MirrorPlane:
 
 #%%############################################################################
 class MirrorSpherical:
-    """ spherical mirror surface with eqn x**2 + y**2 + z**2  = R**2, 
-        where R is the radius. """
+    """
+    Spherical mirror surface with eqn. $x^2 + y^2 + z^2  = R^2$, where $R$ is the radius.
+    
+    ![Illustration of a spherical mirror.](../documentation/sphericalmirror.svg)
+    
+    Attributes
+    ----------
+        radius : float
+            Radius of curvature. A postive value for concave mirror, a negative value for a convex mirror.
+    
+        support : Support-object from ModuleSupport
+        
+        type : str SphericalCC Mirror' or SphericalCX Mirror'
+            
+    Methods
+    ----------
+        get_normal(Point)
+        
+        get_centre()
+        
+        get_grid3D(NbPoints)
+    
+    """
     def __init__(self, Radius, Support):
+        """
+        Parameters
+        ----------
+            Radius : float
+                The radius of curvature in mm. A postive value for concave mirror, a negative value for a convex mirror.
+            
+            Support : Support-object from ModuleSupport
+
+        """
         if Radius <0:
             self.type = 'SphericalCX Mirror'
             self.radius = -Radius
@@ -69,7 +135,7 @@ class MirrorSpherical:
         self.support = Support
         
     
-    def get_intersection(self, Ray):
+    def _get_intersection(self, Ray):
         """  Return the intersection point between the ray and the sphere  """                
         a = np.dot(Ray.vector,Ray.vector)
         b = 2 * np.dot(Ray.vector, Ray.point)
@@ -81,22 +147,27 @@ class MirrorSpherical:
         ListPointIntersection = []
         for t in Solution:
             I = Ray.vector*t + Ray.point
-            if I[2] < 0 and self.support.IncludeSupport(I):
+            if I[2] < 0 and self.support._IncludeSupport(I):
                 ListPointIntersection.append(I) 
                     
-        return IntersectionRayMirror(Ray.point, ListPointIntersection)
+        return _IntersectionRayMirror(Ray.point, ListPointIntersection)
     
     def get_normal(self, Point):
-        """ Return the gradient of the sphere surface at point Point """
+        """ Return the normal unit vector on the spherical surface at point Point """
         Gradient = Point
         return mgeo.Normalize(Gradient)
     
     def get_centre(self):
+        """  Return 3D coordinates of the point on the mirror surface at the center of its support. """
         return np.array([0,0,-self.radius])
     
     def get_grid3D(self,NbPoint):
+        """
+        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
+        sampling the support in a number NbPoints of points.
+        """
         ListCoordXYZ = []
-        ListCoordXY = self.support.get_grid(NbPoint)
+        ListCoordXY = self.support._get_grid(NbPoint)
         for k in ListCoordXY:
             z = -np.sqrt(self.radius**2 - (k[0]**2 + k[1]**2))
             ListCoordXYZ.append(np.array([k[0],k[1],z]))
@@ -105,14 +176,55 @@ class MirrorSpherical:
     
 #%%############################################################################
 class MirrorParabolic:
-    """ paraboloid with vertex at the origin [0,0,0] and symmetry axis z, 
-        with the center of the support shifted off axis along the x-direction
-        eqn z = ((x+xc)**2 + y**2)/(2p) where p is the semi latus rectum.
-        The effective focal length is related to the semi latus rectum by 
-        SemiLatusRectum = FocalEffective1*(1+np.cos(offAxisAngle/180*np.pi)).
-        OffAxisAngle is given in deg, but stored in rad !
+    """ 
+    A paraboloid with vertex at the origin [0,0,0] and symmetry axis z, 
+    with the center of the support shifted off axis along the x-direction.
+    Its eqn. is therefore $z = \\frac{1}{2p}[(x+x_c)^2 + y^2]$ where $p$ is the semi latus rectum,
+    equal to twice the focal lenght of the *mother* parabola (i.e. off-axis angle $\\alpha=0$).
+    
+    The effective focal length $f_\\mathrm{eff}$ is related to the semi latus rectum by 
+    $ p = f_\\mathrm{eff} (1+\\cos\\alpha)$, where $\\alpha$ is the off-axis angle.
+    
+    ![Illustration of a parabolic mirror.](../documentation/parabola.svg)
+
+    Attributes
+    ----------
+        offaxisangle : float
+            Off-axis angle of the parabola. Modifying this also updates p, keeping feff constant.
+            Attention: The off-axis angle must be *given in degrees*, but is stored and will be *returned in radian* !
+            
+        feff : float
+            Effective focal length of the parabola in mm. Modifying this also updates p, keeping offaxisangle constant.
+    
+        p : float
+            Semi latus rectum of the parabola in mm. Modifying this also updates feff, keeping offaxisangle constant.
+    
+        support : Support-object from ModuleSupport
+        
+        type : str 'Parabolic Mirror'.
+            
+    Methods
+    ----------
+        get_normal(Point)
+        
+        get_centre()
+        
+        get_grid3D(NbPoints)
+    
     """
     def __init__(self, FocalEffective :float, OffAxisAngle :float, Support):
+        """
+        Parameters
+        ----------
+            FocalEffective : float
+                Effective focal length of the parabola in mm.
+            
+            OffAxisAngle : float
+                Off-axis angle *in degrees* of the parabola.
+            
+            Support : Support-object from ModuleSupport
+
+        """
         self._offaxisangle = np.deg2rad(OffAxisAngle) 
         self.support = Support
         self.type = 'Parabolic Mirror'
@@ -147,7 +259,7 @@ class MirrorParabolic:
         self._feff = self._p/(1+np.cos(self.offaxisangle))  #make sure to always update feff
  
     
-    def get_intersection(self, Ray):
+    def _get_intersection(self, Ray):
         """  Return the intersection point between the ray and the parabola  """
         ux = Ray.vector[0]
         uy = Ray.vector[1]
@@ -166,13 +278,13 @@ class MirrorParabolic:
         ListPointIntersection = []
         for t in Solution:
             I = Ray.vector*t + Ray.point
-            if self.support.IncludeSupport(I-self.get_centre()):
+            if self.support._IncludeSupport(I-self.get_centre()):
                 ListPointIntersection.append(I)
 
-        return IntersectionRayMirror(Ray.point, ListPointIntersection)
+        return _IntersectionRayMirror(Ray.point, ListPointIntersection)
     
     def get_normal(self, Point):
-         """ Return the gradient vector of the paraboloid surface at point Point """
+         """ Return the normal unit vector on the paraboloid surface at point Point """
          Gradient = np.zeros(3)
          Gradient[0] = Point[0]
          Gradient[1] = Point[1]
@@ -180,11 +292,16 @@ class MirrorParabolic:
          return mgeo.Normalize(Gradient)
     
     def get_centre(self):
+        """  Return 3D coordinates of the point on the mirror surface at the center of its support. """
         return np.array([self.feff*np.sin(self.offaxisangle),0,self.p*0.5 - self.feff*np.cos(self.offaxisangle)])
     
     def get_grid3D(self,NbPoint):
+        """
+        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
+        sampling the support in a number NbPoints of points.
+        """
         ListCoordXYZ = []
-        ListCoordXY = self.support.get_grid(NbPoint)
+        ListCoordXY = self.support._get_grid(NbPoint)
         xc = self.feff*np.sin(self.offaxisangle)
         for k in ListCoordXY:
             z = ((k[0]+xc)**2 + k[1]**2)/2/self.p
@@ -195,15 +312,53 @@ class MirrorParabolic:
     
 #%%############################################################################
 class MirrorToroidal:
-    """ toroidal mirror surface with eqn (sqrt(x**2 +z**2) -R)**2 +y**2 = r**2,
-        where R and r the major and minor radii  """
+    """
+    Toroidal mirror surface with eqn. $(\\sqrt{x**2 +z**2} - R)^2 + y^2 = r^2$,
+    where $R$ and $r$ the major and minor radii.
+    
+    ![Illustration of a toroidal mirror.](../documentation/toroidal.svg)
+    
+    Attributes
+    ----------
+        majorradius : float
+            Major radius of the toroid in mm.
+            
+        minorradius : float
+            Minor radius of the toroid in mm.
+  
+        support : Support-object from ModuleSupport
+        
+        type : str 'Toroidal Mirror'.
+            
+    Methods
+    ----------
+        get_normal(Point)
+        
+        get_centre()
+        
+        get_grid3D(NbPoints)
+        
+    """
     def __init__(self, MajorRadius, MinorRadius, Support):
+        """
+        Parameters
+        ----------
+            MajorRadius : float
+                Major radius of the toroid in mm.
+            
+            MinorRadius : float
+                Minor radius of the toroid in mm.
+            
+            Support : Support-object from ModuleSupport
+
+        """
         self.majorradius = MajorRadius
         self.minorradius = MinorRadius
         self.support = Support
         self.type = 'Toroidal Mirror'   
     
-    def get_intersection(self, Ray):
+    def _get_intersection(self, Ray):
+        """  Return the intersection point between Ray and the toroidal mirror surface. """
         ux = Ray.vector[0]
         uz = Ray.vector[2]
         xA = Ray.point[0]
@@ -228,12 +383,13 @@ class MirrorToroidal:
         ListPointIntersection = []
         for t in Solution:
             I = Ray.vector*t + Ray.point
-            if I[2] < -self.majorradius and self.support.IncludeSupport(I): # For realistic mirror
+            if I[2] < -self.majorradius and self.support._IncludeSupport(I): # For realistic mirror
                 ListPointIntersection.append(I)            
         
-        return IntersectionRayMirror(Ray.point, ListPointIntersection)
+        return _IntersectionRayMirror(Ray.point, ListPointIntersection)
     
     def get_normal(self, Point):
+        """ Return the normal unit vector on the toroidal surface at point Point. """
         x = Point[0]
         y = Point[1]
         z = Point[2]
@@ -247,18 +403,39 @@ class MirrorToroidal:
         return mgeo.Normalize(Gradient)
 
     def get_centre(self):
+        """  Return 3D coordinates of the point on the mirror surface at the center of its support. """
         return np.array([0,0,-self.majorradius - self.minorradius])
     
     def get_grid3D(self,NbPoint):
+        """
+        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
+        sampling the support in a number NbPoints of points.
+        """
         ListCoordXYZ = []
-        ListCoordXY = self.support.get_grid(NbPoint)
+        ListCoordXY = self.support._get_grid(NbPoint)
         for k in ListCoordXY:
             z = -np.sqrt( (np.sqrt(self.minorradius**2 - k[1]**2 ) + self.majorradius )**2 - k[0]**2)
             ListCoordXYZ.append(np.array([k[0],k[1],z]))
         return ListCoordXYZ
 
 #%%
-def ReturnOptimalToroidalRadii(Focal, AngleIncidence):
+def ReturnOptimalToroidalRadii(Focal : float, AngleIncidence : float) -> (float, float):
+    """
+    Useful helper function to get the optimal major and minor radii for a toroidal mirror to achieve a
+    focal length 'Focal' with an angle of incidence 'AngleIncidence' and with vanishing astigmatism.
+    
+    Parameters
+    ----------
+        Focal : float
+            Focal length in mm.
+            
+        AngleIncidence : int
+            Angle of incidence in degrees.
+    
+    Returns
+    -------
+        OptimalMajorRadius, OptimalMinorRadius : float, float.
+    """
     AngleIncidenceRadian = AngleIncidence*np.pi/180
     OptimalMajorRadius = 2*Focal*(1/np.cos(AngleIncidenceRadian) - np.cos(AngleIncidenceRadian))
     OptimalMinorRadius = 2*Focal*np.cos(AngleIncidenceRadian)
@@ -267,15 +444,53 @@ def ReturnOptimalToroidalRadii(Focal, AngleIncidence):
 
 #%%############################################################################
 class MirrorEllipsoidal:
-    """ ellipdoidal mirror surface with eqn. (x/a)**2 + (y/b)**2 + (z/b)**2 = 1,
-        where a and b are semi major and semi minor axes """
+    """
+    Ellipdoidal mirror surface with eqn. $(x/a)^2 + (y/b)^2 + (z/b)^2 = 1$,
+    where $a$ and $b$ are semi major and semi minor axes.
+    
+    ![Illustration of a ellipsoidal mirror.](../documentation/ellipsoid.svg)
+
+    Attributes
+    ----------
+        a : float
+            Semi major axis of the ellipsoid in mm.
+            
+        b : float
+            Semi minor axis of the ellipsoid in mm.    
+
+        support : Support-object from ModuleSupport
+        
+        type : str 'Ellipsoidal Mirror'.
+             
+    Methods
+    ----------
+        get_normal(Point)
+        
+        get_centre()
+        
+        get_grid3D(NbPoints)
+         
+    """
     def __init__(self, SemiMajorAxis, SemiMinorAxis, Support):
+        """
+        Parameters
+        ----------
+            SemiMajorAxis : float
+                Semi major axis of the ellipsoid in mm.
+            
+            SemiMinorAxis : float
+                Semi minor axis of the ellipsoid in mm.
+            
+            Support : Support-object from ModuleSupport
+
+        """
         self.a = SemiMajorAxis
         self.b = SemiMinorAxis
         self.support = Support
         self.type = 'Ellipsoidal Mirror'
     
-    def get_intersection(self, Ray):
+    def _get_intersection(self, Ray):
+        """  Return the intersection point between Ray and the ellipsoidal mirror surface. """
         ux = Ray.vector[0]
         uy = Ray.vector[1]
         uz = Ray.vector[2]
@@ -293,12 +508,13 @@ class MirrorEllipsoidal:
         ListPointIntersection = []
         for t in Solution:
             I = Ray.vector*t + Ray.point
-            if I[2] < 0 and self.support.IncludeSupport(I) :
+            if I[2] < 0 and self.support._IncludeSupport(I) :
                 ListPointIntersection.append(I)            
                     
-        return IntersectionRayMirror(Ray.point, ListPointIntersection)
+        return _IntersectionRayMirror(Ray.point, ListPointIntersection)
     
     def get_normal(self, Point):
+        """ Return the normal unit vector on the ellipsoidal surface at point Point """
         Gradient = np.zeros(3)
         
         Gradient[0] = Point[0]/self.a**2
@@ -308,11 +524,16 @@ class MirrorEllipsoidal:
         return mgeo.Normalize(Gradient)
 
     def get_centre(self):
+        """  Return 3D coordinates of the point on the mirror surface at the center of its support. """
         return np.array([0,0,-self.b])
     
     def get_grid3D(self,NbPoint):
+        """
+        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
+        sampling the support in a number NbPoints of points.
+        """
         ListCoordXYZ = []
-        ListCoordXY = self.support.get_grid(NbPoint)
+        ListCoordXY = self.support._get_grid(NbPoint)
         for k in ListCoordXY:
             z = -self.b*np.sqrt(1 - (k[0]/self.a)**2 - (k[1]/self.b)**2 )
             ListCoordXYZ.append(np.array([k[0],k[1],z]))
@@ -321,8 +542,24 @@ class MirrorEllipsoidal:
 
 
 #%%
-def ReturnOptimalEllipsoidalAxes(Focal, AngleIncidence):
-    AngleIncidenceRadian = AngleIncidence*np.pi/180
+def ReturnOptimalEllipsoidalAxes(Focal : float, AngleIncidence : float):
+    """
+    Useful helper function to get the optimal major and minor axes for an ellipsoidal mirror to achieve a
+    focal length 'Focal' with an angle of incidence 'AngleIncidence'.
+    
+    Parameters
+    ----------
+        Focal : float
+            Focal length in mm.
+            
+        AngleIncidence : int
+            Angle of incidence in degrees.
+    
+    Returns
+    -------
+        OptimalSemiMajorAxis, OptimalSemiMinorAxis : float, float.
+    """
+    AngleIncidenceRadian = np.deg2rad(AngleIncidence)
     OptimalSemiMajorAxis = Focal
     OptimalSemiMinorAxis = OptimalSemiMajorAxis*np.cos(AngleIncidenceRadian)
     return OptimalSemiMajorAxis, OptimalSemiMinorAxis
@@ -330,8 +567,36 @@ def ReturnOptimalEllipsoidalAxes(Focal, AngleIncidence):
     
 #%%############################################################################
 class MirrorCylindrical:
-    """ cylindrical mirror surface with eqn. y**2 + z**2  = R**2, where R is the radius. """
+    """
+    Cylindrical mirror surface with eqn. $y^2 + z^2  = R^2$, where $R$ is the radius.
+    
+    Attributes
+    ----------
+        radius : float
+            Radius of curvature. A postive value for concave mirror, a negative value for a convex mirror.
+       
+        support : Support-object from ModuleSupport
+        
+        type : str 'Ellipsoidal Mirror'.
+             
+    Methods
+    ----------
+        get_normal(Point)
+        
+        get_centre()
+        
+        get_grid3D(NbPoints)
+    """
     def __init__(self, Radius, Support):
+        """
+        Parameters
+        ----------
+            Radius : float
+                The radius of curvature in mm. A postive value for concave mirror, a negative value for a convex mirror.
+            
+            Support : Support-object from ModuleSupport
+
+        """
         if Radius <0:
             self.type = 'CylindricalCX Mirror'
             self.radius = -Radius
@@ -342,8 +607,8 @@ class MirrorCylindrical:
         self.support = Support
         
     
-    def get_intersection(self, Ray):
-        """ Return the intersection point between the line and the cylinder. """ 
+    def _get_intersection(self, Ray):
+        """ Return the intersection point between the Ray and the cylinder. """ 
         uy = Ray.vector[1]
         uz = Ray.vector[2]
         yA = Ray.point[1]
@@ -359,23 +624,28 @@ class MirrorCylindrical:
         ListPointIntersection = []
         for t in Solution:
             I = Ray.vector*t + Ray.point
-            if I[2] < 0 and self.support.IncludeSupport(I):
+            if I[2] < 0 and self.support._IncludeSupport(I):
                 ListPointIntersection.append(I)    
             
-        return IntersectionRayMirror(Ray.point, ListPointIntersection)
+        return _IntersectionRayMirror(Ray.point, ListPointIntersection)
            
     
     def get_normal(self, Point):
-        """ Return the gradient of the cylinder surface at point P.  """
+        """ Return the normal unit vector on the cylinder surface at point P.  """
         Gradient = np.array([0, Point[1], Point[2]])
         return mgeo.Normalize(Gradient)
 
     def get_centre(self):
+        """  Return 3D coordinates of the point on the mirror surface at the center of its support. """
         return np.array([0,0,-self.radius])
     
     def get_grid3D(self,NbPoint):
+        """
+        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
+        sampling the support in a number NbPoints of points.
+        """
         ListCoordXYZ = []
-        ListCoordXY = self.support.get_grid(NbPoint)
+        ListCoordXY = self.support._get_grid(NbPoint)
         for k in ListCoordXY:
             z = -np.sqrt(self.radius**2 - k[1]**2)
             ListCoordXYZ.append(np.array([k[0],k[1],z]))
@@ -384,8 +654,21 @@ class MirrorCylindrical:
     
     
 #%%############################################################################
-def ReflectionMirrorRay(Mirror, PointMirror, Ray):
-    """ Returns the reflected ray according to the law of reflection """   
+def _ReflectionMirrorRay(Mirror, PointMirror, Ray):
+    """
+    Returns the reflected ray according to the law of reflection.
+    Updates the reflected ray's incidence angle and path.
+    
+    Parameters
+    ----------
+        Mirror : Mirror-object
+        
+        PointMirror : np.ndarray
+            Point of reflection on the mirror surface.
+            
+        Ray : Ray-object
+
+    """   
     PointRay = Ray.point
     VectorRay = Ray.vector
     NormalMirror = Mirror.get_normal(PointMirror)
@@ -402,16 +685,29 @@ def ReflectionMirrorRay(Mirror, PointMirror, Ray):
 
 #%%
 def ReflectionMirrorRayList(Mirror, ListRay):
+    """
+    Returns the the reflected rays according to the law of reflection for the list of 
+    incident rays ListRay. 
     
+    Rays that do not hit the support are not further propagated.
+
+    Updates the reflected rays' incidence angle and path.
+    
+    Parameters
+    ----------
+        Mirror : Mirror-object
+        
+        ListRay : list[Ray-object]
+
+    """
     ListRayReflected = []
     for k in ListRay:
-        PointMirror = Mirror.get_intersection(k)
+        PointMirror = Mirror._get_intersection(k)
 
         if PointMirror is not None:
-            RayReflected = ReflectionMirrorRay(Mirror, PointMirror, k)
+            RayReflected = _ReflectionMirrorRay(Mirror, PointMirror, k)
             ListRayReflected.append(RayReflected)
-
-            
+     
     return ListRayReflected
 
 

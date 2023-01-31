@@ -6,7 +6,7 @@ import ART.ModuleGeometry as mgeo
 
 #%%
 
-def Cone(Angle, NbRays):
+def Cone(Angle, NbRays, Wavelength = None):
     """
     Return a list of rays filling a cone according to Vogel's spiral.
     Angle is the cone's angle. NbRays is the number of rays.
@@ -21,12 +21,12 @@ def Cone(Angle, NbRays):
     for k in range(NbRays):
         x = MatrixXY[k,0]
         y = MatrixXY[k,1]
-        RayList.append(mray.Ray(np.array([0,0,0]), np.array([x,y,Height]), Number=k))
+        RayList.append(mray.Ray(np.array([0,0,0]), np.array([x,y,Height]), Number=k, Wavelength = Wavelength))
   
     return RayList
 
 
-def ExtendedSource(S, Axis, Diameter, Divergence, NbRays):
+def ExtendedSource(S, Axis, Diameter, Divergence, NbRays, Wavelength = None):
     """
     Return a list of rays simulating rays from an extended array of point sources, distributed over a disk with Diameter.
     S is the coordinate vector of the source, Axis is the axis vector of the cone (main direction of the rays), Divergence is the divergence of the source (similar to gaussian beam)
@@ -38,7 +38,7 @@ def ExtendedSource(S, Axis, Diameter, Divergence, NbRays):
     
     NbRaysPerPointSource = max(100, int(NbRays/NbPointSources))
     RayList = []
-    PointSourceRayList = Cone(Divergence, NbRaysPerPointSource)
+    PointSourceRayList = Cone(Divergence, NbRaysPerPointSource, Wavelength = Wavelength)
     for k in range(NbPointSources):
         ShiftedPointSourceRayList = mgeo.TranslationRayList(PointSourceRayList, [MatrixXY[k,0],MatrixXY[k,1],0])
         for l in range(NbRaysPerPointSource):
@@ -50,16 +50,48 @@ def ExtendedSource(S, Axis, Diameter, Divergence, NbRays):
     return RayList
 
 
-def PointSource(S, Axis, Divergence, NbRays):
+def PointSource(S, Axis, Divergence, NbRays, Wavelength = None):
     """
     Return a list of rays simulating rays from a point source.
     S is the coordinate vector of the source, Axis is the axis vector of the cone (main direction of the rays), Divergence is the divergence of the source (similar to gaussian beam)
     """
-    RayList = Cone(Divergence, NbRays)
+    RayList = Cone(Divergence, NbRays, Wavelength = Wavelength)
     RayList = mgeo.RotationRayList(RayList, np.array([0,0,1]), Axis)
     RayList = mgeo.TranslationRayList(RayList, S)
     return RayList
+    
+    
+#%%
+def PlaneWaveDisk(Centre, Axis, Radius, NbRays, Wavelength = None):
+    MatrixXY = mgeo.SpiralVogel(NbRays, Radius)
+    RayList = []
+    num=0
+    for k in range(NbRays-1):
+        x = MatrixXY[k,0]
+        y = MatrixXY[k,1]
+        RayList.append(mray.Ray(np.array([x,y,0]),np.array([0,0,1]), Number=num, Wavelength = Wavelength))
+        num = num + 1
+    RayList = mgeo.RotationRayList(RayList, np.array([0,0,1]), Axis)
+    RayList = mgeo.TranslationRayList(RayList, Centre)
+    return RayList
 
+#%%
+def PlaneWaveSquare(Centre, Axis, SideLength, NbRays, Wavelength = None):
+    RayList = []
+    x = np.linspace(-SideLength/2,SideLength/2,int(np.sqrt(NbRays)))
+    y = np.linspace(-SideLength/2,SideLength/2,int(np.sqrt(NbRays)))
+    RayList.append(mray.Ray(np.array([0,0,0]),np.array([0,0,1]), Number=0))
+    num = 1
+    for i in x:
+        for j in y:
+            if abs(x) >1e-4 and abs(y)>1e-4:
+                RayList.append(mray.Ray(np.array([i,j,0]),np.array([0,0,1]), Number=num, Wavelength = Wavelength))
+                num += 1
+    RayList = mgeo.RotationRayList(RayList, np.array([0,0,1]), Axis)
+    RayList = mgeo.TranslationRayList(RayList, Centre)
+    return RayList
+
+#%%
 def GaussianIntensity(r,z,I0, Wavelength, Divergence):
 
     w0 = Wavelength / (np.pi * Divergence)
@@ -92,35 +124,3 @@ def ApplyGaussianIntensityToRayList(RayList, IntensityFraction):
             Intensity = np.exp(-2*(np.linalg.norm(k.point)/MaxDist)**2 *-0.5*np.log(IntensityFraction)) 
             k.intensity = Intensity
     return RayList
-    
-    
-#%%
-def PlaneWaveDisk(Centre, Axis, Radius, NbRays):
-    MatrixXY = mgeo.SpiralVogel(NbRays, Radius)
-    RayList = []
-    num=0
-    for k in range(NbRays-1):
-        x = MatrixXY[k,0]
-        y = MatrixXY[k,1]
-        RayList.append(mray.Ray(np.array([x,y,0]),np.array([0,0,1]), Number=num))
-        num = num + 1
-    RayList = mgeo.RotationRayList(RayList, np.array([0,0,1]), Axis)
-    RayList = mgeo.TranslationRayList(RayList, Centre)
-    return RayList
-
-#%%
-def PlaneWaveSquare(Centre, Axis, SideLength, NbRays):
-    RayList = []
-    x = np.linspace(-SideLength/2,SideLength/2,int(np.sqrt(NbRays)))
-    y = np.linspace(-SideLength/2,SideLength/2,int(np.sqrt(NbRays)))
-    RayList.append(mray.Ray(np.array([0,0,0]),np.array([0,0,1]), Number=0))
-    num = 1
-    for i in x:
-        for j in y:
-            if abs(x) >1e-4 and abs(y)>1e-4:
-                RayList.append(mray.Ray(np.array([i,j,0]),np.array([0,0,1]), Number=num))
-                num = num + 1
-    RayList = mgeo.RotationRayList(RayList, np.array([0,0,1]), Axis)
-    RayList = mgeo.TranslationRayList(RayList, Centre)
-    return RayList
-

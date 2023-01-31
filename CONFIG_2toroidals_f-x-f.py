@@ -105,15 +105,15 @@ TO RUN A SIMULATION, TYPE IN AN ANACONDA-PROMPT (or equivalent):
     
 IF WANT TO RUN THIS CONFIG-SCRIPT DIRECTLY, call the main function of the ARTmain.py-program from here:
 """
-from ARTmain import main
-kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
+# from ARTmain import main
+# kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
     
-#    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots()
-ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
-ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
-ax.set_ylabel("DurationSD")
+# #    THEN, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO:
+# import matplotlib.pyplot as plt
+# fig, ax = plt.subplots()
+# ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
+# ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
+# ax.set_ylabel("DurationSD")
 
 
 
