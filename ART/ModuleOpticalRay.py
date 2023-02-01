@@ -18,27 +18,27 @@ class Ray:
         """
         Parameters
         ----------
-        *Point* : np.ndarray
-            Point source of the ray..
-        
-        *Vector* : np.ndarray
-            Direction unit-vector of the ray..
-        
-        *Path* : float, optional
-            Path length in mm covered by ray *before* it reached its starting Point. . The default is 0.0.
-        
-        *Number* : int, optional
-            Index needed to link the incident ray and the reflected ray. The default is None, but it should be set by afterwards setting the attribute Ray._number.!
-        
-        *Wavelength* : float, optional
-            Wavelength of the light in mm. The default is None.
-        
-        *Incidence* : float, optional
-            Incidence angle in radian of the ray on the optical element *from which it originates*.
-            Gets calculated during ray tracing. The default is None. The source rays therefore have "None" incidence.
-        
-        *Intensity* : float, optional
-            Intensity, or more strictly speaking the fluence fraction in arb.u. carried by the ray. The default is None.
+            Point : np.ndarray
+                Point source of the ray..
+            
+            Vector : np.ndarray
+                Direction unit-vector of the ray..
+            
+            Path : float, optional
+                Path length in mm covered by ray *before* its starting Point. The default is 0.
+            
+            Number : int, optional
+                Index needed to link the incident ray and the reflected ray. The default is None, but it should be set by afterwards setting the attribute Ray._number.!
+            
+            Wavelength : float, optional
+                Wavelength of the light in mm. The default is None.
+            
+            Incidence : float, optional
+                Incidence angle in radian of the ray on the optical element *from which it originates*.
+                Gets calculated during ray tracing. The default is None. The source rays therefore have "None" incidence.
+            
+            Intensity : float, optional
+                Intensity, or more strictly speaking the fluence fraction in arb.u. carried by the ray. The default is None.
 
         """
         self.point = Point   #the setter checks

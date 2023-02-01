@@ -1,4 +1,9 @@
 """
+Contains a bunch of useful function for geometric transformations and measurements.
+Usually these don't need to be called by users of ART, but they may be useful.
+"""
+
+"""
 Created in 2019
 
 @author: Anthony Guillaume
@@ -9,6 +14,7 @@ from quaternion import quaternion
 
 #%%
 def Normalize(Vector):
+    """ Normalize Vector. """
     return Vector/np.linalg.norm(Vector)
 
 #%%
@@ -29,7 +35,7 @@ def VectorPerpendicular(Vector):
 
 #%%
 def AngleBetweenTwoVectors(U,V):
-    """    Return the angle between the vectors U and V ; formula from W.Kahan    """
+    """    Return the angle in radians between the vectors U and V ; formula from W.Kahan    """
     u = np.linalg.norm(U) 
     v = np.linalg.norm(V)
     return 2*np.arctan2(np.linalg.norm(U*v - V*u), np.linalg.norm(U*v + V*u))
@@ -107,6 +113,7 @@ def KeepPositiveSolution(SolutionList):
             
     return PositiveSolutionList
 
+
 #%%
 def ClosestPoint(A, I1, I2):
     """
@@ -130,6 +137,91 @@ def FarestPoint(A, I1, I2):
         return I1
     else : 
         return I2
+
+#%%
+def DiameterPointList(PointList):
+    """
+    Return the diameter of the smallest circle (for 2D points) or sphere (3D points) including all the points
+    """
+    if len(PointList) == 0:
+        return None
+        
+    elif len(PointList[0]) == 2:
+        Xmax = PointList[0][0]
+        Xmin = PointList[0][0]
+        Ymax = PointList[0][1]
+        Ymin = PointList[0][1]
+        
+        for k in PointList:
+            x = k[0]
+            y = k[1]
+            
+            Xmax = max(x,Xmax)
+            Xmin = min(x,Xmin)
+            Ymax = max(y,Ymax)
+            Ymin = min(y,Ymin)
+            
+        X = abs(Xmax - Xmin)
+        Y = abs(Ymax - Ymin)
+        Diameter = max(X, Y)
+        
+        return Diameter
+    
+    elif len(PointList[0]) == 3:
+        Xmax = PointList[0][0]
+        Xmin = PointList[0][0]
+        Ymax = PointList[0][1]
+        Ymin = PointList[0][1]
+        Zmax = PointList[0][2]
+        Zmin = PointList[0][2]
+        
+        for k in PointList:
+            x = k[0]
+            y = k[1]
+            z = k[2]
+            
+            Xmax = max(x,Xmax)
+            Xmin = min(x,Xmin)
+            Ymax = max(y,Ymax)
+            Ymin = min(y,Ymin)
+            Zmax = max(z,Zmax)
+            Zmin = min(z,Zmin)
+            
+        X = abs(Xmax - Xmin)
+        Y = abs(Ymax - Ymin)
+        Z = abs(Zmax - Zmin)
+        Diameter = max(X, Y)
+        Diameter = max(Diameter, Z)
+        
+        return Diameter
+    
+    
+#%%
+def CentrePointList(PointList):
+    """
+    Shift all 2D-points in PointList so as to center the point-cloud on the origin [0,0].
+    """
+    ListCoordX = []
+    ListCoordY = []
+    appendX = ListCoordX.append
+    appendY = ListCoordY.append
+    
+    for k in PointList:
+        appendX(k[0])
+        appendY(k[1])
+    
+    CentreX = (np.amax(ListCoordX) + np.amin(ListCoordX)) * 0.5
+    CentreY = (np.amax(ListCoordY) + np.amin(ListCoordY)) * 0.5
+    
+    PointListCentered = []
+    append = PointListCentered.append
+    for k in PointList:
+        x = k[0] - CentreX
+        y = k[1] - CentreY
+        append(np.array([x,y]))
+        
+    return PointListCentered
+
 
 #%%        
 def IncludeRectangle(X, Y, Point):

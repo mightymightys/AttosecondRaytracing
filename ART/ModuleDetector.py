@@ -2,6 +2,8 @@
 Provides a class which represents a virtual detector —a plane in 3D space— with methods
 to analyze the impact points of a ray bundle intercepting it.
 
+This module is used by 'ARTmain' to set up a detector according to the values in the *DetectorOptions*-dictionary filled in the CONFIG-scripts..
+
 ![Illustration of the detector plane.](../documentation/detector.svg)
 """
 
@@ -242,7 +244,7 @@ class Detector:
         """
         if self._iscomplete():
             ListPointDetector2D = self.get_PointList2D(RayList)
-            ListPointDetector2DCentre = mp.CentrePointList(ListPointDetector2D)
+            ListPointDetector2DCentre = mgeo.CentrePointList(ListPointDetector2D)
             return ListPointDetector2DCentre
 
 

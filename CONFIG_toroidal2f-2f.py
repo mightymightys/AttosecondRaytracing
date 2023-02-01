@@ -28,14 +28,14 @@ SourceProperties = {
 """ OPTICAL SETUP """
 """ first create a perfectly aligned optical chain """
 Description = "single toroidal or ellipsoidal in 2f-2f config, possibly misaligned "
+
 Support = msupp.SupportRectangle(300,50)
+
 Focal = 500
 MirrorIncidence = 80 #in deg
-
 # Toroidal
 OptimalMajorRadius, OptimalMinorRadius = mmirror.ReturnOptimalToroidalRadii(Focal,MirrorIncidence)
 Mirror = mmirror.MirrorToroidal( OptimalMajorRadius, OptimalMinorRadius, Support)
-
 ## or Ellipsoidal
 # SemiMajorAxis, SemiMinorAxis = mmirror.ReturnOptimalEllipsoidalAxes(2*Focal, MirrorIncidence)
 # Mirror = mmirror.MirrorEllipsoidal(SemiMajorAxis, SemiMinorAxis, Support)

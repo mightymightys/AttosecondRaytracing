@@ -1,4 +1,10 @@
-#%% Data-analysis and plotting modules
+"""
+Provides functions for analysis of the output ray-bundles calculated through ray-tracing, and also for the ART's standard visualization options.
+
+These are called by ARTmain according to the values in the *AnalysisOptions*-dictionary filled in the CONFIG-scripts.
+
+"""
+
 """
 Created in Apr 2020
 
@@ -41,7 +47,7 @@ def _getDetectorPoints(RayListAnalysed, Detector) -> tuple[np.ndarray, np.ndarra
     DectectorPoint2D_Xcoord = np.array([k[0]*1e3 for k in DetectorPointList2DCentre]) # mm to µm
     DectectorPoint2D_Ycoord = np.array([k[1]*1e3 for k in DetectorPointList2DCentre])
 
-    FocalSpotSize = mp.DiameterPointList(DetectorPointList2DCentre)
+    FocalSpotSize = mgeo.DiameterPointList(DetectorPointList2DCentre)
     SpotSizeSD = mp.StandardDeviation(DetectorPointList2DCentre)
     return DectectorPoint2D_Xcoord, DectectorPoint2D_Ycoord, FocalSpotSize, SpotSizeSD
 
@@ -94,7 +100,7 @@ def GetResultSummary(Detector, RayListAnalysed, verbose=False):
     DurationSD = mp.StandardDeviation(DelayList)
 
     if verbose:
-        FocalSpotSize = mp.DiameterPointList(DetectorPointList2DCentre)
+        FocalSpotSize = mgeo.DiameterPointList(DetectorPointList2DCentre)
         summarystring = "At the detector distance of " + '{:.3f}'.format(Detector.get_distance()) +" mm we get:\n" \
                         + "Spatial std : " + '{:.3f}'.format(FocalSpotSizeSD*1e3) + " \u03BCm and min-max: " + '{:.3f}'.format(FocalSpotSize*1e3) +" \u03BCm\n" \
                         + "Temporal std : " + '{:.3e}'.format(DurationSD) + " fs and min-max : " + '{:.3e}'.format(max(DelayList)-min(DelayList)) + " fs"

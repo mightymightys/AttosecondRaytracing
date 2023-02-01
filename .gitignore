@@ -8,6 +8,7 @@ myCONFIG_*
 *.xz
 *.png
 !logo.png
+!VogelSpiral.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

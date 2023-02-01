@@ -99,8 +99,8 @@ class OpticalChain:
     
     def get_output_rays(self):
         """ produce list of lists of output rays, calculate it if necessary """
-        current_source_rays_hash = mp.hash_list_of_objects(self.source_rays)
-        current_optical_elements_hash = mp.hash_list_of_objects(self.optical_elements)
+        current_source_rays_hash = mp._hash_list_of_objects(self.source_rays)
+        current_optical_elements_hash = mp._hash_list_of_objects(self.optical_elements)
         if (current_source_rays_hash != self._last_source_rays_hash) or (current_optical_elements_hash != self._last_optical_elements_hash):
             self._output_rays = self.__calculate_output_rays()
             self._last_source_rays_hash = current_source_rays_hash

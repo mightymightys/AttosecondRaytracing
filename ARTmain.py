@@ -196,7 +196,7 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
 def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, loop = False):
     niceline = '___________________________________________________________________________________________________\n'
     
-    #mp.tic() ################
+    #mp._tic() ################
     
     """ THE ACTUAL RAYTRACING CALCULATION """
     output_rays = OpticalChain.get_output_rays()
@@ -221,7 +221,7 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
         SpotSizeSD, DurationSD = mplots.GetResultSummary(Detector, RayListAnalysed, AnalysisOptions['verbose'])
     
     
-    #mp.toc() ################
+    #mp._toc() ################
     
     if AnalysisOptions["verbose"]: print(niceline)
     
