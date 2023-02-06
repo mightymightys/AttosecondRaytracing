@@ -1,4 +1,11 @@
 """
+Provides the class OpticalChain, which represents the whole optical setup to be simulated, 
+from the bundle of source-[Rays](ModuleOpticalRay.html) through the successive [OpticalElements](ModuleOpticalElement.html). 
+
+![Illustration the Mirror-class.](../documentation/OpticalChain.svg)
+"""
+
+"""
 Created in Jan 2022
 
 @author: Stefan Haessler
@@ -17,14 +24,92 @@ import ART.ModuleAnalysisAndPlots as mplots
 class OpticalChain:
     """ 
     The OpticalChain represents the whole optical setup to be simulated:
-    Its atributes are a list of successive OpticalElements, and an associated list of 
-    lists of Rays, each calculated by Ray tracing from one OpticalElement to the next.
-    So OpticalChain.get_output_rays()[i] is the bundle of Rays *after* optical_elements[i].
+    Its main attributes are a list source-[Rays](ModuleOpticalRay.html) and 
+    a list of successive [OpticalElements](ModuleOpticalElement.html).
+    
+    The method OpticalChain.get_output_rays() returns an associated list of lists of
+    [Rays](ModuleOpticalRay.html), each calculated by ray-tracing from one
+    [OpticalElement](ModuleOpticalElement.html) to the next.
+    So OpticalChain.get_output_rays()[i] is the bundle of [Rays](ModuleOpticalRay.html) *after*
+    optical_elements[i].
+    
     The string "description" can contain a short description of the optical setup, or similar notes.
-    The OpticalChain can be visualized quicly with the method quickshow(), and more nicely with the method render().
+    
+    The OpticalChain can be visualized quickly with the method OpticalChain.quickshow(),
+    and more nicely with OpticalChain.render().
+    
+    The class also provides methods for (mis-)alignment of the source-[Ray](ModuleOpticalRay.html)-bundle and the
+    [OpticalElements](ModuleOpticalElement.html), as well as methods for producing
+    a list of OpticalChain-objects containing variations of itself.
+
+    Attributes
+    ----------
+        source_rays : list[mray.Ray]
+            List of source rays, which are to be traced.
+            
+        optical_elements : list[moe.OpticalElement]
+            List of successive optical elements. 
+        
+        description : str
+            A string to describe the optical setup.
+    
+        loop_variable_name : str
+            A string naming a parameter that is varied in a list of OpticalChain-objects,
+            which is useful when looping over variations of an initial configuration.
+            
+        loop_variable_value : float
+            The value of that varied parameter, which is useful when looping over
+            variations of an initial configuration.
+
+    Methods
+    ----------
+        copy_chain()
+    
+        get_output_rays()
+        
+        quickshow()
+        
+        render()
+        
+        ----------
+        
+        shift_source(axis, distance)
+        
+        tilt_source(self, axis, angle)
+        
+        get_source_loop_list(axis, loop_variable_values)
+        
+        ----------
+        
+        rotate_OE(OEindx, axis, angle)
+        
+        shift_OE(OEindx, axis, distance)
+        
+        get_OE_loop_list(OEindx, axis, loop_variable_values)
+
     """
  
     def __init__(self, source_rays, optical_elements, description = '', loop_variable_name = None, loop_variable_value = None):
+        """
+        Parameters
+        ----------
+            source_rays : list[mray.Ray]
+                List of source rays, which are to be traced.
+                
+            optical_elements : list[moe.OpticalElement]
+                List of successive optical elements. 
+            
+            description : str, optional
+                A string to describe the optical setup. Defaults to ''.
+        
+            loop_variable_name : str, optional
+                A string naming a parameter that is varied in a list of OpticalChain-objects.
+                Defaults to None.
+                
+            loop_variable_value : float
+                The value of that varied parameter, which is useful when looping over
+                variations of an initial configuration. Defaults to None.
+        """
         self.source_rays = copy.deepcopy(source_rays) 
         #deepcopy so this object doesn't get changed when the global source_rays changes "outside"
         self.optical_elements = copy.deepcopy(optical_elements)
@@ -85,24 +170,25 @@ class OpticalChain:
         else: raise TypeError('loop_variable_value must be a number of types int or float.')
  
         
-    def __calculate_output_rays(self):
-        print('...ray-tracing...', end='', flush=True) 
-        output_rays = mp.RayTracingCalculation(self.source_rays, self.optical_elements)
-        print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
-        return output_rays
-        
 #%% METHODS ##################################################################
    
     def copy_chain(self):
+        """ Return another optical chain with the same source, optical elements and description-string as this one. """
         return OpticalChain(self.source_rays, self.optical_elements, self.description)
      
     
     def get_output_rays(self):
-        """ produce list of lists of output rays, calculate it if necessary """
+        """
+        Returns the list of (lists of) output rays, calculate them if this hasn't been done yet,
+        or if the source-ray-bundle or anything about the optical elements has changed. 
+        """
         current_source_rays_hash = mp._hash_list_of_objects(self.source_rays)
         current_optical_elements_hash = mp._hash_list_of_objects(self.optical_elements)
         if (current_source_rays_hash != self._last_source_rays_hash) or (current_optical_elements_hash != self._last_optical_elements_hash):
-            self._output_rays = self.__calculate_output_rays()
+            print('...ray-tracing...', end='', flush=True) 
+            self._output_rays = mp.RayTracingCalculation(self.source_rays, self.optical_elements)
+            print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
+            
             self._last_source_rays_hash = current_source_rays_hash
             self._last_optical_elements_hash = current_optical_elements_hash
         
@@ -110,8 +196,8 @@ class OpticalChain:
 
         
     def quickshow(self):
-        """ Make a lightweight copy of the optical chain and render it with settings that 
-        prioritize speed over great looks. This lets the user quickly visualize their
+        """ Render an image of the optical chain it with settings that prioritize
+        speed over great looks. This lets the user quickly visualize their
         optical setup to check if all the angles are set as they want. """
         maxRays = 30
         maxOEpoints = 1500
@@ -132,14 +218,38 @@ class OpticalChain:
       
     def shift_source(self, axis: (str, np.ndarray), distance: float):
         """
-        Shift source ray bundle by distance (in mm) along the 'axis' specified as a lab-frame vector (numpy-array of length 3) or as
-        one of the strings "vert", "horiz", or "random". In the latter case, the function considers the incidence plane of the first
-        non-normal-incidence mirror after the source. If there is none, you will be asked to rather specify the axis as a 3D-numpy-array.
-        axis = "vert" means the source position is shifted along the axis perpendicular to that incidence plane, i.e. "vertically" away from the former incidence plane..
-        axis = "horiz" means the source direciton is rotated about an axis in that incidence plane and perpendicular to the current source direction,
-        i.e. "horizontally" in the incidence plane, but retaining the same distance of source and first optical element.
-        axis = "random" means the the source direction shifted in a random direction within in the plane perpendicular to the current source direction,
+        Shift source ray bundle by distance (in mm) along the 'axis' specified as
+        a lab-frame vector (numpy-array of length 3) or as one of the strings
+        "vert", "horiz", or "random".
+        
+        In the latter case, the reference is the incidence plane of the first
+        non-normal-incidence mirror after the source. If there is none, you will
+        be asked to rather specify the axis as a 3D-numpy-array.
+        
+        axis = "vert" means the source position is shifted along the axis perpendicular
+        to that incidence plane, i.e. "vertically" away from the former incidence plane..
+        
+        axis = "horiz" means the source direciton is rotated about an axis in that
+        incidence plane and perpendicular to the current source direction,
+        i.e. "horizontally" in the incidence plane, but retaining the same distance
+        of source and first optical element.
+        
+        axis = "random" means the the source direction shifted in a random direction
+        within in the plane perpendicular to the current source direction,
         e.g. simulating a fluctuation of hte transverse source position.
+        
+        Parameters
+        ----------
+            axis : np.ndarray or str
+                Shift axis, specified either as a 3D lab-frame vector or as one
+                of the strings "vert", "horiz", or "random".
+                
+            distance : float
+                Shift distance in mm.
+
+        Returns
+        -------
+            Nothing, just modifies the property 'source_rays'.
         """
         if type(distance) not in [int, float, np.float64]:
             raise ValueError('The "distance"-argument must be an int or float number.')
@@ -177,16 +287,41 @@ class OpticalChain:
     
     def tilt_source(self, axis: (str, np.ndarray), angle: float):
         """ 
-        Rotate source ray bundle by angle around an axis, specified as a lab-frame vector (numpy-array of length 3) or as one of the strings
-        "in_plane", "out_plane" or "random" direction. In the latter case, the function considers the incidence plane of the first
-        non-normal-incidence mirror after the source. If there is none, you will be asked to rather specify the axis as a 3D-numpy-array.
-        axis = "in_plane" means the source direction is rotated about an axis perpendicular to that incidence plane and tilts the source "horizontally"
-        in the same plane.
-        axis = "out_plane" means the source direciton is rotated about an axis in that incidence plane and perpendicular to the current source direction,
+        Rotate source ray bundle by angle around an axis, specified as
+        a lab-frame vector (numpy-array of length 3) or as one of the strings
+        "in_plane", "out_plane" or "random" direction.
+        
+        In the latter case, the function considers the incidence plane of the first
+        non-normal-incidence mirror after the source. If there is none, you will
+        be asked to rather specify the axis as a 3D-numpy-array.
+        
+        axis = "in_plane" means the source direction is rotated about an axis
+        perpendicular to that incidence plane, which tilts the source
+        "horizontally" in the same plane.
+        
+        axis = "out_plane" means the source direciton is rotated about an axis
+        in that incidence plane and perpendicular to the current source direction,
         which tilts the source "vertically" out of the former incidence plane.
-        axis = "random" means the the source direction is tilted in a random direction, e.g. simulating a beam pointing fluctuation.
-        Attention, "angle" is given in deg, so as to remain consitent with the conventions of other functions, although pointing is mostly talked about 
+        
+        axis = "random" means the the source direction is tilted in a random direction,
+        e.g. simulating a beam pointing fluctuation.
+        
+        Attention, "angle" is given in deg, so as to remain consitent with the
+        conventions of other functions, although pointing is mostly talked about 
         in mrad instead.
+        
+        Parameters
+        ----------
+            axis : np.ndarray or str
+                Shift axis, specified either as a 3D lab-frame vector or as one
+                of the strings "in_plane", "out_plane", or "random".
+                
+            angle : float
+                Rotation angle in degree.
+
+        Returns
+        -------
+            Nothing, just modifies the property 'source_rays'.
         """
         if type(angle) not in [int, float, np.float64]:
             raise ValueError('The "angle"-argument must be an int or float number.')
@@ -221,12 +356,29 @@ class OpticalChain:
         self.source_rays = mgeo.RotationAroundAxisRayList(self.source_rays, rot_axis, np.deg2rad(angle))
 
 
-    def get_source_loop_list(self, axis :str, loop_variable_values :np.ndarray):
+    def get_source_loop_list(self, axis :str, loop_variable_values : np.ndarray):
         """
-        Produces a list of OpticalChain-objects, which are all variations of this instance by moving the source-ray-bundle,
-        specified by axis as one of ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random"],
+        Produces a list of OpticalChain-objects, which are all variations of this
+        instance by moving the source-ray-bundle.
+        The variation is specified by axis as one of
+        ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random"],
         by the values given in the list or numpy-array "loop_variable_values", e.g. np.linspace(start, stop, number). 
         This list can then be looped over by ARTmain.
+        
+        Parameters
+        ----------
+            axis : np.ndarray or str
+                Shift/Rotation axis for the source-modification, specified either
+                as a 3D lab-frame vector or as one of the strings 
+                ["tilt_in_plane", "tilt_out_plane", "tilt_random",\
+                 "shift_vert", "shift_horiz", "shift_random"].
+                
+             loop_variable_values : list or np.ndarray
+                Values of the shifts (mm) or rotations (deg).
+
+        Returns
+        -------
+            OpticalChainList : list[OpticalChain]
         """
         if axis not in ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random", "all_random"]:
             raise ValueError('For automatic loop-list generation, the axis must be one of ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random"].')
@@ -264,8 +416,26 @@ class OpticalChain:
 #%%            
     def rotate_OE(self, OEindx :int, axis :str, angle :float):
         """
-        rotate the optical element OpticalChain.optical_elements[OEindx] about
-        axis specified by "pitch", "roll", "yaw", or "random". angle in deg..
+        Rotate the optical element OpticalChain.optical_elements[OEindx] about
+        axis specified by "pitch", "roll", "yaw", or "random" by angle in degrees.
+        
+        Parameters
+        ----------
+            OEindx : int
+                Index of the optical element to modify out of OpticalChain.optical_elements.
+            
+            axis : str
+                Rotation axis, specified as one of the strings
+                "pitch", "roll", "yaw", or "random".
+                These define the rotations as specified for the corresponding methods
+                of the OpticalElement-class.
+                
+            angle : float
+                Rotation angle in degree.
+
+        Returns
+        -------
+            Nothing, just modifies OpticalChain.optical_elements[OEindx].
         """
         if abs(OEindx) > len(self.optical_elements):
             raise ValueError('The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.')     
@@ -286,8 +456,26 @@ class OpticalChain:
             
     def shift_OE(self, OEindx :int, axis :str, distance :float):
         """
-        shift the optical element OpticalChain.optical_elements[OEindx] along
-        axis specified by "normal", "major", "cross", or "random". dist in mm.
+        Shift the optical element OpticalChain.optical_elements[OEindx] along
+        axis specified by "normal", "major", "cross", or "random" by distance in mm.
+        
+        Parameters
+        ----------
+            OEindx : int
+                Index of the optical element to modify out of OpticalChain.optical_elements.
+            
+            axis : str
+                Rotation axis, specified as one of the strings
+                "normal", "major", "cross", or "random".
+                These define the shifts as specified for the corresponding methods
+                of the OpticalElement-class.
+                
+            distance : float
+                Rotation angle in degree.
+
+        Returns
+        -------
+            Nothing, just modifies OpticalChain.optical_elements[OEindx].
         """
         if abs(OEindx) > len(self.optical_elements):
             raise ValueError('The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.')
@@ -310,11 +498,33 @@ class OpticalChain:
 
     def get_OE_loop_list(self, OEindx :int, axis :str, loop_variable_values :np.ndarray):
         """
-        Produces a list of OpticalChain-objects, which are all variations of this instance by moving one degree of freedom,
-        specified by axis as one of ["pitch", "roll", "yaw", "rotate_random", "shift_normal", "shift_major", "shift_cross", "shift_random"],
-        of its optical element with index OEindx, by the values given in the list or numpy-array "loop_variable_values",
+        Produces a list of OpticalChain-objects, which are all variations of
+        this instance by moving one degree of freedom of its optical element
+        with index OEindx.
+        The vaiations is specified by 'axis' as one of
+        ["pitch", "roll", "yaw", "rotate_random",\
+         "shift_normal", "shift_major", "shift_cross", "shift_random"],
+        by the values given in the list or numpy-array "loop_variable_values",
         e.g. np.linspace(start, stop, number). 
         This list can then be looped over by ARTmain.
+        
+        Parameters
+        ----------
+            OEindx :int
+                Index of the optical element to modify out of OpticalChain.optical_elements.
+                
+            axis : np.ndarray or str
+                Shift/Rotation axis, specified as one of the strings 
+                ["pitch", "roll", "yaw", "rotate_random",\
+                 "shift_normal", "shift_major", "shift_cross", "shift_random"].
+                
+             loop_variable_values : list or np.ndarray
+                Values of the shifts (mm) or rotations (deg).
+
+        Returns
+        -------
+            OpticalChainList : list[OpticalChain]
+
         """
         if abs(OEindx) > len(self.optical_elements):
             raise ValueError('The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.')  
@@ -354,5 +564,3 @@ class OpticalChain:
             
         return OpticalChainList
     
-
-#%%

@@ -1,5 +1,5 @@
 """
-Contains a bunch of processing functions used for the ray-tracing and automated (pre-)alignment of the optical chains.
+Contains processing functions used for the ray-tracing and automated (pre-)alignment of the optical chains.
 Usually these don't need to be called by users of ART, but they may be useful.
 """
 
@@ -28,7 +28,9 @@ import ART.ModuleOpticalChain as moc
 
 
 #%%
-def _singleOEPlacement(SourceProperties: dict, OpticsList: list, DistanceList: list[(int, float)], IncidenceAngleList: list[(int, float)], IncidencePlaneAngleList: list[(int, float)], Description: str):
+def _singleOEPlacement(SourceProperties: dict, OpticsList: list, DistanceList: list[(int, float)],\
+                       IncidenceAngleList: list[(int, float)], IncidencePlaneAngleList: list[(int, float)],\
+                           Description: str):
     """
     Automatic placement and alignment of the optical elements for one optical chain.
     """    
@@ -104,15 +106,69 @@ def _singleOEPlacement(SourceProperties: dict, OpticsList: list, DistanceList: l
     return moc.OpticalChain(SourceRayList,OpticalElements,Description)
 
 
-def OEPlacement(SourceProperties : dict, OpticsList : list, DistanceList : list[(int, float)], IncidenceAngleList : list[(int, float)], IncidencePlaneAngleList=None, Description = '', render: bool =False):
+def OEPlacement(SourceProperties : dict, OpticsList : list, DistanceList : list[(int, float)], \
+                IncidenceAngleList : list[float], IncidencePlaneAngleList : list[float] = None, \
+                Description : str = '', render: bool =False):
     """
-    Automatically place optical elements in the "lab frame" according to given distances and incidence angles. Outputs an OpticalChain-object.
+    Automatically place optical elements in the "lab frame" according to given distances and incidence angles.
+    Outputs an OpticalChain-object.
+    
     The source is placed at the origin, and points into the x-direction. The optical elements then follow.
-    As long as the angles in IncidencePlaneAngleList are 0, the incidence plane remains the x-z plane, i.e. the optical elements are rotated about
-    the y-axis to set the desied incidence angle between OE-normal and the direction of incidence of the incoming ray-bundle. 
-    Otherwise, the incidence plane gets rotated.
-    One of the elements of one of the lists 'DistanceList', 'IncidenceAngleList', or 'IncidencePlaneAngleList' can be a list or a numpy-array.
-    In that case, a list of OpticalChain-objects is created which can be looped over.
+    
+    As long as the angles in IncidencePlaneAngleList are 0, the incidence plane remains the x-z plane, i.e.
+    the optical elements are rotated about the y-axis to set the desired incidence angle between OE-normal
+    and the direction of incidence of the incoming ray-bundle. Otherwise, the incidence plane gets rotated.
+    
+    One of the elements of one of the lists 'DistanceList', 'IncidenceAngleList', or 'IncidencePlaneAngleList'
+    can be a list or a numpy-array. In that case, a list of OpticalChain-objects is created which can be looped over.
+    
+    Parameters
+    ----------
+        SourceProperties : dict
+            Dictionary with the keys "Divergence" :float, "SourceSize" :float,
+            "NumberRays" :int, and "Wavelength" :float.
+            This determines the source ray-bundle that is created. 
+            
+        OpticsList : list[Optics-class-objects (Mirorrs or Masks)]
+            List of Optics-objects. 
+        
+        DistanceList : list[float]
+            List of distances, in mm,  at which place the optics out of the
+            OpticsList from the precending one. For the first optic, this is
+            the distance from the light source.
+            
+            One of the elements can ne a list or a numpy-array instead of a float.
+            In that case, a list of OpticalChain-objects is created which can be looped over.
+        
+        IncidenceAngleList : list[float]
+            List of incidence angles, in degrees, measured between the central ray
+            of the incident ray bundle and the normal on the optical element. 
+            
+            One of the elements can ne a list or a numpy-array instead of a float.
+            In that case, a list of OpticalChain-objects is created which can be looped over.
+            
+        IncidencePlaneAngleList : list[float], optional 
+            List of angles, in degrees, by which the incidence plane is rotated
+            on the optical element with respect to that on the preceding one.
+            Consequently, for the first element, this angle has no qualitative effect.
+            
+            One of the elements can ne a list or a numpy-array instead of a float.
+            In that case, a list of OpticalChain-objects is created which can be looped over.
+            
+        Description : str, optional
+            A string to describe the optical setup.    
+        
+        render : bool, optional
+            Whether save a png-image with a rendering of the optical setup.
+            
+    Returns
+    -------
+        OpticalChainList : list[OpticalChain-object]
+        
+        or
+        
+        OpticalChain : OpticalChain-object
+        
     """    
     if render: from mayavi import mlab
     
@@ -176,18 +232,35 @@ def OEPlacement(SourceProperties : dict, OpticsList : list, DistanceList : list[
 
 
 #%%
-def RayTracingCalculation(source_rays, optical_elements):
+def RayTracingCalculation(source_rays : list[mray.Ray], optical_elements : list[moe.OpticalElement]) -> list[list[mray.Ray]]:
     """
-    The actual ray-tracing calculation.
+    The actual ray-tracing calculation, starting from the list of 'source_rays',
+    and propagating them from one optical element to the next in the order of the
+    items of the list 'optical_elements'. 
+
+    
+    Parameters
+    ----------
+        source_rays : list[Ray-objects]
+            List of input rays.
+            
+        optical_elements : list[OpticalElement-objects]
+    
+
+    Returns
+    -------
+        output_rays : list[list[Ray-objects]]
+            List of lists of rays, each item corresponding to the ray-bundle *after*
+            the item with the same index in the 'optical_elements'-list.
     """
     ez = np.array([0,0,1])
     ex = np.array([1,0,0])
-    RayListHistory = []
+    output_rays = []
     
     for k in range(0,len(optical_elements)):
         
         if k==0:  RayList = source_rays
-        else:     RayList = RayListHistory[k-1]
+        else:     RayList = output_rays[k-1]
     
         #Mirror = optical_elements[k].type
         Position = optical_elements[k].position
@@ -216,134 +289,9 @@ def RayTracingCalculation(source_rays, optical_elements):
         RayList = mgeo.RotationRayList(RayList, ez, n)
         RayList = mgeo.TranslationRayList(RayList, Position)
         
-        RayListHistory.append(RayList)
+        output_rays.append(RayList)
         
-    return RayListHistory
-
-
-    
-#%%
-def FindCentralRay(RayList):
-    for k in RayList:
-        if k.number == 0:
-            return k
-    return None
-
-
-def StandardDeviation1D(List):      
-    V = 0
-    m = np.mean(List)
-    for k in List:
-        V = V + (k - m)**2
-        
-    return np.sqrt(V / len(List))
-
-
-def StandardDeviation2D(List):       
-    V = 0
-    mx = np.mean([k[0] for k in List])
-    my = np.mean([k[1] for k in List])
-    for k in List:
-        V = V + (k[0] - mx)**2 + (k[1] - my)**2
-        
-    return np.sqrt(V / len(List))
-
-def StandardDeviation3D(List):       
-    V = 0
-    mx = np.mean([k[0] for k in List])
-    my = np.mean([k[1] for k in List])
-    mz = np.mean([k[2] for k in List])
-    for k in List:
-        V = V + (k[0] - mx)**2 + (k[1] - my)**2 + (k[2] - mz)**2
-        
-    return np.sqrt(V / len(List))
-
-def StandardDeviation(List):
-    if type(List[0]) in [int, float, np.float64]:
-        return StandardDeviation1D(List)
-    elif len(List[0]) == 2:
-        return StandardDeviation2D(List)
-    elif len(List[0]) == 3:
-        return StandardDeviation3D(List)
-    else:
-        return None
-
-#%%    
-def WeightedStandardDeviation1D(List, Weights):
-    V = 0
-    sq = 0
-    m, s = np.average(List, weights=Weights, returned=True)
-    for k in range(len(List)):
-        V = V + Weights[k]*(List[k] - m)**2
-        sq = sq + Weights[k]**2     
-    
-    return np.sqrt(V / (s - sq/s) )
-    
-def WeightedStandardDeviation2D(List, Weights):
- 
-    V = 0
-    sq = 0
-    mx, s = np.average([k[0] for k in List], weights=Weights, returned=True)
-    my    = np.average([k[1] for k in List], weights=Weights, returned=False)
-    for k in range(len(List)):
-        V = V + Weights[k]*( (List[k][0] - mx)**2 + (List[k][1] - my)**2  )
-        sq = sq + Weights[k]**2     
-
-    return np.sqrt(V / (s - sq/s) )
-     
-def WeightedStandardDeviation3D(List, Weights):
- 
-    V = 0
-    sq = 0
-    mx, s = np.average([k[0] for k in List], weights=Weights, returned=True)
-    my    = np.average([k[1] for k in List], weights=Weights, returned=False)
-    mz    = np.average([k[2] for k in List], weights=Weights, returned=False)
-    
-    for k in range(len(List)):
-        V = V + Weights[k]*( (List[k][0] - mx)**2 + (List[k][1] - my)**2 + (List[k][2] - mz)**2 )
-        sq = sq + Weights[k]**2     
-
-    return np.sqrt(V / (s - sq/s) )
-
-def WeightedStandardDeviation(List, Weights):
-    Condition1 = type(List[0]) == int or type(List[0]) == float or type(List[0]) == np.float64
-    Condition2 = type(Weights[0]) == int or type(Weights[0]) == float or type(Weights[0]) == np.float64
-    Condition3 = len(List) == len(Weights)
-    
-    if Condition1 and Condition2 and Condition3:
-        return WeightedStandardDeviation1D(List, Weights)
-    elif len(List[0]) == 2 and Condition2 and Condition3:
-        return WeightedStandardDeviation2D(List, Weights)
-    elif len(List[0]) == 3 and Condition2 and Condition3:
-        return WeightedStandardDeviation3D(List, Weights)
-    else:
-        return None    
-
-
-#%%
-def ReturnNumericalAperture(RayList, RefractiveIndex = 1):
-    
-    CentralRay = FindCentralRay(RayList)
-    if CentralRay is None:
-        CentralVector = np.array([0,0,0])
-        for k in RayList:
-            CentralVector = CentralVector + k.vector
-        CentralVector = CentralVector/len(RayList)  
-    else:    
-        CentralVector = CentralRay.vector
-    ListAngleAperture = []
-    for k in RayList:
-        ListAngleAperture.append(mgeo.AngleBetweenTwoVectors(CentralVector, k.vector))
-
-    return np.sin(np.amax(ListAngleAperture)) * RefractiveIndex
-
-#%%
-def ReturnAiryRadius(Wavelength, NumericalAperture):
-    if NumericalAperture > 1e-3 and Wavelength is not None: 
-        return 1.22*0.5*Wavelength/NumericalAperture
-    else:
-        return 0  #for very small numerical apertures, diffraction effects becomes negligible and the Airy Radius becomes meaningless
-    
+    return output_rays
 
 
 #%%
@@ -399,7 +347,53 @@ def _FindOptimalDistanceBIS(movingDetector, Amplitude, Step, RayList, OptFor, In
     return movingDetector, OptSizeSpot, OptDuration
 
 
-def FindOptimalDistance(Precision, Detector, RayList, OptFor="intensity", Amplitude=None, IntensityWeighted=False, verbose=False):
+def FindOptimalDistance(Detector, RayList : list[mray.Ray], OptFor="intensity", Amplitude : float =None, Precision : int =3, IntensityWeighted=False, verbose=False):
+    """
+    Automatically finds the optimal the 'Detector'-distance for either
+    maximum intensity, or minimal spotsize or duration. 
+    
+    Parameters
+    ----------
+        Detector : Detector-object
+        
+        RayList : list[Ray-objects]
+        
+        OptFor : str, optional
+            "spotsize": minimizes the standard-deviation spot size *d* on the detector.
+            "duration": minimizes the standard-deviation *tau* of the ray-delays.
+            "intensity": Maximizes 1/tau/d^2. 
+            Defaults to "intensity".
+                
+        Amplitude : float, optional
+            The detector-distances within which the optimization is done will be
+            the distance of 'Detector' +/- Amplitude in mm.
+            
+        Precision : int, optional
+            Precision-parameter for the search algorithm. For Precision = n,
+            it will iterate with search amplitudes decreasing until 10^{-n}.
+            Defaults to 3.
+                
+        IntensityWeighted : bool, optional
+            Whether to weigh the calculation of spotsize and/or duration by the ray-intensities.
+            Defaults to False.
+                
+        verbose : bool, optional
+            Whether to print results to the console.
+
+    Returns
+    -------
+        OptDetector : Detector-object
+            A new detector-instance with optimized distance.
+            
+        OptSpotSize : float
+            Spotsize, calculated as standard deviation in mm of the spot-diagram
+            on the optimized detector.
+        
+        OptDuration : float
+            Duration, calculated as standard deviation in fs of the ray-delays
+            on the optimized detector.
+    """
+    
     if OptFor not in ["intensity", "size", "duration"]:
         raise NameError("I don`t recognize what you want to optimize the detector distance for. OptFor must be either 'intensity', 'size' or 'duration'.")    
         
@@ -410,18 +404,153 @@ def FindOptimalDistance(Precision, Detector, RayList, OptFor="intensity", Amplit
     if Amplitude is None:
         Amplitude = min(4*np.ceil(SizeSpot / np.tan(np.arcsin(NumericalAperture))), FirstDistance)
     #Step = Amplitude/10
-    Step = Amplitude/5
+    Step = Amplitude/5 #good enough in half the time ;-)
     
     if verbose: print(f"Searching optimal detector position for *{OptFor}* within [{FirstDistance-Amplitude:.3f}, {FirstDistance+Amplitude:.3f}] mm...", end='', flush=True)
     movingDetector = Detector.copy_detector()
     for k in range(Precision+1):
-        movingDetector, OptSizeSpot, OptDuration = _FindOptimalDistanceBIS(movingDetector, Amplitude*0.1**k, Step*0.1**k, RayList, OptFor, IntensityWeighted)
+        movingDetector, OptSpotSize, OptDuration = _FindOptimalDistanceBIS(movingDetector, Amplitude*0.1**k, Step*0.1**k, RayList, OptFor, IntensityWeighted)
     
     if not FirstDistance -Amplitude+10**-Precision < movingDetector.get_distance() < FirstDistance+Amplitude-10**-Precision:
         print("There`s no minimum-size/duration focus in the searched range.") 
 
     print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K            
-    return movingDetector, OptSizeSpot, OptDuration
+    return movingDetector, OptSpotSize, OptDuration
+
+
+    
+#%%
+def FindCentralRay(RayList : list[mray.Ray]):
+    """
+    Out of a the list of Ray-objects, RayList, return the one Ray-object whose Ray.number is 0.
+    This is the ray which the functions in ModuleSource set up as the central ray, i.e.
+    the one initially launched on the "optical axis".
+    Should there be several rays whose number-attribute =0 (which is a bad situation), only
+    the first one encountered in the list is returned.
+    
+    Parameters
+    ----------
+        RayList : list of Ray-objects
+
+    Returns
+    -------
+        CentralRay : Ray-object
+    """
+    for k in RayList:
+        if k.number == 0:
+            return k
+    return None
+
+
+def StandardDeviation(List : list[float, np.ndarray]) -> float:
+    """
+    Return the standard deviation of elements in the supplied list.
+    If the elements are floats, it's simply the root-mean-square over the numbers. 
+    If the elements are vectors (represented as numpy-arrays), the root-mean-square 
+    of the distance of the points from their mean is calculated.
+    
+    Parameters
+    ----------
+        List : list of floats or of np.ndarray
+            Numbers (in ART, typically delays)
+            or 2D or 3D vectors (in ART typically space coordinates)
+
+    Returns
+    -------
+        Std : float
+    """
+    if type(List[0]) in [int, float, np.float64]:
+        return np.std(List)
+    elif len(List[0]) > 1:
+        return np.sqrt(np.var(List, axis=0).sum())
+    else:
+        raise ValueError('StandardDeviation expects a list of floats or numpy-arrays as input, but got something else.')
+    
+    
+def WeightedStandardDeviation(List : list[float,np.ndarray], Weights : list[float]) -> float:
+    """
+    Return the weighted standard deviation of elements in the supplied list.
+    If the elements are floats, it's simply the root-mean-square over the weighted numbers. 
+    If the elements are vectors (represented as numpy-arrays), the root-mean-square 
+    of the weighted distances of the points from their mean is calculated.
+    
+    Parameters
+    ----------
+        List : list of floats or of np.ndarray
+            Numbers (in ART, typically delays)
+            or 2D or 3D vectors (in ART typically space coordinates)
+    
+        Weights : list of floats, same length as List
+            Parameters such as Ray.intensity to be used as weights
+        
+    Returns
+    -------
+        Std : float
+    """   
+    average = np.average(List, axis=0, weights=Weights, returned=False)
+    variance = np.average((List-average)**2, axis=0, weights=Weights, returned=False)
+    return np.sqrt(variance.sum())
+  
+#%%
+def ReturnNumericalAperture(RayList : list[mray.Ray], RefractiveIndex :float = 1) -> float:
+    """
+    Returns the numerical aperture associated with the supplied ray-bundle 'Raylist'.
+    This is $n\sin\\theta$, where $\\theta$ is the maximum angle between any of the rays and the central ray,
+    and $n$ is the refractive index of the propagation medium.
+    
+    Parameters
+    ----------
+        RayList : list of Ray-object
+            The ray-bundle of which to determine the NA.
+    
+        RefractiveIndex : float, optional
+            Refractive index of the propagation medium, defaults to =1.
+        
+    Returns
+    -------
+        NA : float
+    """   
+    CentralRay = FindCentralRay(RayList)
+    if CentralRay is None:
+        CentralVector = np.array([0,0,0])
+        for k in RayList:
+            CentralVector = CentralVector + k.vector
+        CentralVector = CentralVector/len(RayList)  
+    else:    
+        CentralVector = CentralRay.vector
+    ListAngleAperture = []
+    for k in RayList:
+        ListAngleAperture.append(mgeo.AngleBetweenTwoVectors(CentralVector, k.vector))
+
+    return np.sin(np.amax(ListAngleAperture)) * RefractiveIndex
+
+#%%
+def ReturnAiryRadius(Wavelength : float, NumericalAperture : float) -> float: 
+    """
+    Returns the radius of the Airy disk: $r = 1.22 \\frac\{\\lambda\}\{NA\}$, 
+    i.e. the diffraction-limited radius of the focal spot corresponding to a given 
+    numerical aperture $NA$ and a light wavelength $\\lambda$.
+    
+    For very small $NA<10^\{-3\}$, diffraction effects becomes negligible and the Airy Radius becomes meaningless,
+    so in that case, a radius of 0 is returned.
+    
+    Parameters
+    ----------
+        Wavelength : float
+            Light wavelength in mm.
+    
+        NumericalAperture : float
+                
+    Returns
+    -------
+        AiryRadius : float
+    """
+    if NumericalAperture > 1e-3 and Wavelength is not None: 
+        return 1.22*0.5*Wavelength/NumericalAperture
+    else:
+        return 0  #for very small numerical apertures, diffraction effects becomes negligible and the Airy Radius becomes meaningless
+    
+
 
 
 #%% 
@@ -438,7 +567,7 @@ def _which_indeces(lst):
     return indexes
 
 #%%
-def save_compressed(obj, filename):
+def save_compressed(obj, filename : str):
     """ Save (=pickle) an object 'obj' to a compressed file with name 'filename'. """
     if not type(filename) == str:
         filename = 'kept_data_' + datetime.now().strftime("%Y-%m-%d-%Hh%M")
@@ -453,7 +582,7 @@ def save_compressed(obj, filename):
     print("Saved results to " + filename +".xz.")
     print("->To reload from disk do: kept_data = mp.load_compressed('" + filename +"')")
 
-def load_compressed(filename):
+def load_compressed(filename : str):
     """ Load (=unpickle) an object 'obj' from a compressed file with name 'filename'. """
     #with gzip.open(filename + '.gz', 'rb') as f:
     with lzma.open(filename + '.xz', 'rb') as f:

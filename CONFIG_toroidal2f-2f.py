@@ -113,3 +113,8 @@ IF WANT TO RUN THIS CONFIG-SCRIPT DIRECTLY, call the main function of the ARTmai
 # ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], kept_data["DurationSD"])
 # ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
 # ax.set_ylabel("DurationSD")
+
+# fig, ax = plt.subplots()
+# ax.scatter([x.loop_variable_value for x in kept_data["OpticalChain"]], [1e3*x for x in kept_data["SpotSizeSD"]])
+# ax.set_xlabel(kept_data["OpticalChain"][0].loop_variable_name)
+# ax.set_ylabel("SpotSizeSD ($\mu m$)")

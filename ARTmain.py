@@ -131,7 +131,7 @@ def optimize_detector(RayListAnalysed, Detector, DetectorOptions, verbose=True, 
         RayListForOpt = np.random.choice(RayListAnalysed, maxRaystoConsider, replace=False)
     else: RayListForOpt = RayListAnalysed
 
-    OptDetector, OptSizeSpot, OptDuration = mp.FindOptimalDistance(Precision, Detector, RayListForOpt, DetectorOptions["OptFor"], Amplitude, IntensityWeighted, verbose)
+    OptDetector, OptSizeSpot, OptDuration = mp.FindOptimalDistance(Detector, RayListForOpt, DetectorOptions["OptFor"], Amplitude, Precision, IntensityWeighted, verbose)
     OptDistance = OptDetector.get_distance()
     
     if verbose:
@@ -216,7 +216,8 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
     
     """ OPTIMIZE DETECTOR POSITION, or just give a RESULT-SUMMARY at the initially specified detector position """
     if DetectorOptions['AutoDetectorDistance']:
-        Detector, SpotSizeSD, DurationSD = optimize_detector(RayListAnalysed, Detector, DetectorOptions, AnalysisOptions["verbose"], maxRaystoConsider=1000)
+        Detector, SpotSizeSD, DurationSD = optimize_detector(RayListAnalysed, Detector, DetectorOptions, AnalysisOptions["verbose"],\
+                                                             maxRaystoConsider=1000, IntensityWeighted=True)
     else:
         SpotSizeSD, DurationSD = mplots.GetResultSummary(Detector, RayListAnalysed, AnalysisOptions['verbose'])
     

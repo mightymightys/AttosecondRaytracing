@@ -2,6 +2,8 @@
 Provides a class for masks, which are a type of optical element that simply stops rays that hit it.
 
 Also provides the function *TransmitMaskRayList* that returns the rays transmitted by the mask. 
+
+![Illustration the Mask-class.](../documentation/Mask.svg)
 """
 
 """
@@ -18,12 +20,12 @@ import ART.ModuleGeometry as mgeo
 #%%############################################################################
 class Mask:
     """
-    A mask: a plane surface of the shape of its support, which stops all rays that hit it,
+    A mask: a plane surface of the shape of its [Support](ModuleSupport.html), which stops all rays that hit it,
     while all other rays continue their path unchanged.    
     
     Attributes
     ----------
-        support : Support-object from ModuleSupport
+        support : [Support](ModuleSupport.html)-object
         
         type : str 'Ellipsoidal Mirror'.
              
@@ -40,7 +42,7 @@ class Mask:
         """
         Parameters
         ----------
-            Support : Support-object from ModuleSupport
+            Support : [Support](ModuleSupport.html)-object 
         """
         self.type = 'Mask'
         self.support = Support

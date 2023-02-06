@@ -1,9 +1,11 @@
 """
-Provides classes for different mirror surfaces, which are types of optical elements.
-Think of these as the z-coordinates on top of the x-y-grid provided by the support.
+Provides classes for different mirror surfaces, which are types of optics.
+Think of these as the z-coordinates on top of the x-y-grid provided by the [Support](ModuleSupport.html).
 
 Also provides the function *ReflectionMirrorRayList* that returns the rays reflected on 
 the mirror. Rays that do not hit the support are not further propagated.
+
+![Illustration the Mirror-class.](../documentation/Mirror.svg)
 """
 
 """
@@ -34,7 +36,7 @@ class MirrorPlane:
     
     Attributes
     ----------
-        support : Support-object from ModuleSupport
+        support : [Support](ModuleSupport.html)-object from ModuleSupport
         
         type : 'Plane Mirror'.
             
@@ -50,7 +52,7 @@ class MirrorPlane:
         """
         Parameters
         ----------
-            Support : Support-object from ModuleSupport
+            Support : [Support](ModuleSupport.html)-object
 
         """
         self.support = Support
@@ -102,7 +104,7 @@ class MirrorSpherical:
         radius : float
             Radius of curvature. A postive value for concave mirror, a negative value for a convex mirror.
     
-        support : Support-object from ModuleSupport
+        support : [Support](ModuleSupport.html)-object
         
         type : str SphericalCC Mirror' or SphericalCX Mirror'
             
@@ -122,7 +124,7 @@ class MirrorSpherical:
             Radius : float
                 The radius of curvature in mm. A postive value for concave mirror, a negative value for a convex mirror.
             
-            Support : Support-object from ModuleSupport
+            Support : [Support](ModuleSupport.html)-object
 
         """
         if Radius <0:
@@ -199,7 +201,7 @@ class MirrorParabolic:
         p : float
             Semi latus rectum of the parabola in mm. Modifying this also updates feff, keeping offaxisangle constant.
     
-        support : Support-object from ModuleSupport
+        support : [Support](ModuleSupport.html)-object 
         
         type : str 'Parabolic Mirror'.
             
@@ -222,7 +224,7 @@ class MirrorParabolic:
             OffAxisAngle : float
                 Off-axis angle *in degrees* of the parabola.
             
-            Support : Support-object from ModuleSupport
+            Support : [Support](ModuleSupport.html)-object
 
         """
         self._offaxisangle = np.deg2rad(OffAxisAngle) 
@@ -326,7 +328,7 @@ class MirrorToroidal:
         minorradius : float
             Minor radius of the toroid in mm.
   
-        support : Support-object from ModuleSupport
+        support : [Support](ModuleSupport.html)-object 
         
         type : str 'Toroidal Mirror'.
             
@@ -349,7 +351,7 @@ class MirrorToroidal:
             MinorRadius : float
                 Minor radius of the toroid in mm.
             
-            Support : Support-object from ModuleSupport
+            Support : [Support](ModuleSupport.html)-object
 
         """
         self.majorradius = MajorRadius
@@ -458,7 +460,7 @@ class MirrorEllipsoidal:
         b : float
             Semi minor axis of the ellipsoid in mm.    
 
-        support : Support-object from ModuleSupport
+        support : [Support](ModuleSupport.html)-object
         
         type : str 'Ellipsoidal Mirror'.
              
@@ -481,7 +483,7 @@ class MirrorEllipsoidal:
             SemiMinorAxis : float
                 Semi minor axis of the ellipsoid in mm.
             
-            Support : Support-object from ModuleSupport
+            Support : [Support](ModuleSupport.html)-object
 
         """
         self.a = SemiMajorAxis
@@ -575,7 +577,7 @@ class MirrorCylindrical:
         radius : float
             Radius of curvature. A postive value for concave mirror, a negative value for a convex mirror.
        
-        support : Support-object from ModuleSupport
+        support : [Support](ModuleSupport.html)-object
         
         type : str 'Ellipsoidal Mirror'.
              
@@ -594,7 +596,7 @@ class MirrorCylindrical:
             Radius : float
                 The radius of curvature in mm. A postive value for concave mirror, a negative value for a convex mirror.
             
-            Support : Support-object from ModuleSupport
+            Support : [Support](ModuleSupport.html)-object
 
         """
         if Radius <0:
