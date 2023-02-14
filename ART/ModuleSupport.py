@@ -6,7 +6,7 @@ Technically, the support is a section of the x-y-plane in the element coordinate
 
 The support will become an attribute of Mirror or Mask objects.
 
-![Illustration of different kinds of support.](../documentation/supports.svg)
+![Illustration of different kinds of support.](../docs/supports.svg)
 """
 
 """

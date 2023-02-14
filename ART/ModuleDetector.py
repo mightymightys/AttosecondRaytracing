@@ -4,7 +4,7 @@ to analyze the impact points of a ray bundle intercepting it.
 
 This module is used by 'ARTmain' to set up a detector according to the values in the *DetectorOptions*-dictionary filled in the CONFIG-scripts..
 
-![Illustration of the detector plane.](../documentation/detector.svg)
+![Illustration of the detector plane.](../docs/detector.svg)
 """
 
 """

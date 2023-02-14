@@ -5,7 +5,7 @@ Think of these as the z-coordinates on top of the x-y-grid provided by the [Supp
 Also provides the function *ReflectionMirrorRayList* that returns the rays reflected on 
 the mirror. Rays that do not hit the support are not further propagated.
 
-![Illustration the Mirror-class.](../documentation/Mirror.svg)
+![Illustration the Mirror-class.](../docs/Mirror.svg)
 """
 
 """
@@ -97,7 +97,7 @@ class MirrorSpherical:
     """
     Spherical mirror surface with eqn. $x^2 + y^2 + z^2  = R^2$, where $R$ is the radius.
     
-    ![Illustration of a spherical mirror.](../documentation/sphericalmirror.svg)
+    ![Illustration of a spherical mirror.](../docs/sphericalmirror.svg)
     
     Attributes
     ----------
@@ -187,7 +187,7 @@ class MirrorParabolic:
     The effective focal length $f_\\mathrm{eff}$ is related to the semi latus rectum by 
     $ p = f_\\mathrm{eff} (1+\\cos\\alpha)$, where $\\alpha$ is the off-axis angle.
     
-    ![Illustration of a parabolic mirror.](../documentation/parabola.svg)
+    ![Illustration of a parabolic mirror.](../docs/parabola.svg)
 
     Attributes
     ----------
@@ -318,7 +318,7 @@ class MirrorToroidal:
     Toroidal mirror surface with eqn. $(\\sqrt{x**2 +z**2} - R)^2 + y^2 = r^2$,
     where $R$ and $r$ the major and minor radii.
     
-    ![Illustration of a toroidal mirror.](../documentation/toroidal.svg)
+    ![Illustration of a toroidal mirror.](../docs/toroidal.svg)
     
     Attributes
     ----------
@@ -450,7 +450,7 @@ class MirrorEllipsoidal:
     Ellipdoidal mirror surface with eqn. $(x/a)^2 + (y/b)^2 + (z/b)^2 = 1$,
     where $a$ and $b$ are semi major and semi minor axes.
     
-    ![Illustration of a ellipsoidal mirror.](../documentation/ellipsoid.svg)
+    ![Illustration of a ellipsoidal mirror.](../docs/ellipsoid.svg)
 
     Attributes
     ----------

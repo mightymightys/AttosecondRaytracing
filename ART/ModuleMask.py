@@ -3,7 +3,7 @@ Provides a class for masks, which are a type of optical element that simply stop
 
 Also provides the function *TransmitMaskRayList* that returns the rays transmitted by the mask. 
 
-![Illustration the Mask-class.](../documentation/Mask.svg)
+![Illustration the Mask-class.](../docs/Mask.svg)
 """
 
 """

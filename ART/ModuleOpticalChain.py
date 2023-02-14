@@ -2,7 +2,7 @@
 Provides the class OpticalChain, which represents the whole optical setup to be simulated, 
 from the bundle of source-[Rays](ModuleOpticalRay.html) through the successive [OpticalElements](ModuleOpticalElement.html). 
 
-![Illustration the Mirror-class.](../documentation/OpticalChain.svg)
+![Illustration the Mirror-class.](../docs/OpticalChain.svg)
 """
 
 """

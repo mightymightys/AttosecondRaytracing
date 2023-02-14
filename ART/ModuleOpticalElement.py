@@ -6,7 +6,7 @@ and it provides methods to modify its alignment.
 
 The optic can be a [Mirror-object](ModuleMirror.html) or a [Mask-object](ModuleMask.html).
 
-![Illustration the OpticalElement-class.](../documentation/OE.svg)
+![Illustration the OpticalElement-class.](../docs/OE.svg)
 """
 
 """

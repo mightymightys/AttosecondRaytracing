@@ -53,7 +53,7 @@ def PointSource(S : np.ndarray, Axis : np.ndarray, Divergence : float, NbRays : 
     """
     Return a list of rays simulating rays from a point source.
    
-    ![Illustration of a point source.](../documentation/pointsource.svg)
+    ![Illustration of a point source.](../docs/pointsource.svg)
     
     Parameters
     ----------
@@ -129,7 +129,7 @@ def PlaneWaveDisk(Centre : np.ndarray, Axis : np.ndarray, Radius : float, NbRays
     """
     Return a list of rays, all parallel and distributed over a round cross section according to a Vogel-spiral (see illustration). Simulating a 'round' collimated beam.
     
-    ![Illustration of a Vogel spiral.](../documentation/doc_VogelSpiral.png)
+    ![Illustration of a Vogel spiral.](../docs/doc_VogelSpiral.png)
     
     Parameters
     ----------
