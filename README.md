@@ -19,4 +19,3 @@ A publication of simulations of the beam transport and focusing of high-numerica
 is in preparation and will become the reference that we ask you to cite if you have used this code in your work.
 
 
-[Rays](ModuleOpticalRay.html) 

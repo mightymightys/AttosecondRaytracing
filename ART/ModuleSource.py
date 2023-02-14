@@ -129,7 +129,7 @@ def PlaneWaveDisk(Centre : np.ndarray, Axis : np.ndarray, Radius : float, NbRays
     """
     Return a list of rays, all parallel and distributed over a round cross section according to a Vogel-spiral (see illustration). Simulating a 'round' collimated beam.
     
-    ![Illustration of a Vogel spiral.](../documentation/VogelSpiral.png)
+    ![Illustration of a Vogel spiral.](../documentation/doc_VogelSpiral.png)
     
     Parameters
     ----------

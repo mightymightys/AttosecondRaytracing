@@ -375,6 +375,95 @@ def DelayGraph(RayListAnalysed, Detector, DeltaFT: (int,float), DrawAiryAndFouri
     
     return fig
 
+
+#%%
+def MirrorProjection(OpticalChain, ReflectionNumber: int, Detector=None, ColorCoded=None) -> plt.Figure:
+    """
+    Produce a plot of the ray impact points on the optical element with index 'ReflectionNumber'.
+    The points can be color-coded according ["Incidence","Intensity","Delay"], where the ray delay is 
+    measured at the Detector.
+
+    Parameters
+    ----------
+        OpticalChain : OpticalChain
+           List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
+           
+        ReflectionNumber : int
+            Index specifying the optical element on which you want to see the impact points.
+            
+        Detector : Detector, optional
+            Object of the ModuleDetector.Detector-class. Only necessary to project delays. The default is None.
+            
+        ColorCoded : str, optional
+            Specifies which ray property to color-code: ["Incidence","Intensity","Delay"]. The default is None.
+    
+    Returns
+    -------
+        fig : matlplotlib-figure-handle.
+            Shows the figure.
+    """
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+    Position = OpticalChain.optical_elements[ReflectionNumber].position
+    n = OpticalChain.optical_elements[ReflectionNumber].normal
+    m = OpticalChain.optical_elements[ReflectionNumber].majoraxis
+    
+    RayListAnalysed = OpticalChain.get_output_rays()[ReflectionNumber]
+    #transform rays into the mirror-support reference frame
+    #(same as mirror frame but without the shift by mirror-centre)
+    RayList = mgeo.TranslationRayList(RayListAnalysed, -Position)
+    RayList = mgeo.RotationRayList(RayList, n,  np.array([0,0,1]))
+    mPrime = mgeo.RotationPoint(m, n, np.array([0,0,1])) 
+    RayList = mgeo.RotationRayList(RayList, mPrime, np.array([1,0,0]))
+    
+        
+    x = np.asarray([k.point[0] for k in RayList])
+    y = np.asarray([k.point[1] for k in RayList])
+    if ColorCoded=='Intensity':
+        IntensityList = [k.intensity for k in RayListAnalysed]
+        z = np.asarray(IntensityList)
+        zlabel = "Intensity (arb.u.)"
+        title = "Ray intensity projected on mirror              "
+    elif ColorCoded=='Incidence':
+        IncidenceList = [np.rad2deg(k.incidence) for k in RayListAnalysed] # in degree
+        z = np.asarray(IncidenceList)
+        zlabel = "Incidence angle (deg)"
+        title = "Ray incidence projected on mirror              "
+    elif ColorCoded=='Delay':
+        if Detector is not None:
+            z = np.asarray(Detector.get_Delays(RayListAnalysed))
+            zlabel = "Delay (fs)"
+            title = "Ray delay at detector projected on mirror              "
+        else: 
+            raise ValueError('If you want to project ray delays, you must specify a detector.')
+    else:
+        z = 'red'
+        title = "Ray impact points projected on mirror"
+    
+    plt.ion()        
+    fig = plt.figure()
+    ax = OpticalChain.optical_elements[ReflectionNumber].type.support._ContourSupport(fig)
+    p = plt.scatter(x,y,c=z, s=15)
+    if ColorCoded=='Delay' or ColorCoded=='Incidence' or ColorCoded=='Intensity':
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        cbar = fig.colorbar(p, cax=cax)
+        cbar.set_label(zlabel) 
+    ax.set_xlabel("x (mm)")
+    ax.set_ylabel("y (mm)")
+    plt.title(title, loc ='right')
+    plt.tight_layout()
+    
+    bbox = ax.get_position()
+    bbox.set_points(bbox.get_points()-np.array([[0.01, 0],[0.01, 0]]))
+    ax.set_position(bbox)
+    plt.show()
+    
+    return fig
+
+
+
+
 #%% 
 def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
     """
@@ -503,88 +592,3 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
     print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
     return fig
 
-
-#%%
-def MirrorProjection(OpticalChain, ReflectionNumber: int, Detector=None, ColorCoded=None) -> plt.Figure:
-    """
-    Produce a plot of the ray impact points on the optical element with index 'ReflectionNumber'.
-    The points can be color-coded according ["Incidence","Intensity","Delay"], where the ray delay is 
-    measured at the Detector.
-
-    Parameters
-    ----------
-        OpticalChain : OpticalChain
-           List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
-           
-        ReflectionNumber : int
-            Index specifying the optical element on which you want to see the impact points.
-            
-        Detector : Detector, optional
-            Object of the ModuleDetector.Detector-class. Only necessary to project delays. The default is None.
-            
-        ColorCoded : str, optional
-            Specifies which ray property to color-code: ["Incidence","Intensity","Delay"]. The default is None.
-    
-    Returns
-    -------
-        fig : matlplotlib-figure-handle.
-            Shows the figure.
-    """
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-    Position = OpticalChain.optical_elements[ReflectionNumber].position
-    n = OpticalChain.optical_elements[ReflectionNumber].normal
-    m = OpticalChain.optical_elements[ReflectionNumber].majoraxis
-    
-    RayListAnalysed = OpticalChain.get_output_rays()[ReflectionNumber]
-    #transform rays into the mirror-support reference frame
-    #(same as mirror frame but without the shift by mirror-centre)
-    RayList = mgeo.TranslationRayList(RayListAnalysed, -Position)
-    RayList = mgeo.RotationRayList(RayList, n,  np.array([0,0,1]))
-    mPrime = mgeo.RotationPoint(m, n, np.array([0,0,1])) 
-    RayList = mgeo.RotationRayList(RayList, mPrime, np.array([1,0,0]))
-    
-        
-    x = np.asarray([k.point[0] for k in RayList])
-    y = np.asarray([k.point[1] for k in RayList])
-    if ColorCoded=='Intensity':
-        IntensityList = [k.intensity for k in RayListAnalysed]
-        z = np.asarray(IntensityList)
-        zlabel = "Intensity (arb.u.)"
-        title = "Ray intensity projected on mirror              "
-    elif ColorCoded=='Incidence':
-        IncidenceList = [np.rad2deg(k.incidence) for k in RayListAnalysed] # in degree
-        z = np.asarray(IncidenceList)
-        zlabel = "Incidence angle (deg)"
-        title = "Ray incidence projected on mirror              "
-    elif ColorCoded=='Delay':
-        if Detector is not None:
-            z = np.asarray(Detector.get_Delays(RayListAnalysed))
-            zlabel = "Delay (fs)"
-            title = "Ray delay at detector projected on mirror              "
-        else: 
-            raise ValueError('If you want to project ray delays, you must specify a detector.')
-    else:
-        z = 'red'
-        title = "Ray impact points projected on mirror"
-    
-    plt.ion()        
-    fig = plt.figure()
-    ax = OpticalChain.optical_elements[ReflectionNumber].type.support._ContourSupport(fig)
-    p = plt.scatter(x,y,c=z, s=15)
-    if ColorCoded=='Delay' or ColorCoded=='Incidence' or ColorCoded=='Intensity':
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.05)
-        cbar = fig.colorbar(p, cax=cax)
-        cbar.set_label(zlabel) 
-    ax.set_xlabel("x (mm)")
-    ax.set_ylabel("y (mm)")
-    plt.title(title, loc ='right')
-    plt.tight_layout()
-    
-    bbox = ax.get_position()
-    bbox.set_points(bbox.get_points()-np.array([[0.01, 0],[0.01, 0]]))
-    ax.set_position(bbox)
-    plt.show()
-    
-    return fig
