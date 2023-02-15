@@ -18,4 +18,6 @@ ART now makes these calculations avaible to the ultrafast optics community in a 
 A publication of simulations of the beam transport and focusing of high-numerical-aperture XUV attosecond pulses
 is in preparation and will become the reference that we ask you to cite if you have used this code in your work.
 
+The detailed documentaion can be found [here](https://mightymightys.github.io/AttosecondRaytracing/ART.html).
 
+A quickstart documentation will very soon (promised ;-) be added in the following.
