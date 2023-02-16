@@ -21,3 +21,48 @@ is in preparation and will become the reference that we ask you to cite if you h
 The detailed documentaion can be found [here](https://mightymightys.github.io/AttosecondRaytracing/ART.html).
 
 A quickstart documentation will very soon (promised ;-) be added in the following.
+
+** Installation / Dependencies: **
+
+You can just download the code as a zip file from here.
+Or if you are using the git version control software, you can clone the repository like so:
+    git clone https://github.com/mightymightys/AttosecondRaytracing.git
+You are welcome to fork the code and contribute to its further development
+
+The code requires Python 3.6 or newer and depends on the libraries [NumPy](https://numpy.org), 
+[Numpy-Quaternion](https://github.com/moble/quaternion),  [matplotlib](https://matplotlib.org),
+and for 3D-rendering of optical configurations and rays,  [Mayavi](https://docs.enthought.com/mayavi/mayavi).
+
+We strongly recommend using an anaconda/miniconda python distribution, and recreating the virtual
+conda-environment *ARTenv*, fixed in the file ARTenvironment.yml contained in the repository.
+In a terminal of Anaconda prompt, do:
+    conda env create -f ARTenvironment.yml
+    conda activate ARTenv
+    
+This will make sure you have a combination of versions of all dependencies that has been tested to work as expected.
+
+Otherwise you can install the crucial dependencies easily if you use a miniconda distribution by entering in the Anaconda prompt:
+    
+    conda install -c anaconda numpy
+    conda install -c anaconda matplotlib
+    conda install -c conda-forge quaternion
+    conda install -c conda-forge mayavi
+
+With some luck, this will let ART work in the base environment. Howver, in particular the Mayavi package
+(or rather the VTK package that it depends on) is not always available for the most recent python version.
+
+
+** Running ART **
+
+To run ART, you run the appropriately named "ARTmain.py" in the console, supplying a
+configuration-file as an argument, like so:
+    python ARTmain.py CONFIG_xxxx.py
+The configuration file is itself written in python, and the user is responsible for enuring
+that it doesn’t contain any harmful code. A template for such a configuration file is given
+by "CONFIG_template.py"é" and a number of example configurations files are provided to
+be tried, explored and adapted.
+
+Alternatively, the user may use the configuration file as a launch script, and run the
+main program as indicated at the end of the template and example configuration files.
+This is practicle, e.g., when writing the configuration file in an IDE like Spyder, which
+features an IPython-console and let the user run the configuration directly.
