@@ -102,7 +102,7 @@ ou can clone the repository like so:</p>
 <pre><code>git clone https://github.com/mightymightys/AttosecondRaytracing.git
 </code></pre>
 
-<p>You are welcome to fork the code and contribute to its further development</p>
+<p>You are welcome to fork the code and contribute to its further development!</p>
 
 <p>The code requires Python 3.6 or newer and depends on the libraries <a href="https://numpy.org">NumPy</a>, 
 <a href="https://github.com/moble/quaternion">Numpy-Quaternion</a>,  <a href="https://matplotlib.org">matplotlib</a>,
@@ -110,13 +110,12 @@ and for 3D-rendering of optical configurations and rays,  <a href="https://docs.
 
 <p>We strongly recommend using an anaconda/miniconda python distribution, and recreating the virtual
 conda-environment <strong><em>ARTenv</em></strong>, fixed in the file <em>ARTenvironment.yml</em> contained in the repository.
-In a terminal of Anaconda prompt, do:</p>
+This will make sure you have a combination of versions of all dependencies that has been tested to work
+as expected. In a terminal, do:</p>
 
 <pre><code>conda env create -f ARTenvironment.yml
 conda activate ARTenv
 </code></pre>
-
-<p>This will make sure you have a combination of versions of all dependencies that has been tested to work as expected.</p>
 
 <p>Otherwise you can install the crucial dependencies easily if you use a miniconda distribution by entering in the Anaconda prompt:</p>
 
@@ -185,7 +184,7 @@ and is the central object the user will deal with...</p>
 </span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="sd">    </span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">    git clone https://github.com/mightymightys/AttosecondRaytracing.git</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">You are welcome to fork the code and contribute to its further development</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">You are welcome to fork the code and contribute to its further development!</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>
 </span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">The code requires Python 3.6 or newer and depends on the libraries [NumPy](https://numpy.org), </span>
 </span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="sd">[Numpy-Quaternion](https://github.com/moble/quaternion),  [matplotlib](https://matplotlib.org),</span>
@@ -193,47 +192,46 @@ and is the central object the user will deal with...</p>
 </span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>
 </span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="sd">We strongly recommend using an anaconda/miniconda python distribution, and recreating the virtual</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="sd">conda-environment ***ARTenv***, fixed in the file *ARTenvironment.yml* contained in the repository.</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">In a terminal of Anaconda prompt, do:</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="sd">    </span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="sd">    conda env create -f ARTenvironment.yml</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">    conda activate ARTenv</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="sd">    </span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">This will make sure you have a combination of versions of all dependencies that has been tested to work as expected.</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">Otherwise you can install the crucial dependencies easily if you use a miniconda distribution by entering in the Anaconda prompt:</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">    </span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">    conda install -c anaconda numpy</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">    conda install -c anaconda matplotlib</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">    conda install -c conda-forge quaternion</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="sd">    conda install -c conda-forge mayavi</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="sd">With some luck, this will let ART work in the base environment. Howver, in particular the Mayavi package</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="sd">(or rather the VTK package that it depends on) is not always available for the most recent python version.</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">This will make sure you have a combination of versions of all dependencies that has been tested to work</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="sd">as expected. In a terminal, do:</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="sd">    </span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">    conda env create -f ARTenvironment.yml</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="sd">    conda activate ARTenv</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">Otherwise you can install the crucial dependencies easily if you use a miniconda distribution by entering in the Anaconda prompt:</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">    </span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">    conda install -c anaconda numpy</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">    conda install -c anaconda matplotlib</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">    conda install -c conda-forge quaternion</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">    conda install -c conda-forge mayavi</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="sd">With some luck, this will let ART work in the base environment. Howver, in particular the Mayavi package</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="sd">(or rather the VTK package that it depends on) is not always available for the most recent python version.</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>
 </span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a><span class="sd">### Running ART </span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a><span class="sd">To run ART, you run the appropriately named ***ARTmain.py*** in the console, supplying a</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a><span class="sd">configuration-file as an argument, like so:</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a><span class="sd">  </span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a><span class="sd">    python ARTmain.py CONFIG_xxxx.py</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>
-</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a><span class="sd">The configuration file is itself written in python, and the user is responsible for enuring</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a><span class="sd">that it doesn’t contain any harmful code. A template for such a configuration file is given</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a><span class="sd">by ***CONFIG_template.py*** and a number of example configurations files are provided to</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a><span class="sd">be tried, explored and adapted.</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>
-</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a><span class="sd">Alternatively, the user may use the configuration file as a launch script, and run the</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a><span class="sd">main program as indicated at the end of the template and example configuration files.</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a><span class="sd">This is practicle, e.g., when writing the configuration file in an IDE like *Spyder*, which</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a><span class="sd">features an IPython-console and let the user run the configuration directly.</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>
-</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a><span class="sd">### More detailed instructions to come...</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>
-</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a><span class="sd">The [Optical Chain](ART/ModuleOpticalChain.html) is a class that represents the whole optical setup to be simulated,</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a><span class="sd">and is the central object the user will deal with...</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>
-</span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="sd">### Running ART </span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a><span class="sd">To run ART, you run the appropriately named ***ARTmain.py*** in the console, supplying a</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a><span class="sd">configuration-file as an argument, like so:</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a><span class="sd">  </span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a><span class="sd">    python ARTmain.py CONFIG_xxxx.py</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a><span class="sd">The configuration file is itself written in python, and the user is responsible for enuring</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a><span class="sd">that it doesn’t contain any harmful code. A template for such a configuration file is given</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a><span class="sd">by ***CONFIG_template.py*** and a number of example configurations files are provided to</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a><span class="sd">be tried, explored and adapted.</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a><span class="sd">Alternatively, the user may use the configuration file as a launch script, and run the</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a><span class="sd">main program as indicated at the end of the template and example configuration files.</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a><span class="sd">This is practicle, e.g., when writing the configuration file in an IDE like *Spyder*, which</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a><span class="sd">features an IPython-console and let the user run the configuration directly.</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a><span class="sd">### More detailed instructions to come...</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>
+</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a><span class="sd">The [Optical Chain](ART/ModuleOpticalChain.html) is a class that represents the whole optical setup to be simulated,</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a><span class="sd">and is the central object the user will deal with...</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>
+</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span></pre></div>
 
 

@@ -37,13 +37,12 @@ and for 3D-rendering of optical configurations and rays,  [Mayavi](https://docs.
 
 We strongly recommend using an anaconda/miniconda python distribution, and recreating the virtual
 conda-environment ***ARTenv***, fixed in the file *ARTenvironment.yml* contained in the repository.
-In a terminal of Anaconda prompt, do:
+This will make sure you have a combination of versions of all dependencies that has been tested to work
+as expected. In a terminal, do:
     
     conda env create -f ARTenvironment.yml
     conda activate ARTenv
     
-This will make sure you have a combination of versions of all dependencies that has been tested to work as expected.
-
 Otherwise you can install the crucial dependencies easily if you use a miniconda distribution by entering in the Anaconda prompt:
     
     conda install -c anaconda numpy
