@@ -22,7 +22,7 @@ The detailed documentaion can be found [here](https://mightymightys.github.io/At
 
 A quickstart documentation will very soon (promised ;-) be added in the following.
 
-** Installation / Dependencies: **
+### Installation / Dependencies
 
 You can just download the code as a zip file from here.
 Or if you are using the git version control software, you can clone the repository like so:
@@ -52,7 +52,7 @@ With some luck, this will let ART work in the base environment. Howver, in parti
 (or rather the VTK package that it depends on) is not always available for the most recent python version.
 
 
-** Running ART **
+### Running ART 
 
 To run ART, you run the appropriately named "ARTmain.py" in the console, supplying a
 configuration-file as an argument, like so:
