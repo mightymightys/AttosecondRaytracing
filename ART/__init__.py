@@ -71,7 +71,7 @@ features an IPython-console and let the user run the configuration directly.
 
 ### More detailed instructions to come...
 
-The [Optical Chain](ModuleOpticalChain.html) is a class that represents the whole optical setup to be simulated,
+The [Optical Chain](ART/ModuleOpticalChain.html) is a class that represents the whole optical setup to be simulated,
 and is the central object the user will deal with...
 
 """
