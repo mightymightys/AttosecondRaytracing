@@ -33,7 +33,7 @@ The code requires Python 3.6 or newer and depends on the libraries [NumPy](https
 and for 3D-rendering of optical configurations and rays,  [Mayavi](https://docs.enthought.com/mayavi/mayavi).
 
 We strongly recommend using an anaconda/miniconda python distribution, and recreating the virtual
-conda-environment ***ARTenv***, fixed in the file *ARTenvironment.yml* contained in the repository.
+conda-environment *ARTenv*, fixed in the file ***ARTenvironment.yml*** contained in the repository.
 This will make sure you have a combination of versions of all dependencies that has been tested to work
 as expected. In a terminal, do:
     
