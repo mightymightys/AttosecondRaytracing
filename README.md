@@ -1,4 +1,5 @@
-![](./documentation/logo.png)
+![A rendering of two toroidal mirrors with an intermediate collimated section.](./docs/doc_illustrationrender.png)
+
 
 ART - Attosecond Ray Tracing - is a free python code written by Stefan Haessler, Anthony Guillaume of
 [Laboratoire d'Optique Appliquée (LOA), CNRS, Institut Polytechnique de Paris, France](https://loa.ensta-paris.fr/research/pco-research-group/)

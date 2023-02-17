@@ -271,8 +271,8 @@ class MirrorParabolic:
         zA = Ray.point[2]
     
         da = ux**2 + uy**2
-        db = 2 * (ux*xA + uy*yA) - 2*self.p*uz
-        dc = xA**2 + yA**2 - 2*self.p*zA
+        db = 2 * (ux*xA + uy*yA) - 2*self._p*uz
+        dc = xA**2 + yA**2 - 2*self._p*zA
         
         Solution = mgeo.SolverQuadratic(da,db,dc)
         Solution = mgeo.KeepPositiveSolution(Solution)
@@ -290,12 +290,12 @@ class MirrorParabolic:
          Gradient = np.zeros(3)
          Gradient[0] = Point[0]
          Gradient[1] = Point[1]
-         Gradient[2] = -self.p
+         Gradient[2] = -self._p
          return mgeo.Normalize(Gradient)
     
     def get_centre(self):
         """  Return 3D coordinates of the point on the mirror surface at the center of its support. """
-        return np.array([self.feff*np.sin(self.offaxisangle),0,self.p*0.5 - self.feff*np.cos(self.offaxisangle)])
+        return np.array([self.feff*np.sin(self.offaxisangle),0,self._p*0.5 - self.feff*np.cos(self.offaxisangle)])
     
     def get_grid3D(self,NbPoint):
         """
@@ -306,7 +306,7 @@ class MirrorParabolic:
         ListCoordXY = self.support._get_grid(NbPoint)
         xc = self.feff*np.sin(self.offaxisangle)
         for k in ListCoordXY:
-            z = ((k[0]+xc)**2 + k[1]**2)/2/self.p
+            z = ((k[0]+xc)**2 + k[1]**2)/2/self._p
             ListCoordXYZ.append(np.array([k[0]+xc,k[1],z]))
         return ListCoordXYZ
     
