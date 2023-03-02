@@ -3,7 +3,7 @@
 
 #my own config-files
 myCONFIG_*
-ARTenvironment_overspecific.yml
+ARTenvironment_*
 
 #kept_data save files, images
 *.xz

@@ -51,7 +51,7 @@ Otherwise you can install the crucial dependencies easily if you use a miniconda
     conda install -c conda-forge quaternion
     conda install -c conda-forge mayavi
 
-With some luck, this will let ART work in the base environment. Howver, in particular the Mayavi package
+With some luck, this will let ART work in the base environment. However, in particular the Mayavi package
 (or rather the VTK package that it depends on) is not always available for the most recent python version.
 
 

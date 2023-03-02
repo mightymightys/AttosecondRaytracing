@@ -1,15 +1,15 @@
-name: ARTenv
+name: testARTenv
 channels:
   - anaconda
   - conda-forge
   - defaults
 dependencies:
-  - ca-certificates=2022.10.11
-  - importlib_resources=5.7.1
-  - matplotlib=3.5.1
-  - mayavi=4.7.2
-  - numpy=1.21.5
-  - python=3.9.12
-  - quaternion=2022.4.2
-  - scipy=1.7.3
-  - vtk=9.0.3
+  - ca-certificates
+  - importlib_resources
+  - matplotlib=3.5.3
+  - mayavi>=4.7.2
+  - numpy>=1.21.5
+  - python=3.9
+  - quaternion>=2022.4.2
+  - scipy>=1.7.3
+  - vtk>=9.0.3
