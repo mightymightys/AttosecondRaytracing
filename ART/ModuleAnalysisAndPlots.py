@@ -592,3 +592,109 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
     print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
     return fig
 
+# #%% 
+# def RayRenderGraph_vispy(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
+#     from vispy import app, scene
+#     """
+#     Renders an image of the Optical setup and the traced rays - using the vispy library instead of mayavi.
+#     But this is slower, not as pretty, and more buggy. Meh.
+    
+#     Parameters
+#     ----------
+#         OpticalChain : OpticalChain
+#             List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
+            
+#         EndDistance : float, optional
+#             The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
+#             this distance is set to that between the source point and the 1st optical element.
+        
+#         maxRays: int
+#             The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
+#             and not required for a nice image. Default is 150.
+        
+#         OEpoints : int
+#             How many little spheres to draw to represent the optical elements.  Default is 2000.
+    
+#     Returns
+#     -------
+#         canvas : vispy-canvas-handle.
+#         Shows the figure.
+#     """    
+#     # Create canvas and view
+#     canvas = scene.SceneCanvas(keys='interactive', bgcolor = (1,1,1),  size=(1500, 500), show=True)
+#     view = canvas.central_widget.add_view()
+#     view.camera = scene.cameras.ArcballCamera(fov=45.0)
+#     view.camera.scale_factor = 500
+
+
+#     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
+    
+#     if EndDistance == None:
+#         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
+    
+#     print('...rendering image of optical chain...', end='', flush=True) 
+#     #fig = mlab.figure(bgcolor=(1,1,1),size=(1500, 500))
+    
+#     # Ray display
+#     line_vis = []
+        
+#     for k in range(len(RayListHistory)):
+#         if k != len(RayListHistory)-1:
+#             knums = list(map(lambda x: x.number, RayListHistory[k])) #make a list of all ray numbers that are still in the game             
+#             if len(RayListHistory[k+1]) > maxRays:
+#                 rays_to_render = np.random.choice(RayListHistory[k+1], maxRays, replace=False)
+#             else: rays_to_render = RayListHistory[k+1]
+
+#             for j in rays_to_render:
+#                 indx = knums.index(j.number)
+#                 i = RayListHistory[k][indx]
+                
+#                 line = np.array([i.point, j.point])
+#                 vis2 = scene.visuals.Tube(line, radius=.3, color='red', tube_points=8, shading='flat')
+#                 vis2.parent = view.scene
+#                 line_vis.append(vis2)
+                
+#         else:
+#             if len(RayListHistory[k]) > maxRays:
+#                 rays_to_render = np.random.choice(RayListHistory[k], maxRays, replace=False)
+#             else: rays_to_render = RayListHistory[k]
+
+#             for j in rays_to_render:
+                
+#                 line = np.array([j.point, j.point + j.vector*EndDistance])
+#                 vis2 = scene.visuals.Tube(line, radius=.3, color='red', tube_points=8, shading='flat')
+#                 vis2.parent = view.scene
+#                 line_vis.append(vis2)
+
+#     # Optics display
+#     for OE in OpticalChain.optical_elements:
+#         OpticPointList = OE.type.get_grid3D(OEpoints) #in the optic's coordinate system
+        
+#         # transform OpticPointList into "lab-frame"
+#         OpticPointList = mgeo.TranslationPointList(OpticPointList, -OE.type.get_centre())
+#         MirrorMajorAxisPrime = mgeo.RotationPoint(OE.majoraxis, OE.normal, np.array([0,0,1]))
+#         OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([1,0,0]), MirrorMajorAxisPrime)
+#         OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0,0,1]), OE.normal)
+#         OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)        
+        
+        
+#         vis = scene.visuals.Markers(
+#             pos=np.array(OpticPointList),
+#             size=3,
+#             antialias=0,
+#             face_color=(0.66,0.66,0.66),
+#             edge_color='white',
+#             edge_width=0,
+#             scaling=True,
+#             spherical=True,
+#         )
+#         vis.parent = view.scene
+        
+
+
+#     # fig.scene._lift()
+#     # mlab.view(azimuth=-90, elevation=90, distance='auto')
+#     app.run()
+    
+#     print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
+#     return canvas

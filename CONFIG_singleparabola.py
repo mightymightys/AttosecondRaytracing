@@ -90,7 +90,7 @@ AnalysisOptions = {
     'plot_IncidenceSpotDiagram': False, # produce an interactive spot diagram with ray incidence angles color coded?
 
     'plot_DelayGraph': False,        # produce an interactive spot diagram with delays in 3rd dimension?
-    'plot_IntensityGraph': False,     # produce an interactive spot diagram with delays in 3rd dimension and ray intensities color coded?
+    'plot_IntensityGraph': True,     # produce an interactive spot diagram with delays in 3rd dimension and ray intensities color coded?
     'plot_IncidenceGraph': False,    # produce an interactive spot diagram with delays in 3rd dimension and ray incidence angles color coded?
 
     'plot_DelayMirrorProjection': False,      # produce a plot of the ray delays at the detector projected onto the surface of the preceding mirror?
@@ -114,7 +114,7 @@ IF PREFER RUNNING THIS CONFIG-SCRIPT DIRECTLY, call the main function of the
 ARTmain.py-program from here like so:
 """
 # from ARTmain import main
-# kept_data = main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions)
+# kept_data = main(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions)
     
 
 # """ IN EITHER CASE, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO: """

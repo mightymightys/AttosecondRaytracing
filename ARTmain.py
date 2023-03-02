@@ -153,8 +153,7 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
     """ Go through the built-in plotting options. """
         
     if AnalysisOptions["plot_Render"]:
-       mplots.RayRenderGraph(OpticalChain,Detector.get_distance()*1.5 ,AnalysisOptions["maxRaysToRender"])
-        
+       mplots.RayRenderGraph(OpticalChain,Detector.get_distance()*1.5 ,AnalysisOptions["maxRaysToRender"])   
 
     if AnalysisOptions["plot_DelayMirrorProjection"]:
         mplots.MirrorProjection(OpticalChain,DetectorOptions["ReflectionNumber"],Detector, 'Delay')
