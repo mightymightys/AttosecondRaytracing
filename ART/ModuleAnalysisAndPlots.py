@@ -18,6 +18,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import ART.ModuleProcessing as mp
 import ART.ModuleGeometry as mgeo
 
+
 #%%
 def _getDetectorPoints(RayListAnalysed, Detector) -> tuple[np.ndarray, np.ndarray, float, float]:
     """
@@ -275,6 +276,7 @@ def _drawDelayGraph(RayListAnalysed, Detector, Distance, DeltaFT, DrawAiryAndFou
         fig.clear(keep_observers=True)
 
     ax = Axes3D(fig)
+    fig.add_axes(ax)
     ax.set_xlabel("X (µm)")
     ax.set_ylabel("Y (µm)")
     ax.set_zlabel("Delay (fs)")
