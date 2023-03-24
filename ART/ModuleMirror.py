@@ -301,7 +301,7 @@ class MirrorParabolic:
          return mgeo.Normalize(Gradient)
     
     def get_centre(self):
-        """  Return 3D coordinates of the point on the mirror surface at the center of its support. """
+        """  Return 3D coordinates of the point $P$ on the mirror surface at the center of its support. """
         return np.array([self.feff*np.sin(self.offaxisangle),0,self._p*0.5 - self.feff*np.cos(self.offaxisangle)])
     
     def get_grid3D(self,NbPoint):
