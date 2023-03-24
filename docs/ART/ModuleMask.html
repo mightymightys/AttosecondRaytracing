@@ -101,135 +101,135 @@
 
                         <label class="view-source-button" for="mod-ModuleMask-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">Provides a class for masks, which are a type of optical element that simply stops rays that hit it.</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">Also provides the function *TransmitMaskRayList* that returns the rays transmitted by the mask. </span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="sd">![Illustration the Mask-class.](../docs/Mask.svg)</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">Created in 2021</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="sd">@author: Stefan Haessler</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="c1">#%% Modules</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>
-</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="kn">import</span> <span class="nn">ART.ModuleGeometry</span> <span class="k">as</span> <span class="nn">mgeo</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
-</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="c1">#%%############################################################################</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="k">class</span> <span class="nc">Mask</span><span class="p">:</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    A mask: a plane surface of the shape of its [Support](ModuleSupport.html), which stops all rays that hit it,</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">    while all other rays continue their path unchanged.    </span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    </span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    Attributes</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    ----------</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">        support : [Support](ModuleSupport.html)-object</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">        </span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a><span class="sd">        type : str &#39;Ellipsoidal Mirror&#39;.</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">             </span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">    Methods</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">    ----------</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">        get_normal(Point)</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">        </span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a><span class="sd">        get_centre()</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">        </span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">        get_grid3D(NbPoints)</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">         </span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">):</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">        Parameters</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a><span class="sd">        ----------</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object </span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;Mask&#39;</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>        
-</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    
-</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>    <span class="k">def</span> <span class="nf">_get_intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;  Return the intersection point between Ray and the xy-plane,</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a><span class="sd">        where rays do NOT hit the mask&#39;s support &quot;&quot;&quot;</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>        <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ray</span><span class="o">.</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="n">I</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="o">*</span><span class="n">t</span> <span class="o">+</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_IncludeSupport</span><span class="p">(</span><span class="n">I</span><span class="p">):</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="n">I</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="k">else</span><span class="p">:</span> 
-</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>        
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>        <span class="k">return</span> <span class="n">PointIntersection</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>    
-</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="k">def</span> <span class="nf">get_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;  Return normal unit vector in point &#39;Point&#39; on the mask. &quot;&quot;&quot;</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>        <span class="k">return</span> <span class="n">Normal</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>    
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;  Return 3D coordinates of the point on the mask surface at the center of its support. &quot;&quot;&quot;</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">NbPoint</span><span class="p">):</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">        sampling the support in a number NbPoints of points.</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span><span class="p">)</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">z</span><span class="p">]))</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a> 
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>    
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    
-</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a><span class="c1">#%%############################################################################</span>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="k">def</span> <span class="nf">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns the transmitted ray &quot;&quot;&quot;</span>   
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>    <span class="n">PointRay</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="n">VectorRay</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="n">NormalMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">get_normal</span><span class="p">(</span><span class="n">PointMask</span><span class="p">)</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>        
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="n">AngleIncidence</span> <span class="o">=</span> <span class="n">mgeo</span><span class="o">.</span><span class="n">AngleBetweenTwoVectors</span><span class="p">(</span><span class="n">VectorRay</span><span class="p">,</span> <span class="n">NormalMask</span><span class="p">)</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="n">Path</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">PointMask</span> <span class="o">-</span> <span class="n">PointRay</span><span class="p">)</span> <span class="o">+</span> <span class="n">Ray</span><span class="o">.</span><span class="n">path</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>    <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">copy_ray</span><span class="p">()</span>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">point</span> <span class="o">=</span> <span class="n">PointMask</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">vector</span> <span class="o">=</span> <span class="n">VectorRay</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">incidence</span> <span class="o">=</span> <span class="n">AngleIncidence</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">return</span> <span class="n">RayTransmitted</span>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="c1">#%%</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="k">def</span> <span class="nf">TransmitMaskRayList</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">RayList</span><span class="p">):</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">    Returns the the transmitted rays that pass the mask for the list of </span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">    incident rays ListRay. </span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="sd">    </span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="sd">    Rays that hit the support are not further propagated.</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="sd">    </span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">    Updates the reflected rays&#39; incidence angle and path.</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a><span class="sd">    </span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">    Parameters</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">    ----------</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">        Mask : Mask-object</span>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">        </span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">        ListRay : list[Ray-object]</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="n">ListRayTransmitted</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="k">for</span> <span class="n">Ray</span> <span class="ow">in</span> <span class="n">RayList</span><span class="p">:</span>
-</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>        <span class="n">PointMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">_get_intersection</span><span class="p">(</span><span class="n">Ray</span><span class="p">)</span>
-</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>
-</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="k">if</span> <span class="n">PointMask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>            <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">)</span>
-</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>            <span class="n">ListRayTransmitted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RayTransmitted</span><span class="p">)</span>
-</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>
-</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="k">return</span> <span class="n">ListRayTransmitted</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#-2"><span class="linenos">  2</span></a><span class="sd">Provides a class for masks, which are a type of optical element that simply stops rays that hit it.</span>
+</span><span id="L-3"><a href="#-3"><span class="linenos">  3</span></a>
+</span><span id="L-4"><a href="#-4"><span class="linenos">  4</span></a><span class="sd">Also provides the function *TransmitMaskRayList* that returns the rays transmitted by the mask. </span>
+</span><span id="L-5"><a href="#-5"><span class="linenos">  5</span></a>
+</span><span id="L-6"><a href="#-6"><span class="linenos">  6</span></a><span class="sd">![Illustration the Mask-class.](../docs/Mask.svg)</span>
+</span><span id="L-7"><a href="#-7"><span class="linenos">  7</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-8"><a href="#-8"><span class="linenos">  8</span></a>
+</span><span id="L-9"><a href="#-9"><span class="linenos">  9</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-10"><a href="#-10"><span class="linenos"> 10</span></a><span class="sd">Created in 2021</span>
+</span><span id="L-11"><a href="#-11"><span class="linenos"> 11</span></a>
+</span><span id="L-12"><a href="#-12"><span class="linenos"> 12</span></a><span class="sd">@author: Stefan Haessler</span>
+</span><span id="L-13"><a href="#-13"><span class="linenos"> 13</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-14"><a href="#-14"><span class="linenos"> 14</span></a><span class="c1">#%% Modules</span>
+</span><span id="L-15"><a href="#-15"><span class="linenos"> 15</span></a>
+</span><span id="L-16"><a href="#-16"><span class="linenos"> 16</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="L-17"><a href="#-17"><span class="linenos"> 17</span></a><span class="kn">import</span> <span class="nn">ART.ModuleGeometry</span> <span class="k">as</span> <span class="nn">mgeo</span>
+</span><span id="L-18"><a href="#-18"><span class="linenos"> 18</span></a>
+</span><span id="L-19"><a href="#-19"><span class="linenos"> 19</span></a>
+</span><span id="L-20"><a href="#-20"><span class="linenos"> 20</span></a><span class="c1">#%%############################################################################</span>
+</span><span id="L-21"><a href="#-21"><span class="linenos"> 21</span></a><span class="k">class</span> <span class="nc">Mask</span><span class="p">:</span>
+</span><span id="L-22"><a href="#-22"><span class="linenos"> 22</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-23"><a href="#-23"><span class="linenos"> 23</span></a><span class="sd">    A mask: a plane surface of the shape of its [Support](ModuleSupport.html), which stops all rays that hit it,</span>
+</span><span id="L-24"><a href="#-24"><span class="linenos"> 24</span></a><span class="sd">    while all other rays continue their path unchanged.    </span>
+</span><span id="L-25"><a href="#-25"><span class="linenos"> 25</span></a><span class="sd">    </span>
+</span><span id="L-26"><a href="#-26"><span class="linenos"> 26</span></a><span class="sd">    Attributes</span>
+</span><span id="L-27"><a href="#-27"><span class="linenos"> 27</span></a><span class="sd">    ----------</span>
+</span><span id="L-28"><a href="#-28"><span class="linenos"> 28</span></a><span class="sd">        support : [Support](ModuleSupport.html)-object</span>
+</span><span id="L-29"><a href="#-29"><span class="linenos"> 29</span></a><span class="sd">        </span>
+</span><span id="L-30"><a href="#-30"><span class="linenos"> 30</span></a><span class="sd">        type : str &#39;Ellipsoidal Mirror&#39;.</span>
+</span><span id="L-31"><a href="#-31"><span class="linenos"> 31</span></a><span class="sd">             </span>
+</span><span id="L-32"><a href="#-32"><span class="linenos"> 32</span></a><span class="sd">    Methods</span>
+</span><span id="L-33"><a href="#-33"><span class="linenos"> 33</span></a><span class="sd">    ----------</span>
+</span><span id="L-34"><a href="#-34"><span class="linenos"> 34</span></a><span class="sd">        get_normal(Point)</span>
+</span><span id="L-35"><a href="#-35"><span class="linenos"> 35</span></a><span class="sd">        </span>
+</span><span id="L-36"><a href="#-36"><span class="linenos"> 36</span></a><span class="sd">        get_centre()</span>
+</span><span id="L-37"><a href="#-37"><span class="linenos"> 37</span></a><span class="sd">        </span>
+</span><span id="L-38"><a href="#-38"><span class="linenos"> 38</span></a><span class="sd">        get_grid3D(NbPoints)</span>
+</span><span id="L-39"><a href="#-39"><span class="linenos"> 39</span></a><span class="sd">         </span>
+</span><span id="L-40"><a href="#-40"><span class="linenos"> 40</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-41"><a href="#-41"><span class="linenos"> 41</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">):</span>
+</span><span id="L-42"><a href="#-42"><span class="linenos"> 42</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-43"><a href="#-43"><span class="linenos"> 43</span></a><span class="sd">        Parameters</span>
+</span><span id="L-44"><a href="#-44"><span class="linenos"> 44</span></a><span class="sd">        ----------</span>
+</span><span id="L-45"><a href="#-45"><span class="linenos"> 45</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object </span>
+</span><span id="L-46"><a href="#-46"><span class="linenos"> 46</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-47"><a href="#-47"><span class="linenos"> 47</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;Mask&#39;</span>
+</span><span id="L-48"><a href="#-48"><span class="linenos"> 48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
+</span><span id="L-49"><a href="#-49"><span class="linenos"> 49</span></a>        
+</span><span id="L-50"><a href="#-50"><span class="linenos"> 50</span></a>    
+</span><span id="L-51"><a href="#-51"><span class="linenos"> 51</span></a>    <span class="k">def</span> <span class="nf">_get_intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
+</span><span id="L-52"><a href="#-52"><span class="linenos"> 52</span></a>        <span class="sd">&quot;&quot;&quot;  Return the intersection point between Ray and the xy-plane,</span>
+</span><span id="L-53"><a href="#-53"><span class="linenos"> 53</span></a><span class="sd">        where rays do NOT hit the mask&#39;s support &quot;&quot;&quot;</span>
+</span><span id="L-54"><a href="#-54"><span class="linenos"> 54</span></a>        <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ray</span><span class="o">.</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="L-55"><a href="#-55"><span class="linenos"> 55</span></a>        <span class="n">I</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="o">*</span><span class="n">t</span> <span class="o">+</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
+</span><span id="L-56"><a href="#-56"><span class="linenos"> 56</span></a>        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_IncludeSupport</span><span class="p">(</span><span class="n">I</span><span class="p">):</span>
+</span><span id="L-57"><a href="#-57"><span class="linenos"> 57</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="n">I</span>
+</span><span id="L-58"><a href="#-58"><span class="linenos"> 58</span></a>        <span class="k">else</span><span class="p">:</span> 
+</span><span id="L-59"><a href="#-59"><span class="linenos"> 59</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-60"><a href="#-60"><span class="linenos"> 60</span></a>        
+</span><span id="L-61"><a href="#-61"><span class="linenos"> 61</span></a>        <span class="k">return</span> <span class="n">PointIntersection</span>
+</span><span id="L-62"><a href="#-62"><span class="linenos"> 62</span></a>    
+</span><span id="L-63"><a href="#-63"><span class="linenos"> 63</span></a>    <span class="k">def</span> <span class="nf">get_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
+</span><span id="L-64"><a href="#-64"><span class="linenos"> 64</span></a>        <span class="sd">&quot;&quot;&quot;  Return normal unit vector in point &#39;Point&#39; on the mask. &quot;&quot;&quot;</span>
+</span><span id="L-65"><a href="#-65"><span class="linenos"> 65</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+</span><span id="L-66"><a href="#-66"><span class="linenos"> 66</span></a>        <span class="k">return</span> <span class="n">Normal</span>
+</span><span id="L-67"><a href="#-67"><span class="linenos"> 67</span></a>    
+</span><span id="L-68"><a href="#-68"><span class="linenos"> 68</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-69"><a href="#-69"><span class="linenos"> 69</span></a>        <span class="sd">&quot;&quot;&quot;  Return 3D coordinates of the point on the mask surface at the center of its support. &quot;&quot;&quot;</span>
+</span><span id="L-70"><a href="#-70"><span class="linenos"> 70</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+</span><span id="L-71"><a href="#-71"><span class="linenos"> 71</span></a>    
+</span><span id="L-72"><a href="#-72"><span class="linenos"> 72</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">NbPoint</span><span class="p">):</span>
+</span><span id="L-73"><a href="#-73"><span class="linenos"> 73</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-74"><a href="#-74"><span class="linenos"> 74</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,</span>
+</span><span id="L-75"><a href="#-75"><span class="linenos"> 75</span></a><span class="sd">        sampling the support in a number NbPoints of points.</span>
+</span><span id="L-76"><a href="#-76"><span class="linenos"> 76</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-77"><a href="#-77"><span class="linenos"> 77</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-78"><a href="#-78"><span class="linenos"> 78</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span><span class="p">)</span>
+</span><span id="L-79"><a href="#-79"><span class="linenos"> 79</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
+</span><span id="L-80"><a href="#-80"><span class="linenos"> 80</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-81"><a href="#-81"><span class="linenos"> 81</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">z</span><span class="p">]))</span>
+</span><span id="L-82"><a href="#-82"><span class="linenos"> 82</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
+</span><span id="L-83"><a href="#-83"><span class="linenos"> 83</span></a> 
+</span><span id="L-84"><a href="#-84"><span class="linenos"> 84</span></a>    
+</span><span id="L-85"><a href="#-85"><span class="linenos"> 85</span></a>    
+</span><span id="L-86"><a href="#-86"><span class="linenos"> 86</span></a><span class="c1">#%%############################################################################</span>
+</span><span id="L-87"><a href="#-87"><span class="linenos"> 87</span></a><span class="k">def</span> <span class="nf">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
+</span><span id="L-88"><a href="#-88"><span class="linenos"> 88</span></a>    <span class="sd">&quot;&quot;&quot; Returns the transmitted ray &quot;&quot;&quot;</span>   
+</span><span id="L-89"><a href="#-89"><span class="linenos"> 89</span></a>    <span class="n">PointRay</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
+</span><span id="L-90"><a href="#-90"><span class="linenos"> 90</span></a>    <span class="n">VectorRay</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span>
+</span><span id="L-91"><a href="#-91"><span class="linenos"> 91</span></a>    <span class="n">NormalMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">get_normal</span><span class="p">(</span><span class="n">PointMask</span><span class="p">)</span>
+</span><span id="L-92"><a href="#-92"><span class="linenos"> 92</span></a>        
+</span><span id="L-93"><a href="#-93"><span class="linenos"> 93</span></a>    <span class="n">AngleIncidence</span> <span class="o">=</span> <span class="n">mgeo</span><span class="o">.</span><span class="n">AngleBetweenTwoVectors</span><span class="p">(</span><span class="n">VectorRay</span><span class="p">,</span> <span class="n">NormalMask</span><span class="p">)</span>
+</span><span id="L-94"><a href="#-94"><span class="linenos"> 94</span></a>    <span class="n">Path</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">PointMask</span> <span class="o">-</span> <span class="n">PointRay</span><span class="p">)</span> <span class="o">+</span> <span class="n">Ray</span><span class="o">.</span><span class="n">path</span>
+</span><span id="L-95"><a href="#-95"><span class="linenos"> 95</span></a>    
+</span><span id="L-96"><a href="#-96"><span class="linenos"> 96</span></a>    <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">copy_ray</span><span class="p">()</span>
+</span><span id="L-97"><a href="#-97"><span class="linenos"> 97</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">point</span> <span class="o">=</span> <span class="n">PointMask</span>
+</span><span id="L-98"><a href="#-98"><span class="linenos"> 98</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">vector</span> <span class="o">=</span> <span class="n">VectorRay</span>
+</span><span id="L-99"><a href="#-99"><span class="linenos"> 99</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">incidence</span> <span class="o">=</span> <span class="n">AngleIncidence</span>
+</span><span id="L-100"><a href="#-100"><span class="linenos">100</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span>
+</span><span id="L-101"><a href="#-101"><span class="linenos">101</span></a>    
+</span><span id="L-102"><a href="#-102"><span class="linenos">102</span></a>    <span class="k">return</span> <span class="n">RayTransmitted</span>
+</span><span id="L-103"><a href="#-103"><span class="linenos">103</span></a>
+</span><span id="L-104"><a href="#-104"><span class="linenos">104</span></a><span class="c1">#%%</span>
+</span><span id="L-105"><a href="#-105"><span class="linenos">105</span></a><span class="k">def</span> <span class="nf">TransmitMaskRayList</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">RayList</span><span class="p">):</span>
+</span><span id="L-106"><a href="#-106"><span class="linenos">106</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-107"><a href="#-107"><span class="linenos">107</span></a><span class="sd">    Returns the the transmitted rays that pass the mask for the list of </span>
+</span><span id="L-108"><a href="#-108"><span class="linenos">108</span></a><span class="sd">    incident rays ListRay. </span>
+</span><span id="L-109"><a href="#-109"><span class="linenos">109</span></a><span class="sd">    </span>
+</span><span id="L-110"><a href="#-110"><span class="linenos">110</span></a><span class="sd">    Rays that hit the support are not further propagated.</span>
+</span><span id="L-111"><a href="#-111"><span class="linenos">111</span></a><span class="sd">    </span>
+</span><span id="L-112"><a href="#-112"><span class="linenos">112</span></a><span class="sd">    Updates the reflected rays&#39; incidence angle and path.</span>
+</span><span id="L-113"><a href="#-113"><span class="linenos">113</span></a><span class="sd">    </span>
+</span><span id="L-114"><a href="#-114"><span class="linenos">114</span></a><span class="sd">    Parameters</span>
+</span><span id="L-115"><a href="#-115"><span class="linenos">115</span></a><span class="sd">    ----------</span>
+</span><span id="L-116"><a href="#-116"><span class="linenos">116</span></a><span class="sd">        Mask : Mask-object</span>
+</span><span id="L-117"><a href="#-117"><span class="linenos">117</span></a><span class="sd">        </span>
+</span><span id="L-118"><a href="#-118"><span class="linenos">118</span></a><span class="sd">        ListRay : list[Ray-object]</span>
+</span><span id="L-119"><a href="#-119"><span class="linenos">119</span></a>
+</span><span id="L-120"><a href="#-120"><span class="linenos">120</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-121"><a href="#-121"><span class="linenos">121</span></a>    <span class="n">ListRayTransmitted</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-122"><a href="#-122"><span class="linenos">122</span></a>    <span class="k">for</span> <span class="n">Ray</span> <span class="ow">in</span> <span class="n">RayList</span><span class="p">:</span>
+</span><span id="L-123"><a href="#-123"><span class="linenos">123</span></a>        <span class="n">PointMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">_get_intersection</span><span class="p">(</span><span class="n">Ray</span><span class="p">)</span>
+</span><span id="L-124"><a href="#-124"><span class="linenos">124</span></a>
+</span><span id="L-125"><a href="#-125"><span class="linenos">125</span></a>        <span class="k">if</span> <span class="n">PointMask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+</span><span id="L-126"><a href="#-126"><span class="linenos">126</span></a>            <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">)</span>
+</span><span id="L-127"><a href="#-127"><span class="linenos">127</span></a>            <span class="n">ListRayTransmitted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RayTransmitted</span><span class="p">)</span>
+</span><span id="L-128"><a href="#-128"><span class="linenos">128</span></a>
+</span><span id="L-129"><a href="#-129"><span class="linenos">129</span></a>    <span class="k">return</span> <span class="n">ListRayTransmitted</span>
 </span></pre></div>
 
 
@@ -245,68 +245,68 @@
 
     </div>
     <a class="headerlink" href="#Mask"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask-22"><a href="#Mask-22"><span class="linenos">22</span></a><span class="k">class</span> <span class="nc">Mask</span><span class="p">:</span>
-</span><span id="Mask-23"><a href="#Mask-23"><span class="linenos">23</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Mask-24"><a href="#Mask-24"><span class="linenos">24</span></a><span class="sd">    A mask: a plane surface of the shape of its [Support](ModuleSupport.html), which stops all rays that hit it,</span>
-</span><span id="Mask-25"><a href="#Mask-25"><span class="linenos">25</span></a><span class="sd">    while all other rays continue their path unchanged.    </span>
-</span><span id="Mask-26"><a href="#Mask-26"><span class="linenos">26</span></a><span class="sd">    </span>
-</span><span id="Mask-27"><a href="#Mask-27"><span class="linenos">27</span></a><span class="sd">    Attributes</span>
-</span><span id="Mask-28"><a href="#Mask-28"><span class="linenos">28</span></a><span class="sd">    ----------</span>
-</span><span id="Mask-29"><a href="#Mask-29"><span class="linenos">29</span></a><span class="sd">        support : [Support](ModuleSupport.html)-object</span>
-</span><span id="Mask-30"><a href="#Mask-30"><span class="linenos">30</span></a><span class="sd">        </span>
-</span><span id="Mask-31"><a href="#Mask-31"><span class="linenos">31</span></a><span class="sd">        type : str &#39;Ellipsoidal Mirror&#39;.</span>
-</span><span id="Mask-32"><a href="#Mask-32"><span class="linenos">32</span></a><span class="sd">             </span>
-</span><span id="Mask-33"><a href="#Mask-33"><span class="linenos">33</span></a><span class="sd">    Methods</span>
-</span><span id="Mask-34"><a href="#Mask-34"><span class="linenos">34</span></a><span class="sd">    ----------</span>
-</span><span id="Mask-35"><a href="#Mask-35"><span class="linenos">35</span></a><span class="sd">        get_normal(Point)</span>
-</span><span id="Mask-36"><a href="#Mask-36"><span class="linenos">36</span></a><span class="sd">        </span>
-</span><span id="Mask-37"><a href="#Mask-37"><span class="linenos">37</span></a><span class="sd">        get_centre()</span>
-</span><span id="Mask-38"><a href="#Mask-38"><span class="linenos">38</span></a><span class="sd">        </span>
-</span><span id="Mask-39"><a href="#Mask-39"><span class="linenos">39</span></a><span class="sd">        get_grid3D(NbPoints)</span>
-</span><span id="Mask-40"><a href="#Mask-40"><span class="linenos">40</span></a><span class="sd">         </span>
-</span><span id="Mask-41"><a href="#Mask-41"><span class="linenos">41</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="Mask-42"><a href="#Mask-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">):</span>
-</span><span id="Mask-43"><a href="#Mask-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Mask-44"><a href="#Mask-44"><span class="linenos">44</span></a><span class="sd">        Parameters</span>
-</span><span id="Mask-45"><a href="#Mask-45"><span class="linenos">45</span></a><span class="sd">        ----------</span>
-</span><span id="Mask-46"><a href="#Mask-46"><span class="linenos">46</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object </span>
-</span><span id="Mask-47"><a href="#Mask-47"><span class="linenos">47</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Mask-48"><a href="#Mask-48"><span class="linenos">48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;Mask&#39;</span>
-</span><span id="Mask-49"><a href="#Mask-49"><span class="linenos">49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
-</span><span id="Mask-50"><a href="#Mask-50"><span class="linenos">50</span></a>        
-</span><span id="Mask-51"><a href="#Mask-51"><span class="linenos">51</span></a>    
-</span><span id="Mask-52"><a href="#Mask-52"><span class="linenos">52</span></a>    <span class="k">def</span> <span class="nf">_get_intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
-</span><span id="Mask-53"><a href="#Mask-53"><span class="linenos">53</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;  Return the intersection point between Ray and the xy-plane,</span>
-</span><span id="Mask-54"><a href="#Mask-54"><span class="linenos">54</span></a><span class="sd">        where rays do NOT hit the mask&#39;s support &quot;&quot;&quot;</span>
-</span><span id="Mask-55"><a href="#Mask-55"><span class="linenos">55</span></a>        <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ray</span><span class="o">.</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</span><span id="Mask-56"><a href="#Mask-56"><span class="linenos">56</span></a>        <span class="n">I</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="o">*</span><span class="n">t</span> <span class="o">+</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
-</span><span id="Mask-57"><a href="#Mask-57"><span class="linenos">57</span></a>        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_IncludeSupport</span><span class="p">(</span><span class="n">I</span><span class="p">):</span>
-</span><span id="Mask-58"><a href="#Mask-58"><span class="linenos">58</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="n">I</span>
-</span><span id="Mask-59"><a href="#Mask-59"><span class="linenos">59</span></a>        <span class="k">else</span><span class="p">:</span> 
-</span><span id="Mask-60"><a href="#Mask-60"><span class="linenos">60</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="Mask-61"><a href="#Mask-61"><span class="linenos">61</span></a>        
-</span><span id="Mask-62"><a href="#Mask-62"><span class="linenos">62</span></a>        <span class="k">return</span> <span class="n">PointIntersection</span>
-</span><span id="Mask-63"><a href="#Mask-63"><span class="linenos">63</span></a>    
-</span><span id="Mask-64"><a href="#Mask-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">get_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
-</span><span id="Mask-65"><a href="#Mask-65"><span class="linenos">65</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;  Return normal unit vector in point &#39;Point&#39; on the mask. &quot;&quot;&quot;</span>
-</span><span id="Mask-66"><a href="#Mask-66"><span class="linenos">66</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-</span><span id="Mask-67"><a href="#Mask-67"><span class="linenos">67</span></a>        <span class="k">return</span> <span class="n">Normal</span>
-</span><span id="Mask-68"><a href="#Mask-68"><span class="linenos">68</span></a>    
-</span><span id="Mask-69"><a href="#Mask-69"><span class="linenos">69</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Mask-70"><a href="#Mask-70"><span class="linenos">70</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;  Return 3D coordinates of the point on the mask surface at the center of its support. &quot;&quot;&quot;</span>
-</span><span id="Mask-71"><a href="#Mask-71"><span class="linenos">71</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
-</span><span id="Mask-72"><a href="#Mask-72"><span class="linenos">72</span></a>    
-</span><span id="Mask-73"><a href="#Mask-73"><span class="linenos">73</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">NbPoint</span><span class="p">):</span>
-</span><span id="Mask-74"><a href="#Mask-74"><span class="linenos">74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Mask-75"><a href="#Mask-75"><span class="linenos">75</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,</span>
-</span><span id="Mask-76"><a href="#Mask-76"><span class="linenos">76</span></a><span class="sd">        sampling the support in a number NbPoints of points.</span>
-</span><span id="Mask-77"><a href="#Mask-77"><span class="linenos">77</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Mask-78"><a href="#Mask-78"><span class="linenos">78</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Mask-79"><a href="#Mask-79"><span class="linenos">79</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span><span class="p">)</span>
-</span><span id="Mask-80"><a href="#Mask-80"><span class="linenos">80</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
-</span><span id="Mask-81"><a href="#Mask-81"><span class="linenos">81</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="Mask-82"><a href="#Mask-82"><span class="linenos">82</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">z</span><span class="p">]))</span>
-</span><span id="Mask-83"><a href="#Mask-83"><span class="linenos">83</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask-22"><a href="#-22"><span class="linenos">22</span></a><span class="k">class</span> <span class="nc">Mask</span><span class="p">:</span>
+</span><span id="Mask-23"><a href="#-23"><span class="linenos">23</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask-24"><a href="#-24"><span class="linenos">24</span></a><span class="sd">    A mask: a plane surface of the shape of its [Support](ModuleSupport.html), which stops all rays that hit it,</span>
+</span><span id="Mask-25"><a href="#-25"><span class="linenos">25</span></a><span class="sd">    while all other rays continue their path unchanged.    </span>
+</span><span id="Mask-26"><a href="#-26"><span class="linenos">26</span></a><span class="sd">    </span>
+</span><span id="Mask-27"><a href="#-27"><span class="linenos">27</span></a><span class="sd">    Attributes</span>
+</span><span id="Mask-28"><a href="#-28"><span class="linenos">28</span></a><span class="sd">    ----------</span>
+</span><span id="Mask-29"><a href="#-29"><span class="linenos">29</span></a><span class="sd">        support : [Support](ModuleSupport.html)-object</span>
+</span><span id="Mask-30"><a href="#-30"><span class="linenos">30</span></a><span class="sd">        </span>
+</span><span id="Mask-31"><a href="#-31"><span class="linenos">31</span></a><span class="sd">        type : str &#39;Ellipsoidal Mirror&#39;.</span>
+</span><span id="Mask-32"><a href="#-32"><span class="linenos">32</span></a><span class="sd">             </span>
+</span><span id="Mask-33"><a href="#-33"><span class="linenos">33</span></a><span class="sd">    Methods</span>
+</span><span id="Mask-34"><a href="#-34"><span class="linenos">34</span></a><span class="sd">    ----------</span>
+</span><span id="Mask-35"><a href="#-35"><span class="linenos">35</span></a><span class="sd">        get_normal(Point)</span>
+</span><span id="Mask-36"><a href="#-36"><span class="linenos">36</span></a><span class="sd">        </span>
+</span><span id="Mask-37"><a href="#-37"><span class="linenos">37</span></a><span class="sd">        get_centre()</span>
+</span><span id="Mask-38"><a href="#-38"><span class="linenos">38</span></a><span class="sd">        </span>
+</span><span id="Mask-39"><a href="#-39"><span class="linenos">39</span></a><span class="sd">        get_grid3D(NbPoints)</span>
+</span><span id="Mask-40"><a href="#-40"><span class="linenos">40</span></a><span class="sd">         </span>
+</span><span id="Mask-41"><a href="#-41"><span class="linenos">41</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Mask-42"><a href="#-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">):</span>
+</span><span id="Mask-43"><a href="#-43"><span class="linenos">43</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask-44"><a href="#-44"><span class="linenos">44</span></a><span class="sd">        Parameters</span>
+</span><span id="Mask-45"><a href="#-45"><span class="linenos">45</span></a><span class="sd">        ----------</span>
+</span><span id="Mask-46"><a href="#-46"><span class="linenos">46</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object </span>
+</span><span id="Mask-47"><a href="#-47"><span class="linenos">47</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Mask-48"><a href="#-48"><span class="linenos">48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;Mask&#39;</span>
+</span><span id="Mask-49"><a href="#-49"><span class="linenos">49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
+</span><span id="Mask-50"><a href="#-50"><span class="linenos">50</span></a>        
+</span><span id="Mask-51"><a href="#-51"><span class="linenos">51</span></a>    
+</span><span id="Mask-52"><a href="#-52"><span class="linenos">52</span></a>    <span class="k">def</span> <span class="nf">_get_intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
+</span><span id="Mask-53"><a href="#-53"><span class="linenos">53</span></a>        <span class="sd">&quot;&quot;&quot;  Return the intersection point between Ray and the xy-plane,</span>
+</span><span id="Mask-54"><a href="#-54"><span class="linenos">54</span></a><span class="sd">        where rays do NOT hit the mask&#39;s support &quot;&quot;&quot;</span>
+</span><span id="Mask-55"><a href="#-55"><span class="linenos">55</span></a>        <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ray</span><span class="o">.</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="Mask-56"><a href="#-56"><span class="linenos">56</span></a>        <span class="n">I</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="o">*</span><span class="n">t</span> <span class="o">+</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
+</span><span id="Mask-57"><a href="#-57"><span class="linenos">57</span></a>        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_IncludeSupport</span><span class="p">(</span><span class="n">I</span><span class="p">):</span>
+</span><span id="Mask-58"><a href="#-58"><span class="linenos">58</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="n">I</span>
+</span><span id="Mask-59"><a href="#-59"><span class="linenos">59</span></a>        <span class="k">else</span><span class="p">:</span> 
+</span><span id="Mask-60"><a href="#-60"><span class="linenos">60</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Mask-61"><a href="#-61"><span class="linenos">61</span></a>        
+</span><span id="Mask-62"><a href="#-62"><span class="linenos">62</span></a>        <span class="k">return</span> <span class="n">PointIntersection</span>
+</span><span id="Mask-63"><a href="#-63"><span class="linenos">63</span></a>    
+</span><span id="Mask-64"><a href="#-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">get_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
+</span><span id="Mask-65"><a href="#-65"><span class="linenos">65</span></a>        <span class="sd">&quot;&quot;&quot;  Return normal unit vector in point &#39;Point&#39; on the mask. &quot;&quot;&quot;</span>
+</span><span id="Mask-66"><a href="#-66"><span class="linenos">66</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+</span><span id="Mask-67"><a href="#-67"><span class="linenos">67</span></a>        <span class="k">return</span> <span class="n">Normal</span>
+</span><span id="Mask-68"><a href="#-68"><span class="linenos">68</span></a>    
+</span><span id="Mask-69"><a href="#-69"><span class="linenos">69</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Mask-70"><a href="#-70"><span class="linenos">70</span></a>        <span class="sd">&quot;&quot;&quot;  Return 3D coordinates of the point on the mask surface at the center of its support. &quot;&quot;&quot;</span>
+</span><span id="Mask-71"><a href="#-71"><span class="linenos">71</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+</span><span id="Mask-72"><a href="#-72"><span class="linenos">72</span></a>    
+</span><span id="Mask-73"><a href="#-73"><span class="linenos">73</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">NbPoint</span><span class="p">):</span>
+</span><span id="Mask-74"><a href="#-74"><span class="linenos">74</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask-75"><a href="#-75"><span class="linenos">75</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,</span>
+</span><span id="Mask-76"><a href="#-76"><span class="linenos">76</span></a><span class="sd">        sampling the support in a number NbPoints of points.</span>
+</span><span id="Mask-77"><a href="#-77"><span class="linenos">77</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Mask-78"><a href="#-78"><span class="linenos">78</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Mask-79"><a href="#-79"><span class="linenos">79</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span><span class="p">)</span>
+</span><span id="Mask-80"><a href="#-80"><span class="linenos">80</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
+</span><span id="Mask-81"><a href="#-81"><span class="linenos">81</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="Mask-82"><a href="#-82"><span class="linenos">82</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">z</span><span class="p">]))</span>
+</span><span id="Mask-83"><a href="#-83"><span class="linenos">83</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
 </span></pre></div>
 
 
@@ -341,14 +341,14 @@ get_grid3D(NbPoints)
 
     </div>
     <a class="headerlink" href="#Mask.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask.__init__-42"><a href="#Mask.__init__-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">):</span>
-</span><span id="Mask.__init__-43"><a href="#Mask.__init__-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Mask.__init__-44"><a href="#Mask.__init__-44"><span class="linenos">44</span></a><span class="sd">        Parameters</span>
-</span><span id="Mask.__init__-45"><a href="#Mask.__init__-45"><span class="linenos">45</span></a><span class="sd">        ----------</span>
-</span><span id="Mask.__init__-46"><a href="#Mask.__init__-46"><span class="linenos">46</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object </span>
-</span><span id="Mask.__init__-47"><a href="#Mask.__init__-47"><span class="linenos">47</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Mask.__init__-48"><a href="#Mask.__init__-48"><span class="linenos">48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;Mask&#39;</span>
-</span><span id="Mask.__init__-49"><a href="#Mask.__init__-49"><span class="linenos">49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask.__init__-42"><a href="#-42"><span class="linenos">42</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">):</span>
+</span><span id="Mask.__init__-43"><a href="#-43"><span class="linenos">43</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask.__init__-44"><a href="#-44"><span class="linenos">44</span></a><span class="sd">        Parameters</span>
+</span><span id="Mask.__init__-45"><a href="#-45"><span class="linenos">45</span></a><span class="sd">        ----------</span>
+</span><span id="Mask.__init__-46"><a href="#-46"><span class="linenos">46</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object </span>
+</span><span id="Mask.__init__-47"><a href="#-47"><span class="linenos">47</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Mask.__init__-48"><a href="#-48"><span class="linenos">48</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s1">&#39;Mask&#39;</span>
+</span><span id="Mask.__init__-49"><a href="#-49"><span class="linenos">49</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
 </span></pre></div>
 
 
@@ -371,10 +371,10 @@ get_grid3D(NbPoints)
 
     </div>
     <a class="headerlink" href="#Mask.get_normal"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask.get_normal-64"><a href="#Mask.get_normal-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">get_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
-</span><span id="Mask.get_normal-65"><a href="#Mask.get_normal-65"><span class="linenos">65</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;  Return normal unit vector in point &#39;Point&#39; on the mask. &quot;&quot;&quot;</span>
-</span><span id="Mask.get_normal-66"><a href="#Mask.get_normal-66"><span class="linenos">66</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-</span><span id="Mask.get_normal-67"><a href="#Mask.get_normal-67"><span class="linenos">67</span></a>        <span class="k">return</span> <span class="n">Normal</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask.get_normal-64"><a href="#-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">get_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
+</span><span id="Mask.get_normal-65"><a href="#-65"><span class="linenos">65</span></a>        <span class="sd">&quot;&quot;&quot;  Return normal unit vector in point &#39;Point&#39; on the mask. &quot;&quot;&quot;</span>
+</span><span id="Mask.get_normal-66"><a href="#-66"><span class="linenos">66</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+</span><span id="Mask.get_normal-67"><a href="#-67"><span class="linenos">67</span></a>        <span class="k">return</span> <span class="n">Normal</span>
 </span></pre></div>
 
 
@@ -394,9 +394,9 @@ get_grid3D(NbPoints)
 
     </div>
     <a class="headerlink" href="#Mask.get_centre"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask.get_centre-69"><a href="#Mask.get_centre-69"><span class="linenos">69</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="Mask.get_centre-70"><a href="#Mask.get_centre-70"><span class="linenos">70</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;  Return 3D coordinates of the point on the mask surface at the center of its support. &quot;&quot;&quot;</span>
-</span><span id="Mask.get_centre-71"><a href="#Mask.get_centre-71"><span class="linenos">71</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask.get_centre-69"><a href="#-69"><span class="linenos">69</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Mask.get_centre-70"><a href="#-70"><span class="linenos">70</span></a>        <span class="sd">&quot;&quot;&quot;  Return 3D coordinates of the point on the mask surface at the center of its support. &quot;&quot;&quot;</span>
+</span><span id="Mask.get_centre-71"><a href="#-71"><span class="linenos">71</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
 </span></pre></div>
 
 
@@ -416,17 +416,17 @@ get_grid3D(NbPoints)
 
     </div>
     <a class="headerlink" href="#Mask.get_grid3D"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask.get_grid3D-73"><a href="#Mask.get_grid3D-73"><span class="linenos">73</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">NbPoint</span><span class="p">):</span>
-</span><span id="Mask.get_grid3D-74"><a href="#Mask.get_grid3D-74"><span class="linenos">74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="Mask.get_grid3D-75"><a href="#Mask.get_grid3D-75"><span class="linenos">75</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,</span>
-</span><span id="Mask.get_grid3D-76"><a href="#Mask.get_grid3D-76"><span class="linenos">76</span></a><span class="sd">        sampling the support in a number NbPoints of points.</span>
-</span><span id="Mask.get_grid3D-77"><a href="#Mask.get_grid3D-77"><span class="linenos">77</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="Mask.get_grid3D-78"><a href="#Mask.get_grid3D-78"><span class="linenos">78</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="Mask.get_grid3D-79"><a href="#Mask.get_grid3D-79"><span class="linenos">79</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span><span class="p">)</span>
-</span><span id="Mask.get_grid3D-80"><a href="#Mask.get_grid3D-80"><span class="linenos">80</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
-</span><span id="Mask.get_grid3D-81"><a href="#Mask.get_grid3D-81"><span class="linenos">81</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="Mask.get_grid3D-82"><a href="#Mask.get_grid3D-82"><span class="linenos">82</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">z</span><span class="p">]))</span>
-</span><span id="Mask.get_grid3D-83"><a href="#Mask.get_grid3D-83"><span class="linenos">83</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mask.get_grid3D-73"><a href="#-73"><span class="linenos">73</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">NbPoint</span><span class="p">):</span>
+</span><span id="Mask.get_grid3D-74"><a href="#-74"><span class="linenos">74</span></a>        <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask.get_grid3D-75"><a href="#-75"><span class="linenos">75</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,</span>
+</span><span id="Mask.get_grid3D-76"><a href="#-76"><span class="linenos">76</span></a><span class="sd">        sampling the support in a number NbPoints of points.</span>
+</span><span id="Mask.get_grid3D-77"><a href="#-77"><span class="linenos">77</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Mask.get_grid3D-78"><a href="#-78"><span class="linenos">78</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Mask.get_grid3D-79"><a href="#-79"><span class="linenos">79</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span><span class="p">)</span>
+</span><span id="Mask.get_grid3D-80"><a href="#-80"><span class="linenos">80</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
+</span><span id="Mask.get_grid3D-81"><a href="#-81"><span class="linenos">81</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="Mask.get_grid3D-82"><a href="#-82"><span class="linenos">82</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">z</span><span class="p">]))</span>
+</span><span id="Mask.get_grid3D-83"><a href="#-83"><span class="linenos">83</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
 </span></pre></div>
 
 
@@ -448,31 +448,31 @@ sampling the support in a number NbPoints of points.</p>
 
     </div>
     <a class="headerlink" href="#TransmitMaskRayList"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="TransmitMaskRayList-106"><a href="#TransmitMaskRayList-106"><span class="linenos">106</span></a><span class="k">def</span> <span class="nf">TransmitMaskRayList</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">RayList</span><span class="p">):</span>
-</span><span id="TransmitMaskRayList-107"><a href="#TransmitMaskRayList-107"><span class="linenos">107</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-</span><span id="TransmitMaskRayList-108"><a href="#TransmitMaskRayList-108"><span class="linenos">108</span></a><span class="sd">    Returns the the transmitted rays that pass the mask for the list of </span>
-</span><span id="TransmitMaskRayList-109"><a href="#TransmitMaskRayList-109"><span class="linenos">109</span></a><span class="sd">    incident rays ListRay. </span>
-</span><span id="TransmitMaskRayList-110"><a href="#TransmitMaskRayList-110"><span class="linenos">110</span></a><span class="sd">    </span>
-</span><span id="TransmitMaskRayList-111"><a href="#TransmitMaskRayList-111"><span class="linenos">111</span></a><span class="sd">    Rays that hit the support are not further propagated.</span>
-</span><span id="TransmitMaskRayList-112"><a href="#TransmitMaskRayList-112"><span class="linenos">112</span></a><span class="sd">    </span>
-</span><span id="TransmitMaskRayList-113"><a href="#TransmitMaskRayList-113"><span class="linenos">113</span></a><span class="sd">    Updates the reflected rays&#39; incidence angle and path.</span>
-</span><span id="TransmitMaskRayList-114"><a href="#TransmitMaskRayList-114"><span class="linenos">114</span></a><span class="sd">    </span>
-</span><span id="TransmitMaskRayList-115"><a href="#TransmitMaskRayList-115"><span class="linenos">115</span></a><span class="sd">    Parameters</span>
-</span><span id="TransmitMaskRayList-116"><a href="#TransmitMaskRayList-116"><span class="linenos">116</span></a><span class="sd">    ----------</span>
-</span><span id="TransmitMaskRayList-117"><a href="#TransmitMaskRayList-117"><span class="linenos">117</span></a><span class="sd">        Mask : Mask-object</span>
-</span><span id="TransmitMaskRayList-118"><a href="#TransmitMaskRayList-118"><span class="linenos">118</span></a><span class="sd">        </span>
-</span><span id="TransmitMaskRayList-119"><a href="#TransmitMaskRayList-119"><span class="linenos">119</span></a><span class="sd">        ListRay : list[Ray-object]</span>
-</span><span id="TransmitMaskRayList-120"><a href="#TransmitMaskRayList-120"><span class="linenos">120</span></a>
-</span><span id="TransmitMaskRayList-121"><a href="#TransmitMaskRayList-121"><span class="linenos">121</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="TransmitMaskRayList-122"><a href="#TransmitMaskRayList-122"><span class="linenos">122</span></a>    <span class="n">ListRayTransmitted</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="TransmitMaskRayList-123"><a href="#TransmitMaskRayList-123"><span class="linenos">123</span></a>    <span class="k">for</span> <span class="n">Ray</span> <span class="ow">in</span> <span class="n">RayList</span><span class="p">:</span>
-</span><span id="TransmitMaskRayList-124"><a href="#TransmitMaskRayList-124"><span class="linenos">124</span></a>        <span class="n">PointMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">_get_intersection</span><span class="p">(</span><span class="n">Ray</span><span class="p">)</span>
-</span><span id="TransmitMaskRayList-125"><a href="#TransmitMaskRayList-125"><span class="linenos">125</span></a>
-</span><span id="TransmitMaskRayList-126"><a href="#TransmitMaskRayList-126"><span class="linenos">126</span></a>        <span class="k">if</span> <span class="n">PointMask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
-</span><span id="TransmitMaskRayList-127"><a href="#TransmitMaskRayList-127"><span class="linenos">127</span></a>            <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">)</span>
-</span><span id="TransmitMaskRayList-128"><a href="#TransmitMaskRayList-128"><span class="linenos">128</span></a>            <span class="n">ListRayTransmitted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RayTransmitted</span><span class="p">)</span>
-</span><span id="TransmitMaskRayList-129"><a href="#TransmitMaskRayList-129"><span class="linenos">129</span></a>
-</span><span id="TransmitMaskRayList-130"><a href="#TransmitMaskRayList-130"><span class="linenos">130</span></a>    <span class="k">return</span> <span class="n">ListRayTransmitted</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="TransmitMaskRayList-106"><a href="#-106"><span class="linenos">106</span></a><span class="k">def</span> <span class="nf">TransmitMaskRayList</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">RayList</span><span class="p">):</span>
+</span><span id="TransmitMaskRayList-107"><a href="#-107"><span class="linenos">107</span></a>    <span class="sd">&quot;&quot;&quot;</span>
+</span><span id="TransmitMaskRayList-108"><a href="#-108"><span class="linenos">108</span></a><span class="sd">    Returns the the transmitted rays that pass the mask for the list of </span>
+</span><span id="TransmitMaskRayList-109"><a href="#-109"><span class="linenos">109</span></a><span class="sd">    incident rays ListRay. </span>
+</span><span id="TransmitMaskRayList-110"><a href="#-110"><span class="linenos">110</span></a><span class="sd">    </span>
+</span><span id="TransmitMaskRayList-111"><a href="#-111"><span class="linenos">111</span></a><span class="sd">    Rays that hit the support are not further propagated.</span>
+</span><span id="TransmitMaskRayList-112"><a href="#-112"><span class="linenos">112</span></a><span class="sd">    </span>
+</span><span id="TransmitMaskRayList-113"><a href="#-113"><span class="linenos">113</span></a><span class="sd">    Updates the reflected rays&#39; incidence angle and path.</span>
+</span><span id="TransmitMaskRayList-114"><a href="#-114"><span class="linenos">114</span></a><span class="sd">    </span>
+</span><span id="TransmitMaskRayList-115"><a href="#-115"><span class="linenos">115</span></a><span class="sd">    Parameters</span>
+</span><span id="TransmitMaskRayList-116"><a href="#-116"><span class="linenos">116</span></a><span class="sd">    ----------</span>
+</span><span id="TransmitMaskRayList-117"><a href="#-117"><span class="linenos">117</span></a><span class="sd">        Mask : Mask-object</span>
+</span><span id="TransmitMaskRayList-118"><a href="#-118"><span class="linenos">118</span></a><span class="sd">        </span>
+</span><span id="TransmitMaskRayList-119"><a href="#-119"><span class="linenos">119</span></a><span class="sd">        ListRay : list[Ray-object]</span>
+</span><span id="TransmitMaskRayList-120"><a href="#-120"><span class="linenos">120</span></a>
+</span><span id="TransmitMaskRayList-121"><a href="#-121"><span class="linenos">121</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="TransmitMaskRayList-122"><a href="#-122"><span class="linenos">122</span></a>    <span class="n">ListRayTransmitted</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="TransmitMaskRayList-123"><a href="#-123"><span class="linenos">123</span></a>    <span class="k">for</span> <span class="n">Ray</span> <span class="ow">in</span> <span class="n">RayList</span><span class="p">:</span>
+</span><span id="TransmitMaskRayList-124"><a href="#-124"><span class="linenos">124</span></a>        <span class="n">PointMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">_get_intersection</span><span class="p">(</span><span class="n">Ray</span><span class="p">)</span>
+</span><span id="TransmitMaskRayList-125"><a href="#-125"><span class="linenos">125</span></a>
+</span><span id="TransmitMaskRayList-126"><a href="#-126"><span class="linenos">126</span></a>        <span class="k">if</span> <span class="n">PointMask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> 
+</span><span id="TransmitMaskRayList-127"><a href="#-127"><span class="linenos">127</span></a>            <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">)</span>
+</span><span id="TransmitMaskRayList-128"><a href="#-128"><span class="linenos">128</span></a>            <span class="n">ListRayTransmitted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RayTransmitted</span><span class="p">)</span>
+</span><span id="TransmitMaskRayList-129"><a href="#-129"><span class="linenos">129</span></a>
+</span><span id="TransmitMaskRayList-130"><a href="#-130"><span class="linenos">130</span></a>    <span class="k">return</span> <span class="n">ListRayTransmitted</span>
 </span></pre></div>
 
 

@@ -179,13 +179,15 @@ class MirrorSpherical:
 #%%############################################################################
 class MirrorParabolic:
     """ 
-    A paraboloid with vertex at the origin [0,0,0] and symmetry axis z, 
-    with the center of the support shifted off axis along the x-direction.
-    Its eqn. is therefore $z = \\frac{1}{2p}[(x+x_c)^2 + y^2]$ where $p$ is the semi latus rectum,
-    equal to twice the focal lenght of the *mother* parabola (i.e. off-axis angle $\\alpha=0$).
+    A paraboloid with vertex at the origin $O=[0,0,0]$ and symmetry axis z. 
+    Its eqn. is therefore $z = \\frac{1}{4f}[(x)^2 + y^2]$ where $f$ is the focal
+    lenght of the *mother* parabola (i.e. measured from its center at $O$ to the focal point $F$).
     
-    The effective focal length $f_\\mathrm{eff}$ is related to the semi latus rectum by 
-    $ p = f_\\mathrm{eff} (1+\\cos\\alpha)$, where $\\alpha$ is the off-axis angle.
+    The center of the support is shifted along the x-direction by the off-axis distance $x_c$.
+    This leads to an *effective focal length* $f_\\mathrm{eff}$, measured from the shifted center
+    of the support  $P$ to the focal point $F$. It is related to the mother focal length $f$ by
+    $ p = 2f = f_\\mathrm{eff} (1+\\cos\\alpha)$, where $\\alpha$ is the off-axis angle,
+    and $p = 2f$ is called the semi latus rectum.
     
     ![Illustration of a parabolic mirror.](../docs/parabola.svg)
 
@@ -231,7 +233,7 @@ class MirrorParabolic:
         self.support = Support
         self.type = 'Parabolic Mirror'
         self._feff = FocalEffective  #effective focal length
-        self._p = FocalEffective *(1+np.cos(self.offaxisangle)) #semi latus rectum
+        self._p = FocalEffective *(1+np.cos(self.offaxisangle)) #semi latus rectum, =2*focal length of mother parabola
     
     @property
     def offaxisangle(self): 

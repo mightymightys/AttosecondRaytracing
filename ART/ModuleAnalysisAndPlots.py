@@ -550,43 +550,7 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
         z = np.asarray([i[2] - OE.normal[2]*1.7 for i in OpticPointList])
 
         mlab.points3d(x,y,z,mode='sphere',color=(0.66,0.66,0.66),scale_factor=3)
-        
-        # # or awkwardly transform the OPticPointList into 2D arrays for x,y,z, interpolate,
-        # # and then plot a smooth surface ? Actually not faster at all, and not so much nicer either.
-        # x_array, y_array, z_array = np.array([]), np.array([]), np.array([])
-        # for element in OpticPointList:
-        #     x, y, z = element
-        #     x_array = np.hstack((x_array, x))
-        #     y_array = np.hstack((y_array, y))
-        #     z_array = np.hstack((z_array, z))
-
-        # x_positions, y_positions = np.unique(x_array), np.unique(y_array)
-        # x_grid, y_grid = np.meshgrid(x_positions, y_positions)
-
-        # x_grid = np.transpose(x_grid)
-        # y_grid = np.transpose(y_grid)
-
-        # # Create an empty grid with the same shape as x_grid and y_grid
-        # z_grid = np.zeros(x_grid.shape)
-
-        # # Fill the z_grid with the corresponding z values
-        # for x, y, z in zip(x_array, y_array, z_array):
-        #     x_index = np.where(x_positions == x)[0][0]
-        #     y_index = np.where(y_positions == y)[0][0]
-        #     z_grid[x_index, y_index] = z
-
-        # z_grid[np.where(z_grid == 0)] = None
-
-        # from scipy.interpolate import griddata
-
-        # # Creating the points and values arrays for the interpolation
-        # foopoints = np.column_stack((x_grid[~np.isnan(z_grid)], y_grid[~np.isnan(z_grid)]))
-        # foovalues = z_grid[~np.isnan(z_grid)]
-
-        # # Interpolating the data
-        # z_grid = griddata(foopoints, foovalues, (x_grid, y_grid), method='linear')
-        
-        # mlab.mesh(x_grid, y_grid, z_grid, color=(0.66,0.66,0.66))     
+           
 
     fig.scene._lift()
     mlab.view(azimuth=-90, elevation=90, distance='auto')
@@ -597,8 +561,11 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
 #%% 
 def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
     """
-    Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter
-    
+    Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
+    Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images 
+    because it can't determine well which object covers another one. So this is an at best a fall-back solution 
+    in case mayavi really can't be made to work. 
+     
     Parameters
     ----------
         OpticalChain : OpticalChain
