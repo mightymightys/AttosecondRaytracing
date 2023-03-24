@@ -185,9 +185,14 @@ class MirrorParabolic:
     
     The center of the support is shifted along the x-direction by the off-axis distance $x_c$.
     This leads to an *effective focal length* $f_\\mathrm{eff}$, measured from the shifted center
-    of the support  $P$ to the focal point $F$. It is related to the mother focal length $f$ by
-    $ p = 2f = f_\\mathrm{eff} (1+\\cos\\alpha)$, where $\\alpha$ is the off-axis angle,
-    and $p = 2f$ is called the semi latus rectum.
+    of the support  $P$ to the focal point $F$.
+    It is related to the mother focal length by $f = f_\\mathrm{eff} \\cos^2(\\alpha/2) $,
+    or equivalently $ p = 2f = f_\\mathrm{eff} (1+\\cos\\alpha)$, where $\\alpha$
+    is the off-axis angle, and $p = 2f$ is called the semi latus rectum.
+    
+    Another useful relationship is that between the off-axis distance and the resulting
+    off-axis angle: $x_c = 2 f \\tan(\\alpha/2)$.
+    
     
     ![Illustration of a parabolic mirror.](../docs/parabola.svg)
 
@@ -241,7 +246,7 @@ class MirrorParabolic:
        
     @offaxisangle.setter 
     def offaxisangle(self, OffAxisAngle): 
-        self._offaxisangle = np.deg2rad(OffAxisAngle)
+        self._offaxisangle = np.deg2rad(OffAxisAngle) #store (and later return) in radians!
         self._p = self._feff *(1+np.cos(self._offaxisangle)) #make sure to always update p
         
     @property
