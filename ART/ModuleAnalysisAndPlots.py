@@ -686,47 +686,47 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
 
 
 # %%
-def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
-    """
-    Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
-    Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images
-    because it can't determine well which object covers another one. So this is an at best a fall-back solution
-    in case mayavi really can't be made to work.
+# def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
+#     """
+#     Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
+#     Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images
+#     because it can't determine well which object covers another one. So this is an at best a fall-back solution
+#     in case mayavi really can't be made to work.
 
-    Parameters
-    ----------
-        OpticalChain : OpticalChain
-            List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
+#     Parameters
+#     ----------
+#         OpticalChain : OpticalChain
+#             List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
 
-        EndDistance : float, optional
-            The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
-            this distance is set to that between the source point and the 1st optical element.
+#         EndDistance : float, optional
+#             The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
+#             this distance is set to that between the source point and the 1st optical element.
 
-        maxRays: int
-            The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
-            and not required for a nice image. Default is 150.
+#         maxRays: int
+#             The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
+#             and not required for a nice image. Default is 150.
 
-        OEpoints : int
-            How many little spheres to draw to represent the optical elements.  Default is 2000.
+#         OEpoints : int
+#             How many little spheres to draw to represent the optical elements.  Default is 2000.
 
-    Returns
-    -------
-        fig : matplotlib-figure-handle.
-            Shows the figure.
-    """
-    RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
+#     Returns
+#     -------
+#         fig : matplotlib-figure-handle.
+#             Shows the figure.
+#     """
+#     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
 
-    if EndDistance is None:
-        EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
+#     if EndDistance is None:
+#         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
 
-    print("...rendering image of optical chain...", end="", flush=True)
+#     print("...rendering image of optical chain...", end="", flush=True)
 
-    fig = plt.figure(
-        figsize=[7.8, 2.6],
-        dpi=300,
-    )
-    ax = Axes3D(fig)
-    fig.add_axes(ax)
+#     fig = plt.figure(
+#         figsize=[7.8, 2.6],
+#         dpi=300,
+#     )
+#     ax = Axes3D(fig)
+#     fig.add_axes(ax)
 
 
 #     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
