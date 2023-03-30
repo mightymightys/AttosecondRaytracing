@@ -299,7 +299,6 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
 
 # %%
 def main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, save_file_name=None):
-
     """ COMPLETE CONFIG-DOCTIONARIES WITH DEFAULT OPTIONS """
     SourceProperties, DetectorOptions, AnalysisOptions = complete_defaults(
         SourceProperties, DetectorOptions, AnalysisOptions
@@ -344,7 +343,7 @@ def main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, s
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python ARTmain.py CONFIG_FILE")
-        exit() 
+        exit()
         config_file = "CONFIG_test"
 
         """ LOAD CONFIGURATION """
@@ -352,7 +351,7 @@ if __name__ == "__main__":
 
         """ LAUNCH MAIN """
         main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, save_file_name=config_file)
-
+        # This was simply done to simplify profiling and debugging
     else:
         """SHOW THE NAME BANNER"""
         print_banner(1)
