@@ -85,18 +85,26 @@ class MirrorPlane:
         """Return 3D coordinates of the point on the mirror surface at the center of its support."""
         return np.array([0, 0, 0])
 
-    def get_grid3D(self, NbPoints: int):
+    def get_grid3D(self, NbPoint: int, **kwargs):
         """
         Get grid of points on mirror surface.
 
         Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
         sampling the support in a number NbPoints of points.
         """
+        E = "edges" in kwargs and kwargs["edges"]
         ListCoordXYZ = []
-        ListCoordXY = self.support._get_grid(NbPoints)
+        contour = int(round(0.1 * NbPoint))
+        contours = self.support._Contour_points(contour, **kwargs)
+        if E:
+            contours, contour_edges = contours
+        ListCoordXY = contours + self.support._get_grid(NbPoint - contour)
         for k in ListCoordXY:
             z = 0
             ListCoordXYZ.append(np.array([k[0], k[1], z]))
+        if E:
+            return ListCoordXYZ, contour_edges
+
         return ListCoordXYZ
 
 
@@ -167,24 +175,31 @@ class MirrorSpherical:
     def get_normal(self, Point):
         """Return the normal unit vector on the spherical surface at point Point."""
         Gradient = Point
-        return mgeo.Normalize(Gradient)
+        return mgeo.Normalize(- Gradient)
 
     def get_centre(self):
         """Return 3D coordinates of the point on the mirror surface at the center of its support."""
         return np.array([0, 0, -self.radius])
 
-    def get_grid3D(self, NbPoint):
+    def get_grid3D(self, NbPoint, **kwargs):
         """
         Get grid of points on mirror surface.
 
         Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
         sampling the support in a number NbPoints of points.
         """
+        E = "edges" in kwargs and kwargs["edges"]
         ListCoordXYZ = []
-        ListCoordXY = self.support._get_grid(NbPoint)
+        contour = int(round(0.1 * NbPoint))
+        contours = self.support._Contour_points(contour, **kwargs)
+        if E:
+            contours, contour_edges = contours
+        ListCoordXY = contours + self.support._get_grid(NbPoint - contour)
         for k in ListCoordXY:
             z = -np.sqrt(self.radius**2 - (k[0] ** 2 + k[1] ** 2))
             ListCoordXYZ.append(np.array([k[0], k[1], z]))
+        if E:
+            return ListCoordXYZ, contour_edges
         return ListCoordXYZ
 
 
@@ -307,9 +322,9 @@ class MirrorParabolic:
     def get_normal(self, Point):
         """Return the normal unit vector on the paraboloid surface at point Point."""
         Gradient = np.zeros(3)
-        Gradient[0] = Point[0]
-        Gradient[1] = Point[1]
-        Gradient[2] = -self._p
+        Gradient[0] = -Point[0]
+        Gradient[1] = -Point[1]
+        Gradient[2] = self._p
         return mgeo.Normalize(Gradient)
 
     def get_centre(self):
@@ -318,19 +333,26 @@ class MirrorParabolic:
             [self.feff * np.sin(self.offaxisangle), 0, self._p * 0.5 - self.feff * np.cos(self.offaxisangle)]
         )
 
-    def get_grid3D(self, NbPoint):
+    def get_grid3D(self, NbPoint, **kwargs):
         """
         Get grid of points on mirror surface.
 
         Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
         sampling the support in a number NbPoints of points.
         """
+        E = "edges" in kwargs and kwargs["edges"]
         ListCoordXYZ = []
-        ListCoordXY = self.support._get_grid(NbPoint)
+        contour = int(round(0.1 * NbPoint))
+        contours = self.support._Contour_points(contour, **kwargs)
+        if E:
+            contours, contour_edges = contours
+        ListCoordXY = contours + self.support._get_grid(NbPoint - contour)
         xc = self.feff * np.sin(self.offaxisangle)
         for k in ListCoordXY:
             z = ((k[0] + xc) ** 2 + k[1] ** 2) / 2 / self._p
             ListCoordXYZ.append(np.array([k[0] + xc, k[1], z]))
+        if E:
+            return ListCoordXYZ, contour_edges
         return ListCoordXYZ
 
 
@@ -426,24 +448,31 @@ class MirrorToroidal:
         Gradient[1] = 4 * (y**3 + y * x**2 + y * z**2 + y * A)
         Gradient[2] = 4 * (z**3 + z * x**2 + z * y**2 + z * A) - 8 * z * self.majorradius**2
 
-        return mgeo.Normalize(Gradient)
+        return mgeo.Normalize(-Gradient)
 
     def get_centre(self):
         """Return 3D coordinates of the point on the mirror surface at the center of its support."""
         return np.array([0, 0, -self.majorradius - self.minorradius])
 
-    def get_grid3D(self, NbPoint):
+    def get_grid3D(self, NbPoint, **kwargs):
         """
         Get grid of points on mirror surface.
 
         Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
         sampling the support in a number NbPoints of points.
         """
+        E = "edges" in kwargs and kwargs["edges"]
         ListCoordXYZ = []
-        ListCoordXY = self.support._get_grid(NbPoint)
+        contour = int(round(0.1 * NbPoint))
+        contours = self.support._Contour_points(contour, **kwargs)
+        if E:
+            contours, contour_edges = contours
+        ListCoordXY = contours + self.support._get_grid(NbPoint - contour)
         for k in ListCoordXY:
             z = -np.sqrt((np.sqrt(self.minorradius**2 - k[1] ** 2) + self.majorradius) ** 2 - k[0] ** 2)
             ListCoordXYZ.append(np.array([k[0], k[1], z]))
+        if E:
+            return ListCoordXYZ, contour_edges
         return ListCoordXYZ
 
 
@@ -584,9 +613,9 @@ class MirrorEllipsoidal:
         """Return the normal unit vector on the ellipsoidal surface at point Point."""
         Gradient = np.zeros(3)
 
-        Gradient[0] = Point[0] / self.a**2
-        Gradient[1] = Point[1] / self.b**2
-        Gradient[2] = Point[2] / self.b**2
+        Gradient[0] = -Point[0] / self.a**2
+        Gradient[1] = -Point[1] / self.b**2
+        Gradient[2] = -Point[2] / self.b**2
 
         return mgeo.Normalize(Gradient)
 
@@ -611,24 +640,41 @@ class MirrorEllipsoidal:
         centre = np.array([x, 0, sign * z])
         return centre
 
-    def get_grid3D(self, NbPoint):
+    def get_grid3D(self, NbPoint, **kwargs):
         """
         Get grid of points on mirror surface.
 
         Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
         sampling the support in a number NbPoints of points.
         """
+        E = "edges" in kwargs and kwargs["edges"]
         ListCoordXYZ = []
-        ListCoordXY = self.support._get_grid(NbPoint)
+        contour = int(round(0.1 * NbPoint))
+        contours = self.support._Contour_points(contour, **kwargs)
+        if E:
+            contours, contour_edges = contours
+        ListCoordXY = self.support._get_grid(NbPoint - contour)
         centre = self.get_centre()
-        for k in ListCoordXY:
+        for i, k in enumerate(ListCoordXY):
             x = k[0] + centre[0]
             y = k[1]
             sideways = (x / self.a) ** 2 + (y / self.b) ** 2
             if sideways <= 1:
                 z = -self.b * np.sqrt(1 - sideways)
-                ListCoordXYZ.append(np.array([x, k[1], z]))
-
+                ListCoordXYZ.append(np.array([x, y, z]))
+        new_contour_edges = []
+        for j in contour_edges:
+            new_contour_edges += [[]]
+            for i in j:
+                x = contours[i][0] + centre[0]
+                y = contours[i][1]
+                sideways = (x / self.a) ** 2 + (y / self.b) ** 2
+                if sideways <= 1:
+                    z = -self.b * np.sqrt(1 - sideways)
+                    ListCoordXYZ.append(np.array([x, y, z]))
+                    new_contour_edges[-1] += [len(ListCoordXYZ) - 1]
+        if E:
+            return ListCoordXYZ, new_contour_edges
         return ListCoordXYZ
 
 
@@ -726,26 +772,32 @@ class MirrorCylindrical:
 
     def get_normal(self, Point):
         """Return the normal unit vector on the cylinder surface at point P."""
-        Gradient = np.array([0, Point[1], Point[2]])
+        Gradient = np.array([0, -Point[1], -Point[2]])
         return mgeo.Normalize(Gradient)
 
     def get_centre(self):
         """Return 3D coordinates of the point on the mirror surface at the center of its support."""
         return np.array([0, 0, -self.radius])
 
-    def get_grid3D(self, NbPoint):
+    def get_grid3D(self, NbPoint, **kwargs):
         """
         Get grid of points on mirror surface.
 
         Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
         sampling the support in a number NbPoints of points.
         """
+        E = "edges" in kwargs and kwargs["edges"]
         ListCoordXYZ = []
-        ListCoordXY = self.support._get_grid(NbPoint)
+        contour = int(round(0.1 * NbPoint))
+        contours = self.support._Contour_points(contour, **kwargs)
+        if E:
+            contours, contour_edges = contours
+        ListCoordXY = contours + self.support._get_grid(NbPoint - contour)
         for k in ListCoordXY:
             z = -np.sqrt(self.radius**2 - k[1] ** 2)
             ListCoordXYZ.append(np.array([k[0], k[1], z]))
-
+        if E:
+            return ListCoordXYZ, contour_edges
         return ListCoordXYZ
 
 
@@ -756,7 +808,7 @@ def _ReflectionMirrorRay(Mirror, PointMirror, Ray):
 
     Parameters
     ----------
-        Mirror : Mirror-object
+        Mirror : Mirror-objectS
 
         PointMirror : np.ndarray
             Point of reflection on the mirror surface.
@@ -774,7 +826,7 @@ def _ReflectionMirrorRay(Mirror, PointMirror, Ray):
     RayReflected.point = PointMirror
     RayReflected.vector = VectorRayReflected
     RayReflected.incidence = mgeo.AngleBetweenTwoVectors(VectorRay, NormalMirror)
-    RayReflected.path = np.linalg.norm(PointMirror - PointRay) + Ray.path
+    RayReflected.path = Ray.path + (np.linalg.norm(PointMirror - PointRay),)
 
     return RayReflected
 
@@ -797,12 +849,17 @@ def ReflectionMirrorRayList(Mirror, ListRay):
         ListRay : list[Ray-object]
 
     """
+    Deformed = type(Mirror) == DeformedMirror
     ListRayReflected = []
     for k in ListRay:
         PointMirror = Mirror._get_intersection(k)
 
         if PointMirror is not None:
-            RayReflected = _ReflectionMirrorRay(Mirror, PointMirror, k)
+            if Deformed and k.number == 0:
+                M = Mirror.Mirror
+            else:
+                M = Mirror
+            RayReflected = _ReflectionMirrorRay(M, PointMirror, k)
             ListRayReflected.append(RayReflected)
     return ListRayReflected
 
@@ -815,18 +872,25 @@ class DeformedMirror:
         self.Mirror = Mirror
         self.DeformationList = DeformationList
         self.type = Mirror.type
+        self.support = self.Mirror.support
 
     def get_normal(self, PointMirror):
         base_normal = self.Mirror.get_normal(PointMirror)
-        defects_normals = [d.get_normal(PointMirror) for d in self.DeformationList]
-        normal = base_normal + sum(defects_normals)[0] * 0.5
+        C = self.get_centre()
+        defects_normals = [d.get_normal(PointMirror - C) for d in self.DeformationList]
+        normal = base_normal + sum(defects_normals)
         return normal / np.linalg.norm(normal)
 
     def get_centre(self):
         return self.Mirror.get_centre()
 
-    def get_grid3D(self, NbPoint):
-        return self.Mirror.get_grid3D(NbPoint)
+    def get_grid3D(self, NbPoint, **kwargs):
+        return self.Mirror.get_grid3D(NbPoint, **kwargs)
 
     def _get_intersection(self, Ray):
-        return self.Mirror._get_intersection(Ray)
+        Intersect = self.Mirror._get_intersection(Ray)
+        if Intersect is not None:
+            h = sum(D.get_offset(Intersect - self.get_centre()) for D in self.DeformationList)
+            alpha = mgeo.AngleBetweenTwoVectors(-Ray.vector, self.Mirror.get_normal(Intersect))
+            Intersect -= Ray.vector * h / np.cos(alpha)
+        return Intersect
