@@ -344,7 +344,7 @@ def main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, s
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python ARTmain.py CONFIG_FILE")
-        return None
+        exit() 
         config_file = "CONFIG_test"
 
         """ LOAD CONFIGURATION """
