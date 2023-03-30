@@ -141,3 +141,15 @@ class Zernike(Defect):
 
     def PV(self):
         pass
+
+
+def normal_add(N1, N2):
+    normal1 = N1 / np.linalg.norm(N1)
+    normal2 = N2 / np.linalg.norm(N2)
+    grad1X = -normal1[0] / normal1[2]
+    grad1Y = -normal1[1] / normal1[2]
+    grad2X = -normal2[0] / normal2[2]
+    grad2Y = -normal2[1] / normal2[2]
+    gradX = grad1X + grad2X
+    gradY = grad1Y + grad2Y
+    return np.array([-gradX, -gradY, 1])
