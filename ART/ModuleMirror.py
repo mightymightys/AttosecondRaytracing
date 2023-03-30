@@ -179,9 +179,9 @@ class MirrorSpherical:
 #%%############################################################################
 class MirrorParabolic:
     """ 
-    A paraboloid with vertex at the origin $O=[0,0,0]$ and symmetry axis z. 
-    Its eqn. is therefore $z = \\frac{1}{4f}[(x)^2 + y^2]$ where $f$ is the focal
-    lenght of the *mother* parabola (i.e. measured from its center at $O$ to the focal point $F$).
+    A paraboloid with vertex at the origin $O=[0,0,0]$ and symmetry axis z:  
+    $z = \\frac{1}{4f}[x^2 + y^2]$ where $f$ is the focal lenght of the *mother*
+    parabola (i.e. measured from its center at $O$ to the focal point $F$).
     
     The center of the support is shifted along the x-direction by the off-axis distance $x_c$.
     This leads to an *effective focal length* $f_\\mathrm{eff}$, measured from the shifted center

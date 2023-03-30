@@ -558,104 +558,104 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
     print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
     return fig
 
-#%% 
-def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
-    """
-    Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
-    Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images 
-    because it can't determine well which object covers another one. So this is an at best a fall-back solution 
-    in case mayavi really can't be made to work. 
+# #%% 
+# def _RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
+#     """
+#     Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
+#     Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images 
+#     because it can't determine well which object covers another one. So this is an at best a fall-back solution 
+#     in case mayavi really can't be made to work. 
      
-    Parameters
-    ----------
-        OpticalChain : OpticalChain
-            List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
+#     Parameters
+#     ----------
+#         OpticalChain : OpticalChain
+#             List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
             
-        EndDistance : float, optional
-            The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
-            this distance is set to that between the source point and the 1st optical element.
+#         EndDistance : float, optional
+#             The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
+#             this distance is set to that between the source point and the 1st optical element.
         
-        maxRays: int
-            The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
-            and not required for a nice image. Default is 150.
+#         maxRays: int
+#             The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
+#             and not required for a nice image. Default is 150.
         
-        OEpoints : int
-            How many little spheres to draw to represent the optical elements.  Default is 2000.
+#         OEpoints : int
+#             How many little spheres to draw to represent the optical elements.  Default is 2000.
     
-    Returns
-    -------
-        fig : matplotlib-figure-handle.
-            Shows the figure.
-    """    
-    RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
+#     Returns
+#     -------
+#         fig : matplotlib-figure-handle.
+#             Shows the figure.
+#     """    
+#     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
     
-    if EndDistance == None:
-        EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
+#     if EndDistance == None:
+#         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
     
 
-    print('...rendering image of optical chain...', end='', flush=True) 
+#     print('...rendering image of optical chain...', end='', flush=True) 
 
-    fig = plt.figure(figsize=[7.8, 2.6], dpi=300,)
-    ax = Axes3D(fig)
-    fig.add_axes(ax)
+#     fig = plt.figure(figsize=[7.8, 2.6], dpi=300,)
+#     ax = Axes3D(fig)
+#     fig.add_axes(ax)
 
     
-    # Optics display
-    for OE in OpticalChain.optical_elements:
-        OpticPointList = OE.type.get_grid3D(OEpoints) #in the optic's coordinate system
+#     # Optics display
+#     for OE in OpticalChain.optical_elements:
+#         OpticPointList = OE.type.get_grid3D(OEpoints) #in the optic's coordinate system
         
-        # transform OpticPointList into "lab-frame"
-        OpticPointList = mgeo.TranslationPointList(OpticPointList, -OE.type.get_centre())
-        MirrorMajorAxisPrime = mgeo.RotationPoint(OE.majoraxis, OE.normal, np.array([0,0,1]))
-        OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([1,0,0]), MirrorMajorAxisPrime)
-        OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0,0,1]), OE.normal)
-        OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)        
+#         # transform OpticPointList into "lab-frame"
+#         OpticPointList = mgeo.TranslationPointList(OpticPointList, -OE.type.get_centre())
+#         MirrorMajorAxisPrime = mgeo.RotationPoint(OE.majoraxis, OE.normal, np.array([0,0,1]))
+#         OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([1,0,0]), MirrorMajorAxisPrime)
+#         OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0,0,1]), OE.normal)
+#         OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)        
         
-        # plot 3D-grid of OE as little spheres
-        x = np.asarray([i[0] - OE.normal[0]*1.7 for i in OpticPointList])
-        y = np.asarray([i[1] - OE.normal[1]*1.7 for i in OpticPointList])
-        z = np.asarray([i[2] - OE.normal[2]*1.7 for i in OpticPointList])
+#         # plot 3D-grid of OE as little spheres
+#         x = np.asarray([i[0] - OE.normal[0]*1.7 for i in OpticPointList])
+#         y = np.asarray([i[1] - OE.normal[1]*1.7 for i in OpticPointList])
+#         z = np.asarray([i[2] - OE.normal[2]*1.7 for i in OpticPointList])
 
-        ax.scatter(x,y,z,'o', s=1, color=(0.66,0.66,0.66), depthshade=False, linewidths=0)
-        #ax.plot_surface(x, y, z, color=(0.66,0.66,0.66))
+#         ax.scatter(x,y,z,'o', s=1, color=(0.66,0.66,0.66), depthshade=False, linewidths=0)
+#         #ax.plot_surface(x, y, z, color=(0.66,0.66,0.66))
     
-    # Ray display
-    for k in range(len(RayListHistory)):
-        if k != len(RayListHistory)-1:
-            knums = list(map(lambda x: x.number, RayListHistory[k])) #make a list of all ray numbers that are still in the game             
-            if len(RayListHistory[k+1]) > maxRays:
-                rays_to_render = np.random.choice(RayListHistory[k+1], maxRays, replace=False)
-            else: rays_to_render = RayListHistory[k+1]
+#     # Ray display
+#     for k in range(len(RayListHistory)):
+#         if k != len(RayListHistory)-1:
+#             knums = list(map(lambda x: x.number, RayListHistory[k])) #make a list of all ray numbers that are still in the game             
+#             if len(RayListHistory[k+1]) > maxRays:
+#                 rays_to_render = np.random.choice(RayListHistory[k+1], maxRays, replace=False)
+#             else: rays_to_render = RayListHistory[k+1]
 
-            for j in rays_to_render:
-                indx = knums.index(j.number)
-                i = RayListHistory[k][indx]
-                Point1 = i.point
-                Point2 = j.point
-                x = np.asarray([Point1[0], Point2[0]])
-                y = np.asarray([Point1[1], Point2[1]])
-                z = np.asarray([Point1[2], Point2[2]])
-                #mlab.plot3d(x, y, z, color=(1,0,0),  tube_radius=0.05)
-                ax.plot(x, y, z, 'r-', lw=.2)
+#             for j in rays_to_render:
+#                 indx = knums.index(j.number)
+#                 i = RayListHistory[k][indx]
+#                 Point1 = i.point
+#                 Point2 = j.point
+#                 x = np.asarray([Point1[0], Point2[0]])
+#                 y = np.asarray([Point1[1], Point2[1]])
+#                 z = np.asarray([Point1[2], Point2[2]])
+#                 #mlab.plot3d(x, y, z, color=(1,0,0),  tube_radius=0.05)
+#                 ax.plot(x, y, z, 'r-', lw=.2)
                 
-        else:
-            if len(RayListHistory[k]) > maxRays:
-                rays_to_render = np.random.choice(RayListHistory[k], maxRays, replace=False)
-            else: rays_to_render = RayListHistory[k]
+#         else:
+#             if len(RayListHistory[k]) > maxRays:
+#                 rays_to_render = np.random.choice(RayListHistory[k], maxRays, replace=False)
+#             else: rays_to_render = RayListHistory[k]
 
-            for j in rays_to_render:
-                Point = j.point
-                Vector = j.vector
-                x = np.asarray([Point[0], Point[0] + Vector[0]*EndDistance])
-                y = np.asarray([Point[1], Point[1] + Vector[1]*EndDistance])
-                z = np.asarray([Point[2], Point[2] + Vector[2]*EndDistance])
-                ax.plot(x, y, z, 'r-', lw=.2)
+#             for j in rays_to_render:
+#                 Point = j.point
+#                 Vector = j.vector
+#                 x = np.asarray([Point[0], Point[0] + Vector[0]*EndDistance])
+#                 y = np.asarray([Point[1], Point[1] + Vector[1]*EndDistance])
+#                 z = np.asarray([Point[2], Point[2] + Vector[2]*EndDistance])
+#                 ax.plot(x, y, z, 'r-', lw=.2)
                 
                 
-    ax.set_axis_off()
-    ax.set_aspect('equal')
-    #ax.mouse_init(rotate_btn=1, pan_btn=3, zoom_btn=2)
+#     ax.set_axis_off()
+#     ax.set_aspect('equal')
+#     #ax.mouse_init(rotate_btn=1, pan_btn=3, zoom_btn=2)
     
     
-    print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
-    return fig, ax
+#     print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
+#     return fig, ax
