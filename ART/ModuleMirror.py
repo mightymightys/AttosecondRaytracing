@@ -892,10 +892,12 @@ class DeformedMirror:
         self.support = self.Mirror.support
 
     def get_normal(self, PointMirror):
+        #print(f"X: {PointMirror[0]}")
         base_normal = self.Mirror.get_normal(PointMirror)
         C = self.get_centre()
         defects_normals = [d.get_normal(PointMirror - C) for d in self.DeformationList]
-        normal = base_normal + sum(defects_normals)
+        normal = sum(defects_normals)
+        #print(PointMirror[0] / normal[0])
         return normal / np.linalg.norm(normal)
 
     def get_centre(self):

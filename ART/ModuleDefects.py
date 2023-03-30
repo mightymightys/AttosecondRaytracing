@@ -117,27 +117,23 @@ class Zernike(Defect):
         self.R = Support._CircumCirc()
 
     def get_normal(self, Point):
-        x, y, z = Point
-        val, derivX, derivY = zernike_gradient([x / self.R], [y / self.R], self.max_order)
+        x, y, z = Point / self.R
+        val, derivX, derivY = zernike_gradient([x], [y], self.max_order)
         dX = 0
         dY = 0
         for k in self.coefficients:
             dX += self.coefficients[k] * derivX[k][0][1][0]
             dY += self.coefficients[k] * derivY[k][0][1][0]
-        dX = 2*x/self.R
-        dY = 2*y/self.R
-        norm = np.linalg.norm([dX, dY, 1])
-        dX /= norm
-        dY /= norm
-        return np.array([-dX, -dY, np.sqrt(1 - dX**2 - dY**2)])
+        dX /= self.R
+        dY /= self.R
+        return np.array([-dX, -dY, 1])
 
     def get_offset(self, Point):
-        x, y, z = Point
-        val, derivX, derivY = zernike_gradient([x / self.R], [y / self.R], self.max_order)
+        x, y, z = Point / self.R
+        val, derivX, derivY = zernike_gradient([x], [y], self.max_order)
         Z = 0
         for k in self.coefficients:
             Z += self.coefficients[k] * val[k][0][1][0]
-        Z = (x / self.R)**2 + (y / self.R)**2
         return Z
 
     def RMS(self):
