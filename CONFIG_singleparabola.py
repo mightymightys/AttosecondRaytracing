@@ -113,8 +113,8 @@ TO RUN A SIMULATION, TYPE IN AN ANACONDA-PROMPT (or equivalent):
 IF PREFER RUNNING THIS CONFIG-SCRIPT DIRECTLY, call the main function of the
 ARTmain.py-program from here like so:
 """
-# from ARTmain import main
-# kept_data = main(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions)
+from ARTmain import main
+kept_data = main(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions)
     
 
 # """ IN EITHER CASE, YOU CAN PLOT RESULTS AGAINST e.g. THE LOOP-VARIABLE LIKE SO: """

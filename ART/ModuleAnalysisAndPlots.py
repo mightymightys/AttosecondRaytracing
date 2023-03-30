@@ -617,7 +617,6 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
         z = np.asarray([i[2] - OE.normal[2] * 0.5 for i in OpticPointList])
 
         pts = mlab.points3d(x, y, z, scale_factor=scale_spheres)
-        e = list(itertools.chain.from_iterable(edge_faces))
         pts_coord = pv.PolyData(OpticPointList)
         lines = list(
             itertools.chain.from_iterable([[[2, e[i], e[i + 1]] for i in range(len(e) - 1)] for e in edge_faces])
@@ -686,39 +685,48 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
     return fig
 
 
-# #%%
-# def RayRenderGraph_vispy(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
-#     from vispy import app, scene
-#     """
-#     Renders an image of the Optical setup and the traced rays - using the vispy library instead of mayavi.
-#     But this is slower, not as pretty, and more buggy. Meh.
+# %%
+def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
+    """
+    Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
+    Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images
+    because it can't determine well which object covers another one. So this is an at best a fall-back solution
+    in case mayavi really can't be made to work.
 
-#     Parameters
-#     ----------
-#         OpticalChain : OpticalChain
-#             List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
+    Parameters
+    ----------
+        OpticalChain : OpticalChain
+            List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
 
-#         EndDistance : float, optional
-#             The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
-#             this distance is set to that between the source point and the 1st optical element.
+        EndDistance : float, optional
+            The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
+            this distance is set to that between the source point and the 1st optical element.
 
-#         maxRays: int
-#             The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
-#             and not required for a nice image. Default is 150.
+        maxRays: int
+            The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
+            and not required for a nice image. Default is 150.
 
-#         OEpoints : int
-#             How many little spheres to draw to represent the optical elements.  Default is 2000.
+        OEpoints : int
+            How many little spheres to draw to represent the optical elements.  Default is 2000.
 
-#     Returns
-#     -------
-#         canvas : vispy-canvas-handle.
-#         Shows the figure.
-#     """
-#     # Create canvas and view
-#     canvas = scene.SceneCanvas(keys='interactive', bgcolor = (1,1,1),  size=(1500, 500), show=True)
-#     view = canvas.central_widget.add_view()
-#     view.camera = scene.cameras.ArcballCamera(fov=45.0)
-#     view.camera.scale_factor = 500
+    Returns
+    -------
+        fig : matplotlib-figure-handle.
+            Shows the figure.
+    """
+    RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
+
+    if EndDistance is None:
+        EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
+
+    print("...rendering image of optical chain...", end="", flush=True)
+
+    fig = plt.figure(
+        figsize=[7.8, 2.6],
+        dpi=300,
+    )
+    ax = Axes3D(fig)
+    fig.add_axes(ax)
 
 
 #     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
