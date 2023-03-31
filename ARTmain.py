@@ -199,6 +199,8 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
             AnalysisOptions["maxRaysToRender"],
             AnalysisOptions["OEPointsToRender"],
             AnalysisOptions["OEPointsScale"],
+            slow_method=AnalysisOptions["slow_method"],
+            draw_mesh=AnalysisOptions["draw_mesh"],
         )
 
     if AnalysisOptions["plot_DelayMirrorProjection"]:
@@ -299,7 +301,7 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
 
 # %%
 def main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, save_file_name=None):
-    """ COMPLETE CONFIG-DOCTIONARIES WITH DEFAULT OPTIONS """
+    """COMPLETE CONFIG-DOCTIONARIES WITH DEFAULT OPTIONS"""
     SourceProperties, DetectorOptions, AnalysisOptions = complete_defaults(
         SourceProperties, DetectorOptions, AnalysisOptions
     )

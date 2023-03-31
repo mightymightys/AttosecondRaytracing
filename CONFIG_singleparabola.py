@@ -90,6 +90,8 @@ AnalysisOptions = {
     "plot_IntensityMirrorProjection": False,  # produce a plot of the ray intensities at the detector projected onto the surface of the preceding mirror?
     "plot_IncidenceMirrorProjection": False,  # produce a plot of the ray incidence angles at the detector projected onto the surface of the preceding mirror?
     "save_results": False,  # save the simulation results to disk, to analyse later
+    "slow_method": False,
+    "draw_mesh": True
 }
 
 # %%
