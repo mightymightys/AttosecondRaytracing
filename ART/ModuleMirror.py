@@ -18,6 +18,7 @@ Created in 2019
 
 import numpy as np
 import ART.ModuleGeometry as mgeo
+import ART.ModuleDefects as mdef
 import math
 
 # %%
@@ -206,10 +207,10 @@ class MirrorSpherical:
 # %%############################################################################
 class MirrorParabolic:
     r"""
-    A paraboloid with vertex at the origin $O=[0,0,0]$ and symmetry axis z:  
+    A paraboloid with vertex at the origin $O=[0,0,0]$ and symmetry axis z:
     $z = \frac{1}{4f}[x^2 + y^2]$ where $f$ is the focal lenght of the *mother*
     parabola (i.e. measured from its center at $O$ to the focal point $F$).
-    
+
     The center of the support is shifted along the x-direction by the off-axis distance $x_c$.
     This leads to an *effective focal length* $f_\mathrm{eff}$, measured from the shifted center
     of the support  $P$ to the focal point $F$.
@@ -891,13 +892,12 @@ class DeformedMirror:
         self.support = self.Mirror.support
 
     def get_normal(self, PointMirror):
-        #print(f"X: {PointMirror[0]}")
         base_normal = self.Mirror.get_normal(PointMirror)
         C = self.get_centre()
         defects_normals = [d.get_normal(PointMirror - C) for d in self.DeformationList]
-        normal = sum(defects_normals)
-        #print(PointMirror[0] / normal[0])
-        return normal / np.linalg.norm(normal)
+        for defect in defects_normals:
+            base_normal = mdef.normal_add(base_normal, defect)
+        return base_normal / np.linalg.norm(base_normal)
 
     def get_centre(self):
         return self.Mirror.get_centre()

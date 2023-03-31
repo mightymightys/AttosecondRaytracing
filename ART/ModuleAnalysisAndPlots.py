@@ -523,7 +523,16 @@ def MirrorProjection(OpticalChain, ReflectionNumber: int, Detector=None, ColorCo
 
 
 # %%
-def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, scale_spheres=0.0):
+def RayRenderGraph(
+    OpticalChain,
+    EndDistance=None,
+    maxRays=150,
+    OEpoints=2000,
+    scale_spheres=0.0,
+    tube_width=0.05,
+    slow_method=False,
+    draw_mesh=True,
+):
     """
     Renders an image of the Optical setup and the traced rays.
 
@@ -560,7 +569,6 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
     x = []
     y = []
     z = []
-    connections = []
     # Ray display
     for k in range(len(RayListHistory)):
         if k != len(RayListHistory) - 1:
@@ -580,6 +588,8 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
                 x += [Point1[0], Point2[0]]
                 y += [Point1[1], Point2[1]]
                 z += [Point1[2], Point2[2]]
+                if slow_method:
+                    mlab.plot3d(x[-2:], y[-2:], z[-2:], color=(1, 0, 0), tube_radius=0.05)
 
         else:
             if len(RayListHistory[k]) > maxRays:
@@ -593,13 +603,20 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
                 x += [Point[0], Point[0] + Vector[0] * EndDistance]
                 y += [Point[1], Point[1] + Vector[1] * EndDistance]
                 z += [Point[2], Point[2] + Vector[2] * EndDistance]
-    pts = mlab.points3d(x, y, z, scale_factor=0)
-    connections = [(2 * i, 2 * i + 1) for i in range(len(x) // 2)]
-    pts.mlab_source.dataset.lines = np.array(connections)
-
-    tube = mlab.pipeline.tube(pts, tube_radius=0.05)
-    tube.filter.radius_factor = 1.0
-    mlab.pipeline.surface(tube, color=(0.8, 0.0, 0))
+                if slow_method:
+                    mlab.plot3d(x[-2:], y[-2:], z[-2:], color=(1, 0, 0), tube_radius=0.05)
+    if not slow_method:
+        pts = mlab.pipeline.scalar_scatter(x, y, z)
+        connections = [(2 * i, 2 * i + 1) for i in range(len(x) // 2)]
+        pts.mlab_source.dataset.lines = np.array(connections)
+        pts.update()
+        if tube_width != 0:
+            tube = mlab.pipeline.tube(pts, tube_radius=0.05)
+            tube.filter.radius_factor = 1.0
+            mlab.pipeline.surface(tube, color=(0.8, 0.0, 0))
+        else:
+            lines = mlab.pipeline.stripper(pts)
+            mlab.pipeline.surface(lines, color=(0.8, 0.0, 0))
 
     # Optics display
     for OE in OpticalChain.optical_elements:
@@ -611,33 +628,35 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
         OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0, 0, 1]), OE.normal)
         OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)
 
-        # plot 3D-drig of OE as little spheres
         x = np.asarray([i[0] - OE.normal[0] * 0.5 for i in OpticPointList])
         y = np.asarray([i[1] - OE.normal[1] * 0.5 for i in OpticPointList])
         z = np.asarray([i[2] - OE.normal[2] * 0.5 for i in OpticPointList])
 
+        # plot 3D-drig of OE as little spheres
         pts = mlab.points3d(x, y, z, scale_factor=scale_spheres)
-        pts_coord = pv.PolyData(OpticPointList)
-        lines = list(
-            itertools.chain.from_iterable([[[2, e[i], e[i + 1]] for i in range(len(e) - 1)] for e in edge_faces])
-        )
-        faces = list(itertools.chain.from_iterable([[len(i) - 1] + i[:-1] for i in edge_faces]))
-        if lines == []:
-            lines = [0]
-        if faces == []:
-            faces = [0]
-        edges = pv.PolyData(
-            OpticPointList,
-            lines=lines,
-            faces=faces,
-        )
-        # Can't figure out some edge cases such as when part of the support is outside of the mirror
-        tess = pts_coord.delaunay_2d(edge_source=edges)
-        triangles = tess.faces.reshape(-1, 4)[:, 1:]
-        mesh = mlab.triangular_mesh(x, y, z, triangles, color=(0.3, 0.3, 0.3), opacity=0)
-        # This part could probably be optimised.
-        mesh = mlab.pipeline.poly_data_normals(mesh)  # Smoothing normals
-        mlab.pipeline.surface(mesh, color=(0.5, 0.5, 0.5))
+
+        if draw_mesh:
+            pts_coord = pv.PolyData(OpticPointList)
+            lines = list(
+                itertools.chain.from_iterable([[[2, e[i], e[i + 1]] for i in range(len(e) - 1)] for e in edge_faces])
+            )
+            faces = list(itertools.chain.from_iterable([[len(i) - 1] + i[:-1] for i in edge_faces]))
+            if lines == []:
+                lines = [0]
+            if faces == []:
+                faces = [0]
+            edges = pv.PolyData(
+                OpticPointList,
+                lines=lines,
+                faces=faces,
+            )
+            # Can't figure out some edge cases such as when part of the support is outside of the mirror
+            tess = pts_coord.delaunay_2d(edge_source=edges)
+            triangles = tess.faces.reshape(-1, 4)[:, 1:]
+            mesh = mlab.triangular_mesh(x, y, z, triangles, color=(0.3, 0.3, 0.3), opacity=0)
+            # This part could probably be optimised.
+            mesh = mlab.pipeline.poly_data_normals(mesh)  # Smoothing normals
+            mlab.pipeline.surface(mesh, color=(0.5, 0.5, 0.5))
 
         # # or awkwardly transform the OPticPointList into 2D arrays for x,y,z, interpolate,
         # # and then plot a smooth surface ? Actually not faster at all, and not so much nicer either.
