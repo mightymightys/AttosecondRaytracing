@@ -11,6 +11,8 @@ DefaultAnalysisOptions = {
     "maxRaysToRender": 150,
     "OEPointsToRender": 2000,  # Resolution of mirror meshes
     "OEPointsScale": 0.5,  # Size of spheres representing mirrors. If zero, only mesh will be rendered.
+    "slow_method": False,
+    "draw_mesh": False,
 
     "DrawAiryAndFourier": True,  # Draw Airy spot and Fourier-limited duration in the following plots?
     "plot_SpotDiagram": False,  # produce an interactive spot diagram without color coding the spots?
