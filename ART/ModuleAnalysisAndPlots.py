@@ -14,8 +14,6 @@ Created in Apr 2020
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from mayavi import mlab
-import pyvista as pv
 
 import ART.ModuleProcessing as mp
 import ART.ModuleGeometry as mgeo
@@ -557,6 +555,8 @@ def RayRenderGraph(
         fig : mayavi-figure-handle.
             Shows the figure.
     """
+    from mayavi import mlab
+    import pyvista as pv
 
     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
 
@@ -821,5 +821,7 @@ def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoi
 
 
 def show():
+    from mayavi import mlab
+
     mlab.show()
     plt.show(block=False)
