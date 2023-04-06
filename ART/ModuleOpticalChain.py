@@ -200,22 +200,29 @@ class OpticalChain:
 
         return self._output_rays
 
-    def quickshow(self):
-        """Render an image of the optical chain it with settings that prioritize
-        speed over great looks. This lets the user quickly visualize their
-        optical setup to check if all the angles are set as they want."""
-        maxRays = 30
-        maxOEpoints = 1500
-        QuickOpticalChain = self.copy_chain()
-        QuickOpticalChain.source_rays = np.random.choice(self.source_rays, maxRays, replace=False).tolist()
-        quickfig = mplots.RayRenderGraph(QuickOpticalChain, None, maxRays, maxOEpoints)
-        return quickfig
+    # def quickshow(self):
+    #     """Render an image of the optical chain it with settings that prioritize
+    #     speed over great looks. This lets the user quickly visualize their
+    #     optical setup to check if all the angles are set as they want."""
+    #     maxRays = 30
+    #     maxOEpoints = 1500
+    #     QuickOpticalChain = self.copy_chain()
+    #     QuickOpticalChain.source_rays = np.random.choice(self.source_rays, maxRays, replace=False).tolist()
+    #     quickfig = mplots.RayRenderGraph(QuickOpticalChain, None, maxRays, maxOEpoints)
+    #     return quickfig
 
     def render(self):
         """Create a fairly good-looking 3D rendering of the optical chain."""
-        maxRays = 150
-        maxOEpoints = 3000
-        fig = mplots.RayRenderGraph(self, None, maxRays, maxOEpoints)
+        fig = mplots.RayRenderGraph(
+            self,
+            None,
+            maxRays=300,
+            OEpoints = 3000,
+            scale_spheres=0.5,
+            tube_width=0.05,
+            slow_method=False,
+            draw_mesh=False,
+            )
         return fig
 
     # %%  methods to (mis-)align the optical chain; just uses the corresponding methods of the OpticalElement class...

@@ -8,7 +8,7 @@ DefaultAnalysisOptions = {
     "verbose": True,  # print intermediate results and info in the console?
 
     "plot_Render": False,  # render optical elements and rays, and how many rays to render?
-    "maxRaysToRender": 150,
+    "maxRaysToRender": 250,
     "OEPointsToRender": 2000,  # Resolution of mirror meshes
     "OEPointsScale": 0.5,  # Size of spheres representing mirrors. If zero, only mesh will be rendered.
     "slow_method": False,
