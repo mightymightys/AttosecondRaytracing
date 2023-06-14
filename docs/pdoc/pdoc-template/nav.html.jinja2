@@ -1,0 +1,50 @@
+{% defaultmacro nav_members(members) %}
+    <ul class="memberlist">
+        {% for m in members if is_public(m) | trim %}
+            <li>
+                {% if m.kind == "class" %}
+                    <a class="class" href="#{{ m.qualname }}">{{ m.qualname }}</a>
+                    {% if m.own_members %}
+                        {{ nav_members(m.own_members) | indent(12) }}
+                    {% endif %}
+                {% elif m.kind == "module" %}
+                    <a class="module" href="#{{ m.name }}">{{ m.name }}</a>
+                {% elif m.name == "__init__" %}
+                    <a class="function" href="#{{ m.qualname }}">{{ m.qualname.split(".")[-2] }}</a>
+                {% else %}
+                    <a class="{{ m.kind }}" href="#{{ m.qualname }}">{{ m.name }}</a>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% enddefaultmacro %}
+{% defaultmacro is_public(doc) %}
+    {#
+    This macro is a bit unconventional in that its output is not rendered, but treated as a boolean:
+    Returning no text is interpreted as false, returning any other text is iterpreted as true.
+    Implementing this as a macro makes it very easy to override with a custom template, see
+    https://github.com/mitmproxy/pdoc/tree/main/examples/custom-template.
+    #}
+    {% if doc.name == "__init__" and (doc.docstring or (doc.kind == "function" and doc.signature_without_self.parameters)) %}
+        {# show constructors that have a docstring or at least one extra argument #}
+        true
+    {% elif doc.name == "__doc__" %}
+        {# We don't want to document __doc__ itself, https://github.com/mitmproxy/pdoc/issues/235 #}
+    {% elif doc.kind == "module" and doc.fullname not in all_modules %}
+        {# Skip modules that were manually excluded, https://github.com/mitmproxy/pdoc/issues/334 #}
+    {% elif (doc.qualname or doc.name) is in(module.obj.__all__ or []) %}
+        {# members starting with an underscore are still public if mentioned in __all__ #}
+        true
+    {% elif not doc.name.startswith("_") and (doc.kind != "variable" or doc.is_enum_member or doc.docstring) %}
+        {# members not starting with an underscore are considered public by default #}
+        true
+    {% endif %}
+{% enddefaultmacro %}
+
+
+<div class="td-toc"><nav id="TableOfContents">
+<ul>
+    {{ nav_members(module.members.values()) }}
+</ul>
+</nav>
+</div>
