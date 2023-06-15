@@ -69,7 +69,9 @@ def getETransmission(RayListIn, RayListOut) -> float:
     -------
         ETransmission : float
     """
-    ETransmission = 100 * sum(Ray.intensity for Ray in RayListOut) / sum(Ray.intensity for Ray in RayListIn)
+    if None in (Ray.intensity for Ray in RayListIn) or None in (Ray.intensity for Ray in RayListIn):
+        ETransmission = None
+    else: ETransmission = 100 * sum(Ray.intensity for Ray in RayListOut) / sum(Ray.intensity for Ray in RayListIn)
     return ETransmission
 
 
@@ -524,12 +526,12 @@ def MirrorProjection(OpticalChain, ReflectionNumber: int, Detector=None, ColorCo
 def RayRenderGraph(
     OpticalChain,
     EndDistance=None,
-    maxRays=150,
-    OEpoints=2000,
-    scale_spheres=0.0,
+    maxRays=300,
+    OEpoints=3000,
+    scale_spheres=0.5,
     tube_width=0.05,
     slow_method=False,
-    draw_mesh=True,
+    draw_mesh=False,
 ):
     """
     Renders an image of the Optical setup and the traced rays.
@@ -658,43 +660,7 @@ def RayRenderGraph(
             mesh = mlab.pipeline.poly_data_normals(mesh)  # Smoothing normals
             mlab.pipeline.surface(mesh, color=(0.5, 0.5, 0.5))
 
-        # # or awkwardly transform the OPticPointList into 2D arrays for x,y,z, interpolate,
-        # # and then plot a smooth surface ? Actually not faster at all, and not so much nicer either.
-        # x_array, y_array, z_array = np.array([]), np.array([]), np.array([])
-        # for element in OpticPointList:
-        #     x, y, z = element
-        #     x_array = np.hstack((x_array, x))
-        #     y_array = np.hstack((y_array, y))
-        #     z_array = np.hstack((z_array, z))
-
-        # x_positions, y_positions = np.unique(x_array), np.unique(y_array)
-        # x_grid, y_grid = np.meshgrid(x_positions, y_positions)
-
-        # x_grid = np.transpose(x_grid)
-        # y_grid = np.transpose(y_grid)
-
-        # # Create an empty grid with the same shape as x_grid and y_grid
-        # z_grid = np.zeros(x_grid.shape)
-
-        # # Fill the z_grid with the corresponding z values
-        # for x, y, z in zip(x_array, y_array, z_array):
-        #     x_index = np.where(x_positions == x)[0][0]
-        #     y_index = np.where(y_positions == y)[0][0]
-        #     z_grid[x_index, y_index] = z
-
-        # z_grid[np.where(z_grid == 0)] = None
-
-        # from scipy.interpolate import griddata
-
-        # # Creating the points and values arrays for the interpolation
-        # foopoints = np.column_stack((x_grid[~np.isnan(z_grid)], y_grid[~np.isnan(z_grid)]))
-        # foovalues = z_grid[~np.isnan(z_grid)]
-
-        # # Interpolating the data
-        # z_grid = griddata(foopoints, foovalues, (x_grid, y_grid), method='linear')
-
-        # mlab.mesh(x_grid, y_grid, z_grid, color=(0.66,0.66,0.66))
-
+        
     fig.scene._lift()
     mlab.view(azimuth=-90, elevation=90, distance="auto")
 
@@ -705,47 +671,47 @@ def RayRenderGraph(
 
 
 # %%
-def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
-    """
-    Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
-    Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images
-    because it can't determine well which object covers another one. So this is an at best a fall-back solution
-    in case mayavi really can't be made to work.
+# def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
+#     """
+#     Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
+#     Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images
+#     because it can't determine well which object covers another one. So this is an at best a fall-back solution
+#     in case mayavi really can't be made to work.
 
-    Parameters
-    ----------
-        OpticalChain : OpticalChain
-            List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
+#     Parameters
+#     ----------
+#         OpticalChain : OpticalChain
+#             List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
 
-        EndDistance : float, optional
-            The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
-            this distance is set to that between the source point and the 1st optical element.
+#         EndDistance : float, optional
+#             The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
+#             this distance is set to that between the source point and the 1st optical element.
 
-        maxRays: int
-            The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
-            and not required for a nice image. Default is 150.
+#         maxRays: int
+#             The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
+#             and not required for a nice image. Default is 150.
 
-        OEpoints : int
-            How many little spheres to draw to represent the optical elements.  Default is 2000.
+#         OEpoints : int
+#             How many little spheres to draw to represent the optical elements.  Default is 2000.
 
-    Returns
-    -------
-        fig : matplotlib-figure-handle.
-            Shows the figure.
-    """
-    RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
+#     Returns
+#     -------
+#         fig : matplotlib-figure-handle.
+#             Shows the figure.
+#     """
+#     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
 
-    if EndDistance is None:
-        EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
+#     if EndDistance is None:
+#         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
 
-    print("...rendering image of optical chain...", end="", flush=True)
+#     print("...rendering image of optical chain...", end="", flush=True)
 
-    fig = plt.figure(
-        figsize=[7.8, 2.6],
-        dpi=300,
-    )
-    ax = Axes3D(fig)
-    fig.add_axes(ax)
+#     fig = plt.figure(
+#         figsize=[7.8, 2.6],
+#         dpi=300,
+#     )
+#     ax = Axes3D(fig)
+#     fig.add_axes(ax)
 
 
 #     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()

@@ -168,7 +168,7 @@ class OpticalElement:
 
     def rotate_pitch_by(self, angle):
         """
-        Pitch rotation, i.e. rotates the optical element about the axis ('normal' x 'majraxis'), by the
+        Pitch rotation, i.e. rotates the optical element about the axis ('normal' x 'majoraxis'), by the
         given angle.
         If the plane spanned by 'normal' and 'majoraxis' is the incidence plane (normally the case
         in a "clean alignment" situation for pure p or s polarization), then this is simply a modificaiton

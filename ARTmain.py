@@ -30,7 +30,7 @@ def print_banner(i):
     banner.append(
         r"""
    ___  __  __                                __   ___              ______             _
-  / _ |/ /_/ /____  ___ ___ _______  ___  ___/ /  / _ \___ ___ __  /_  __/______ _____(_)__  ___ _
+  / _ |/ /_/ /____  ___ ___ _______  ___  ___/ /  / _ \___  __ __  /_  __/______  ____(_)__  ___ _
  / __ / __/ __/ _ \(_-</ -_) __/ _ \/ _ \/ _  /  / , _/ _ `/ // /   / / / __/ _ `/ __/ / _ \/ _ `/
 /_/ |_\__/\__/\___/___/\__/\__/\___/_//_/\_,_/  /_/|_|\_,_/\_, /   /_/ /_/  \_,_/\__/_/_//_/\_, /
                                                           /___/                            /___/  """
@@ -266,7 +266,8 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
                 + "{:f}".format(OpticalChain.loop_variable_value)
                 + ":\n"
             )
-        print("The optical setup has an energy transmission of " + "{:.1f}".format(ETransmission) + "%.\n")
+        if ETransmission is not None:
+            print("The optical setup has an energy transmission of " + "{:.1f}".format(ETransmission) + "%.\n")
 
     """ SET UP DETECTOR """
     Detector = setup_detector(OpticalChain, DetectorOptions, RayListAnalysed)
