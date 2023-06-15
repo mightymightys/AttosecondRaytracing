@@ -410,7 +410,7 @@ class OpticalChain:
             "shift_vert",
             "shift_horiz",
             "shift_random",
-            "all_random",
+            #"all_random",
         ]:
             raise ValueError(
                 'For automatic loop-list generation, the axis must be one of ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random"].'

@@ -71,7 +71,9 @@ def getETransmission(RayListIn, RayListOut) -> float:
     -------
         ETransmission : float
     """
-    ETransmission = 100 * sum(Ray.intensity for Ray in RayListOut) / sum(Ray.intensity for Ray in RayListIn)
+    if None in (Ray.intensity for Ray in RayListIn) or None in (Ray.intensity for Ray in RayListIn):
+        ETransmission = None
+    else: ETransmission = 100 * sum(Ray.intensity for Ray in RayListOut) / sum(Ray.intensity for Ray in RayListIn)
     return ETransmission
 
 
