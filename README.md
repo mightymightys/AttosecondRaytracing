@@ -1,7 +1,7 @@
 ![A rendering of two toroidal mirrors with an intermediate collimated section.](./docs/doc_illustrationrender.png)
 
 
-ART - Attosecond Ray Tracing - is a free python code written by Stefan Haessler, Anthony Guillaume of
+[ART - Attosecond Ray Tracing](https://github.com/mightymightys/AttosecondRaytracing) - is a free python code written by Stefan Haessler, André Kalouguine, and Anthony Guillaume of
 [Laboratoire d'Optique Appliquée (LOA), CNRS, Institut Polytechnique de Paris, France](https://loa.ensta-paris.fr/research/pco-research-group/)
 and Charles Bourassin-Bouchet [Laboratoire Charles Fabry (LCF)), Institut d’Optique, CNRS, Université Paris-Saclay, France](https://www.lcf.institutoptique.fr/en/groups/optique-xuv).
 
