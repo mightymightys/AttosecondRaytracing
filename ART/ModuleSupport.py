@@ -35,7 +35,7 @@ class Support(ABC):
         pass
 
     @abstractmethod
-    def _get_grid(self, NbPoint):
+    def _get_grid(self, NbPoint, **kwargs):
         pass
 
     @abstractmethod

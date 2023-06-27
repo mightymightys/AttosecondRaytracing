@@ -14,8 +14,9 @@ Created in Apr 2020
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from mayavi import mlab
 import pyvista as pv
+import colorcet as cc
+import colorsys
 
 import ART.ModuleProcessing as mp
 import ART.ModuleGeometry as mgeo
@@ -71,9 +72,7 @@ def getETransmission(RayListIn, RayListOut) -> float:
     -------
         ETransmission : float
     """
-    if None in (Ray.intensity for Ray in RayListIn) or None in (Ray.intensity for Ray in RayListIn):
-        ETransmission = None
-    else: ETransmission = 100 * sum(Ray.intensity for Ray in RayListOut) / sum(Ray.intensity for Ray in RayListIn)
+    ETransmission = 100 * sum(Ray.intensity for Ray in RayListOut) / sum(Ray.intensity for Ray in RayListIn)
     return ETransmission
 
 
@@ -525,16 +524,97 @@ def MirrorProjection(OpticalChain, ReflectionNumber: int, Detector=None, ColorCo
 
 
 # %%
-def RayRenderGraph(
-    OpticalChain,
-    EndDistance=None,
-    maxRays=300,
-    OEpoints=3000,
-    scale_spheres=0.5,
-    tube_width=0.05,
-    slow_method=False,
-    draw_mesh=False,
-):
+def RenderOpticalElement(OE, OEpoints=2000):
+    OpticPointList, edge_faces = OE.type.get_grid3D(OEpoints, edges=True)  # in the optic's coordinate system
+    # transform OpticPointList into "lab-frame"
+    OpticPointList = mgeo.TranslationPointList(OpticPointList, -OE.type.get_centre())
+    MirrorMajorAxisPrime = mgeo.RotationPoint(OE.majoraxis, OE.normal, np.array([0, 0, 1]))
+    OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([1, 0, 0]), MirrorMajorAxisPrime)
+    OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0, 0, 1]), OE.normal)
+    OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)
+
+    # plot 3D-drig of OE as little spheres
+    x = np.asarray([i[0] - OE.normal[0] * 0.5 for i in OpticPointList])
+    y = np.asarray([i[1] - OE.normal[1] * 0.5 for i in OpticPointList])
+    z = np.asarray([i[2] - OE.normal[2] * 0.5 for i in OpticPointList])
+
+    optic_pts = pv.PolyData(OpticPointList)
+
+    e = list(itertools.chain.from_iterable(edge_faces))
+    pts_coord = pv.PolyData(OpticPointList)
+    lines = list(
+        itertools.chain.from_iterable([[[2, e[i], e[i + 1]] for i in range(len(e) - 1)] for e in edge_faces])
+    )
+    faces = list(itertools.chain.from_iterable([[len(i) - 1] + i[:-1] for i in edge_faces]))
+    if lines == []:
+        lines = [0]
+    if faces == []:
+        faces = [0]
+    edges = pv.PolyData(
+        OpticPointList,
+        lines=lines,
+        faces=faces,
+    )
+    # Can't figure out some edge cases such as when part of the support is outside of the mirror
+    tess = pts_coord.delaunay_2d(edge_source=edges)
+    triangles = tess.faces.reshape(-1, 4)[:, 1:]
+    return optic_pts, tess
+
+def RenderRays(RayListHistory, EndDistance=None, maxRays=150, color_by_number = True):
+    meshes = []
+    # Ray display
+    for k in range(len(RayListHistory)):
+        x = []
+        y = []
+        z = []
+        connections = []
+        if k != len(RayListHistory) - 1:
+            knums = list(
+                map(lambda x: x.number, RayListHistory[k])
+            )  # make a list of all ray numbers that are still in the game
+            if len(RayListHistory[k + 1]) > maxRays:
+                rays_to_render = np.random.choice(RayListHistory[k + 1], maxRays, replace=False)
+            else:
+                rays_to_render = RayListHistory[k + 1]
+
+            for j in rays_to_render:
+                indx = knums.index(j.number)
+                i = RayListHistory[k][indx]
+                Point1 = i.point
+                Point2 = j.point
+                x += [Point1[0], Point2[0]]
+                y += [Point1[1], Point2[1]]
+                z += [Point1[2], Point2[2]]
+
+        else:
+            if len(RayListHistory[k]) > maxRays:
+                rays_to_render = np.random.choice(RayListHistory[k], maxRays, replace=False)
+            else:
+                rays_to_render = RayListHistory[k]
+
+            for j in rays_to_render:
+                Point = j.point
+                Vector = j.vector
+                x += [Point[0], Point[0] + Vector[0] * EndDistance]
+                y += [Point[1], Point[1] + Vector[1] * EndDistance]
+                z += [Point[2], Point[2] + Vector[2] * EndDistance]
+        points = np.column_stack((x, y, z))
+        meshes += [pv.line_segments_from_points(points)]
+    return meshes
+
+def generate_distinct_colors(num_colors):
+    # Get a color palette from colorcet
+    palette = cc.glasbey
+
+    # Make sure the number of colors does not exceed the palette length
+    num_colors = min(num_colors, len(palette))
+
+    # Slice the palette to get the desired number of colors
+    distinct_colors = palette[:num_colors]
+
+    return distinct_colors
+
+def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, scale_spheres=0.0, draw_mesh=False):
     """
     Renders an image of the Optical setup and the traced rays.
 
@@ -556,7 +636,7 @@ def RayRenderGraph(
 
     Returns
     -------
-        fig : mayavi-figure-handle.
+        fig : Pyvista-figure-handle.
             Shows the figure.
     """
 
@@ -566,226 +646,29 @@ def RayRenderGraph(
         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
 
     print("...rendering image of optical chain...", end="", flush=True)
-    fig = mlab.figure(bgcolor=(1, 1, 1), size=(1500, 500))
+    fig = pv.Plotter(window_size=(1500, 500), notebook=False)
 
-    x = []
-    y = []
-    z = []
-    # Ray display
-    for k in range(len(RayListHistory)):
-        if k != len(RayListHistory) - 1:
-            knums = list(
-                map(lambda x: x.number, RayListHistory[k])
-            )  # make a list of all ray numbers that are still in the game
-            if len(RayListHistory[k + 1]) > maxRays:
-                rays_to_render = np.random.choice(RayListHistory[k + 1], maxRays, replace=False)
-            else:
-                rays_to_render = RayListHistory[k + 1]
-
-            for j in rays_to_render:
-                indx = knums.index(j.number)
-                i = RayListHistory[k][indx]
-                Point1 = i.point
-                Point2 = j.point
-                x += [Point1[0], Point2[0]]
-                y += [Point1[1], Point2[1]]
-                z += [Point1[2], Point2[2]]
-                if slow_method:
-                    mlab.plot3d(x[-2:], y[-2:], z[-2:], color=(1, 0, 0), tube_radius=0.05)
-
-        else:
-            if len(RayListHistory[k]) > maxRays:
-                rays_to_render = np.random.choice(RayListHistory[k], maxRays, replace=False)
-            else:
-                rays_to_render = RayListHistory[k]
-
-            for j in rays_to_render:
-                Point = j.point
-                Vector = j.vector
-                x += [Point[0], Point[0] + Vector[0] * EndDistance]
-                y += [Point[1], Point[1] + Vector[1] * EndDistance]
-                z += [Point[2], Point[2] + Vector[2] * EndDistance]
-                if slow_method:
-                    mlab.plot3d(x[-2:], y[-2:], z[-2:], color=(1, 0, 0), tube_radius=0.05)
-    if not slow_method:
-        pts = mlab.pipeline.scalar_scatter(x, y, z)
-        connections = [(2 * i, 2 * i + 1) for i in range(len(x) // 2)]
-        pts.mlab_source.dataset.lines = np.array(connections)
-        pts.update()
-        if tube_width != 0:
-            tube = mlab.pipeline.tube(pts, tube_radius=0.05)
-            tube.filter.radius_factor = 1.0
-            mlab.pipeline.surface(tube, color=(0.8, 0.0, 0))
-        else:
-            lines = mlab.pipeline.stripper(pts)
-            mlab.pipeline.surface(lines, color=(0.8, 0.0, 0))
+    ray_meshes = RenderRays(RayListHistory, EndDistance, maxRays)
+    colors = generate_distinct_colors(len(ray_meshes))
+    for i,ray in enumerate(ray_meshes):
+        color = pv.Color(colors[i])
+        fig.add_mesh(ray, color=color)
 
     # Optics display
-    for OE in OpticalChain.optical_elements:
-        OpticPointList, edge_faces = OE.type.get_grid3D(OEpoints, edges=True)  # in the optic's coordinate system
-        # transform OpticPointList into "lab-frame"
-        OpticPointList = mgeo.TranslationPointList(OpticPointList, -OE.type.get_centre())
-        MirrorMajorAxisPrime = mgeo.RotationPoint(OE.majoraxis, OE.normal, np.array([0, 0, 1]))
-        OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([1, 0, 0]), MirrorMajorAxisPrime)
-        OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0, 0, 1]), OE.normal)
-        OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)
-
-        x = np.asarray([i[0] - OE.normal[0] * 0.5 for i in OpticPointList])
-        y = np.asarray([i[1] - OE.normal[1] * 0.5 for i in OpticPointList])
-        z = np.asarray([i[2] - OE.normal[2] * 0.5 for i in OpticPointList])
-
-        # plot 3D-drig of OE as little spheres
-        pts = mlab.points3d(x, y, z, scale_factor=scale_spheres)
-
-        if draw_mesh:
-            pts_coord = pv.PolyData(OpticPointList)
-            lines = list(
-                itertools.chain.from_iterable([[[2, e[i], e[i + 1]] for i in range(len(e) - 1)] for e in edge_faces])
-            )
-            faces = list(itertools.chain.from_iterable([[len(i) - 1] + i[:-1] for i in edge_faces]))
-            if lines == []:
-                lines = [0]
-            if faces == []:
-                faces = [0]
-            edges = pv.PolyData(
-                OpticPointList,
-                lines=lines,
-                faces=faces,
-            )
-            # Can't figure out some edge cases such as when part of the support is outside of the mirror
-            tess = pts_coord.delaunay_2d(edge_source=edges)
-            triangles = tess.faces.reshape(-1, 4)[:, 1:]
-            mesh = mlab.triangular_mesh(x, y, z, triangles, color=(0.3, 0.3, 0.3), opacity=0)
-            # This part could probably be optimised.
-            mesh = mlab.pipeline.poly_data_normals(mesh)  # Smoothing normals
-            mlab.pipeline.surface(mesh, color=(0.5, 0.5, 0.5))
-
-        
-    fig.scene._lift()
-    mlab.view(azimuth=-90, elevation=90, distance="auto")
-
+    for i,OE in enumerate(OpticalChain.optical_elements):
+        pointcloud, mesh = RenderOpticalElement(OE, OEpoints)
+        color = pv.Color(colors[i+1])
+        color = colorsys.hsv_to_rgb(*(colorsys.rgb_to_hsv(*color[:-1]))*np.array([1,0.2,1]))
+        fig.add_mesh(mesh, color = color)
+        fig.add_mesh(pointcloud, point_size=scale_spheres, color = color, render_points_as_spheres = True)
+    fig.show()
     print(
         "\r\033[K", end="", flush=True
     )  # move to beginning of the line with \r and then delete the whole line with \033[K
     return fig
 
 
-# %%
-# def RayRenderGraph_matplotlib(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000):
-#     """
-#     Renders an image of the Optical setup and the traced rays.  - HERE USING matplotlib's Axes3D scatter.
-#     Matplotlib is not yet well adapted to 3D, and produces not very pretty and often "incorrect" looking images
-#     because it can't determine well which object covers another one. So this is an at best a fall-back solution
-#     in case mayavi really can't be made to work.
-
-#     Parameters
-#     ----------
-#         OpticalChain : OpticalChain
-#             List of objects of the ModuleOpticalOpticalChain.OpticalChain-class.
-
-#         EndDistance : float, optional
-#             The rays of the last ray bundle are drawn with a length given by EndDistance (in mm). If not specified,
-#             this distance is set to that between the source point and the 1st optical element.
-
-#         maxRays: int
-#             The maximum number of rays to render. Rendering all the traced rays is a insufferable resource hog
-#             and not required for a nice image. Default is 150.
-
-#         OEpoints : int
-#             How many little spheres to draw to represent the optical elements.  Default is 2000.
-
-#     Returns
-#     -------
-#         fig : matplotlib-figure-handle.
-#             Shows the figure.
-#     """
-#     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
-
-#     if EndDistance is None:
-#         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
-
-#     print("...rendering image of optical chain...", end="", flush=True)
-
-#     fig = plt.figure(
-#         figsize=[7.8, 2.6],
-#         dpi=300,
-#     )
-#     ax = Axes3D(fig)
-#     fig.add_axes(ax)
-
-
-#     RayListHistory = [OpticalChain.source_rays] + OpticalChain.get_output_rays()
-
-#     if EndDistance == None:
-#         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
-
-#     print('...rendering image of optical chain...', end='', flush=True)
-#     #fig = mlab.figure(bgcolor=(1,1,1),size=(1500, 500))
-
-#     # Ray display
-#     line_vis = []
-
-#     for k in range(len(RayListHistory)):
-#         if k != len(RayListHistory)-1:
-#             knums = list(map(lambda x: x.number, RayListHistory[k])) #make a list of all ray numbers that are still in the game
-#             if len(RayListHistory[k+1]) > maxRays:
-#                 rays_to_render = np.random.choice(RayListHistory[k+1], maxRays, replace=False)
-#             else: rays_to_render = RayListHistory[k+1]
-
-#             for j in rays_to_render:
-#                 indx = knums.index(j.number)
-#                 i = RayListHistory[k][indx]
-
-#                 line = np.array([i.point, j.point])
-#                 vis2 = scene.visuals.Tube(line, radius=.3, color='red', tube_points=8, shading='flat')
-#                 vis2.parent = view.scene
-#                 line_vis.append(vis2)
-
-#         else:
-#             if len(RayListHistory[k]) > maxRays:
-#                 rays_to_render = np.random.choice(RayListHistory[k], maxRays, replace=False)
-#             else: rays_to_render = RayListHistory[k]
-
-#             for j in rays_to_render:
-
-#                 line = np.array([j.point, j.point + j.vector*EndDistance])
-#                 vis2 = scene.visuals.Tube(line, radius=.3, color='red', tube_points=8, shading='flat')
-#                 vis2.parent = view.scene
-#                 line_vis.append(vis2)
-
-#     # Optics display
-#     for OE in OpticalChain.optical_elements:
-#         OpticPointList = OE.type.get_grid3D(OEpoints) #in the optic's coordinate system
-
-#         # transform OpticPointList into "lab-frame"
-#         OpticPointList = mgeo.TranslationPointList(OpticPointList, -OE.type.get_centre())
-#         MirrorMajorAxisPrime = mgeo.RotationPoint(OE.majoraxis, OE.normal, np.array([0,0,1]))
-#         OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([1,0,0]), MirrorMajorAxisPrime)
-#         OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0,0,1]), OE.normal)
-#         OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)
-
-
-#         vis = scene.visuals.Markers(
-#             pos=np.array(OpticPointList),
-#             size=3,
-#             antialias=0,
-#             face_color=(0.66,0.66,0.66),
-#             edge_color='white',
-#             edge_width=0,
-#             scaling=True,
-#             spherical=True,
-#         )
-#         vis.parent = view.scene
-
-
-#     # fig.scene._lift()
-#     # mlab.view(azimuth=-90, elevation=90, distance='auto')
-#     app.run()
-
-#     print('\r\033[K', end='', flush=True) #move to beginning of the line with \r and then delete the whole line with \033[K
-#     return canvas
 
 
 def show():
-    mlab.show()
     plt.show(block=False)
