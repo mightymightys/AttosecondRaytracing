@@ -228,7 +228,7 @@ class OpticalElement:
             distance : float
                 Shift distance in mm.
         """
-        self.position += distance * self.normal
+        self.position = self.position +  distance * self.normal
 
     def shift_along_major(self, distance):
         """
@@ -239,7 +239,7 @@ class OpticalElement:
             distance : float
                 Shift distance in mm.
         """
-        self.position += distance * self.majoraxis
+        self.position = self.position +  distance * self.majoraxis
 
     def shift_along_cross(self, distance):
         """
@@ -251,7 +251,7 @@ class OpticalElement:
             distance : float
                 Shift distance in mm.
         """
-        self.position += distance * mgeo.Normalize(np.cross(self.normal, self.majoraxis))
+        self.position = self.position +  distance * mgeo.Normalize(np.cross(self.normal, self.majoraxis))
 
     def shift_along_random(self, distance):
         """
@@ -262,4 +262,4 @@ class OpticalElement:
             distance : float
                 Shift distance in mm.
         """
-        self.position += distance * mgeo.Normalize(np.random.random(3))
+        self.position = self.position + distance * mgeo.Normalize(np.random.random(3))
