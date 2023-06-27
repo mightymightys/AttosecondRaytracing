@@ -274,7 +274,7 @@ def OEPlacement(
 
 # %%
 def RayTracingCalculation(
-    source_rays: list[mray.Ray], optical_elements: list[moe.OpticalElement]
+    source_rays: list[mray.Ray], optical_elements: list[moe.OpticalElement], IgnoreDefects = True
 ) -> list[list[mray.Ray]]:
     """
     The actual ray-tracing calculation, starting from the list of 'source_rays',
@@ -322,7 +322,7 @@ def RayTracingCalculation(
 
         # optical element acts on the rays:
         if "Mirror" in optical_elements[k].type.type:
-            RayList = mmirror.ReflectionMirrorRayList(optical_elements[k].type, RayList)
+            RayList = mmirror.ReflectionMirrorRayList(optical_elements[k].type, RayList, IgnoreDefects = IgnoreDefects)
         elif optical_elements[k].type.type == "Mask":
             RayList = mmask.TransmitMaskRayList(optical_elements[k].type, RayList)
         else:

@@ -179,7 +179,7 @@ class OpticalChain:
         """Return another optical chain with the same source, optical elements and description-string as this one."""
         return OpticalChain(self.source_rays, self.optical_elements, self.description)
 
-    def get_output_rays(self):
+    def get_output_rays(self, **kwargs):
         """
         Returns the list of (lists of) output rays, calculate them if this hasn't been done yet,
         or if the source-ray-bundle or anything about the optical elements has changed.
@@ -190,7 +190,7 @@ class OpticalChain:
             current_optical_elements_hash != self._last_optical_elements_hash
         ):
             print("...ray-tracing...", end="", flush=True)
-            self._output_rays = mp.RayTracingCalculation(self.source_rays, self.optical_elements)
+            self._output_rays = mp.RayTracingCalculation(self.source_rays, self.optical_elements, **kwargs)
             print(
                 "\r\033[K", end="", flush=True
             )  # move to beginning of the line with \r and then delete the whole line with \033[K
@@ -199,17 +199,6 @@ class OpticalChain:
             self._last_optical_elements_hash = current_optical_elements_hash
 
         return self._output_rays
-
-    # def quickshow(self):
-    #     """Render an image of the optical chain it with settings that prioritize
-    #     speed over great looks. This lets the user quickly visualize their
-    #     optical setup to check if all the angles are set as they want."""
-    #     maxRays = 30
-    #     maxOEpoints = 1500
-    #     QuickOpticalChain = self.copy_chain()
-    #     QuickOpticalChain.source_rays = np.random.choice(self.source_rays, maxRays, replace=False).tolist()
-    #     quickfig = mplots.RayRenderGraph(QuickOpticalChain, None, maxRays, maxOEpoints)
-    #     return quickfig
 
     def render(self):
         """Create a fairly good-looking 3D rendering of the optical chain."""
@@ -410,7 +399,7 @@ class OpticalChain:
             "shift_vert",
             "shift_horiz",
             "shift_random",
-            #"all_random",
+            "all_random",
         ]:
             raise ValueError(
                 'For automatic loop-list generation, the axis must be one of ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random"].'

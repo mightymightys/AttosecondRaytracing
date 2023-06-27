@@ -8,6 +8,7 @@ import os
 import sys
 from datetime import datetime
 import numpy as np
+import importlib.util
 import ART.ModuleProcessing as mp
 import ART.ModuleDetector as mdet
 import ART.ModuleAnalysisAndPlots as mplots
@@ -52,13 +53,13 @@ def print_banner(i):
     print(niceline)
 
 
-def load_config(config_file):
+def load_config(config):
     """Import the user-specified config-file to get get OpticalChain(s) and the options-dictionaries.
     The user is reponsible that no harmful code is written in that config-file.
     """
     print("...setting up and importing optical chain(s)...", end="", flush=True)
     # import the required variables from the config-file
-    config = __import__(config_file)
+    #config = __import__(config_file)
 
     if hasattr(config, "OpticalChainList"):
         OpticalChainList = config.OpticalChainList
@@ -199,7 +200,6 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
             AnalysisOptions["maxRaysToRender"],
             AnalysisOptions["OEPointsToRender"],
             AnalysisOptions["OEPointsScale"],
-            slow_method=AnalysisOptions["slow_method"],
             draw_mesh=AnalysisOptions["draw_mesh"],
         )
 
@@ -266,7 +266,6 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
                 + "{:f}".format(OpticalChain.loop_variable_value)
                 + ":\n"
             )
-        if ETransmission is not None:
             print("The optical setup has an energy transmission of " + "{:.1f}".format(ETransmission) + "%.\n")
 
     """ SET UP DETECTOR """
@@ -346,7 +345,6 @@ def main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, s
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python ARTmain.py CONFIG_FILE")
-        exit()
         config_file = "CONFIG_test"
 
         """ LOAD CONFIGURATION """
@@ -355,16 +353,29 @@ if __name__ == "__main__":
         """ LAUNCH MAIN """
         main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, save_file_name=config_file)
         # This was simply done to simplify profiling and debugging
+        """SHOW THE NAME BANNER"""
+        print_banner(1)
+
+
+        """ LOAD CONFIGURATION """
+        OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions = load_config(config_file)
+
+        """ LAUNCH MAIN """
+        main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, save_file_name=config_file)
+
     else:
         """SHOW THE NAME BANNER"""
         print_banner(1)
 
         config_file = sys.argv[1]
-        # cut everything after a dot, so as to remove file suffix in case one has been given:
-        config_file = config_file.rsplit(sep=".")[0]
-
+        filename = os.path.basename(config_file)
+        spec = importlib.util.spec_from_file_location(filename, config_file)
+        config_module = importlib.util.module_from_spec(spec)
+        sys.modules[filename] = config_module
+        spec.loader.exec_module(config_module)
+        
         """ LOAD CONFIGURATION """
-        OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions = load_config(config_file)
+        OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions = load_config(config_module)
 
         """ LAUNCH MAIN """
         main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, save_file_name=config_file)

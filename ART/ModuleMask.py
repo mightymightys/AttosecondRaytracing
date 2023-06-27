@@ -69,16 +69,23 @@ class Mask:
         """Return 3D coordinates of the point on the mask surface at the center of its support."""
         return np.array([0, 0, 0])
 
-    def get_grid3D(self, NbPoint):
+    def get_grid3D(self, NbPoint, **kwargs):
         """
         Returns list of numpy-arrays containing the 3D-coordinates of points in the mirror surface,
         sampling the support in a number NbPoints of points.
         """
+        E = "edges" in kwargs and kwargs["edges"]
         ListCoordXYZ = []
-        ListCoordXY = self.support._get_grid(NbPoint)
+        contour = int(round(0.1 * NbPoint))
+        contours = self.support._Contour_points(contour, **kwargs)
+        if E:
+            contours, contour_edges = contours
+        ListCoordXY = contours + self.support._get_grid(NbPoint - contour)
         for k in ListCoordXY:
             z = 0
             ListCoordXYZ.append(np.array([k[0], k[1], z]))
+        if E:
+            return ListCoordXYZ, contour_edges
         return ListCoordXYZ
 
 
