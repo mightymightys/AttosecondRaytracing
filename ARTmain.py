@@ -31,7 +31,7 @@ def print_banner(i):
     banner.append(
         r"""
    ___  __  __                                __   ___              ______             _
-  / _ |/ /_/ /____  ___ ___ _______  ___  ___/ /  / _ \___ ___ __  /_  __/______ _____(_)__  ___ _
+  / _ |/ /_/ /____  ___ ___ _______  ___  ___/ /  / _ \___  __ __  /_  __/______  ____(_)__  ___ _
  / __ / __/ __/ _ \(_-</ -_) __/ _ \/ _ \/ _  /  / , _/ _ `/ // /   / / / __/ _ `/ __/ / _ \/ _ `/
 /_/ |_\__/\__/\___/___/\__/\__/\___/_//_/\_,_/  /_/|_|\_,_/\_, /   /_/ /_/  \_,_/\__/_/_//_/\_, /
                                                           /___/                            /___/  """
@@ -200,6 +200,7 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
             AnalysisOptions["maxRaysToRender"],
             AnalysisOptions["OEPointsToRender"],
             AnalysisOptions["OEPointsScale"],
+            draw_mesh=AnalysisOptions["draw_mesh"],
         )
 
     if AnalysisOptions["plot_DelayMirrorProjection"]:
@@ -265,7 +266,7 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
                 + "{:f}".format(OpticalChain.loop_variable_value)
                 + ":\n"
             )
-        print("The optical setup has an energy transmission of " + "{:.1f}".format(ETransmission) + "%.\n")
+            print("The optical setup has an energy transmission of " + "{:.1f}".format(ETransmission) + "%.\n")
 
     """ SET UP DETECTOR """
     Detector = setup_detector(OpticalChain, DetectorOptions, RayListAnalysed)
@@ -300,8 +301,7 @@ def run_ART(OpticalChain, SourceProperties, DetectorOptions, AnalysisOptions, lo
 
 # %%
 def main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, save_file_name=None):
-
-    """ COMPLETE CONFIG-DOCTIONARIES WITH DEFAULT OPTIONS """
+    """COMPLETE CONFIG-DOCTIONARIES WITH DEFAULT OPTIONS"""
     SourceProperties, DetectorOptions, AnalysisOptions = complete_defaults(
         SourceProperties, DetectorOptions, AnalysisOptions
     )
@@ -346,6 +346,16 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python ARTmain.py CONFIG_FILE")
         config_file = "CONFIG_test"
+
+        """ LOAD CONFIGURATION """
+        OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions = load_config(config_file)
+
+        """ LAUNCH MAIN """
+        main(OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions, save_file_name=config_file)
+        # This was simply done to simplify profiling and debugging
+        """SHOW THE NAME BANNER"""
+        print_banner(1)
+
 
         """ LOAD CONFIGURATION """
         OpticalChainList, SourceProperties, DetectorOptions, AnalysisOptions = load_config(config_file)

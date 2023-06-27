@@ -18,6 +18,7 @@ Created in 2019
 
 import numpy as np
 import ART.ModuleGeometry as mgeo
+import ART.ModuleDefects as mdef
 import math
 from scipy.spatial.transform import Rotation as R
 
@@ -212,17 +213,22 @@ class MirrorSpherical:
 # %%############################################################################
 class MirrorParabolic:
     r"""
-    Parabolic mirror.
+    A paraboloid with vertex at the origin $O=[0,0,0]$ and symmetry axis z:
+    $z = \frac{1}{4f}[x^2 + y^2]$ where $f$ is the focal lenght of the *mother*
+    parabola (i.e. measured from its center at $O$ to the focal point $F$).
 
-    A paraboloid with vertex at the origin [0,0,0] and symmetry axis z,
-    with the center of the support shifted off axis along the x-direction.
-    Its eqn. is therefore $z = \frac{1}{2p}[(x+x_c)^2 + y^2]$ where $p$ is the semi latus rectum,
-    equal to twice the focal lenght of the *mother* parabola (i.e. off-axis angle $\alpha=0$).
+    The center of the support is shifted along the x-direction by the off-axis distance $x_c$.
+    This leads to an *effective focal length* $f_\mathrm{eff}$, measured from the shifted center
+    of the support  $P$ to the focal point $F$.
+    It is related to the mother focal length by $f = f_\\mathrm{eff} \cos^2(\alpha/2) $,
+    or equivalently $ p = 2f = f_\mathrm{eff} (1+\\cos\\alpha)$, where $\\alpha$
+    is the off-axis angle, and $p = 2f$ is called the semi latus rectum.
 
-    The effective focal length $f_\mathrm{eff}$ is related to the semi latus rectum by
-    $ p = f_\mathrm{eff} (1+\cos\alpha)$, where $\alpha$ is the off-axis angle.
+    Another useful relationship is that between the off-axis distance and the resulting
+    off-axis angle: $x_c = 2 f \tan(\alpha/2)$.
 
-    ![Illustration of a parabolic mirror.](parabola.svg)
+
+    ![Illustration of a parabolic mirror.](../docs/parabola.svg)
 
     Attributes
     ----------
@@ -272,6 +278,15 @@ class MirrorParabolic:
         self._p = FocalEffective * (
             1 + np.cos(self.offaxisangle)
         )  # semi latus rectum
+
+    @property
+    def offaxisangle(self):
+        return self._offaxisangle
+
+    @offaxisangle.setter
+    def offaxisangle(self, OffAxisAngle):
+        self._offaxisangle = np.deg2rad(OffAxisAngle)  # store (and later return) in radians!
+        self._p = self._feff * (1 + np.cos(self._offaxisangle))  # make sure to always update p
 
     @property
     def offaxisangle(self):
@@ -342,7 +357,7 @@ class MirrorParabolic:
         return mgeo.Normalize(Gradient)
 
     def get_centre(self):
-        """Return 3D coordinates of the point on the mirror surface at the center of its support."""
+        """Return 3D coordinates of the point $P$ on the mirror surface at the center of its support."""
         return np.array(
             [
                 self.feff * np.sin(self.offaxisangle),
@@ -882,7 +897,7 @@ def _ReflectionMirrorRay(Mirror, PointMirror, Ray):
     RayReflected.point = PointMirror
     RayReflected.vector = VectorRayReflected
     RayReflected.incidence = mgeo.AngleBetweenTwoVectors(
-        -VectorRay, NormalMirror
+    RayReflected.path = np.linalg.norm(PointMirror - PointRay) + Ray.path
     )
     RayReflected.path = Ray.path + (np.linalg.norm(PointMirror - PointRay),)
 

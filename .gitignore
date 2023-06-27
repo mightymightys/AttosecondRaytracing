@@ -1,11 +1,9 @@
 #my helper batch-scripts
 *.bat
 
-#my own config-files
+#my own "user"-files
 myCONFIG_*
 ARTenvironment_*
-
-#kept_data save files, images
 *.xz
 *.png
 !logo.png

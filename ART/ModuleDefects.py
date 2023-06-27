@@ -4,7 +4,7 @@ Provides classes for different deformations of optical surfaces.
 
 Created on Fri Mar 10 2023
 
-@author: Semptum
+@author: Semptum + Stefan Haessler 
 """
 # %% Modules
 
@@ -148,17 +148,29 @@ class Fourrier(Defect):
         print(self.rms)
 
     def get_normal(self, Point):
-        Grad = self.DerivInterp(Point)
-        dX, dY =  Grad.flatten()
+        """
+        Calculates and returns the surface normal at the given Point.
+        It uses the derivative interpolators to compute the partial derivatives of the surface
+        deformation and returns a normalized vector representing the surface normal.
+        """
+        dX, dY = self.DerivInterp(Point)
         norm = np.linalg.norm([dX, dY, 1])
         dX /= norm
         dY /= norm
         return np.array([dX, dY, np.sqrt(1 - dX**2 - dY**2)])
 
     def get_offset(self, Point):
+        """
+        Calculates and returns the surface offset at the given Point.
+        It uses the surface deformation interpolator to determine the displacement
+        at the specified point on the surface.
+        """
         return self.SurfInterp(Point)
 
     def RMS(self):
+        """
+        Returns the root mean square (RMS) value of the surface deformation (self.rms).
+        """
         return self.rms
 
     def PV(self):
