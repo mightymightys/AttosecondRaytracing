@@ -200,16 +200,6 @@ class OpticalChain:
 
         return self._output_rays
 
-    #     """Render an image of the optical chain it with settings that prioritize
-        """ Render an image of the optical chain it with settings that prioritize
-    #     optical setup to check if all the angles are set as they want."""
-        optical setup to check if all the angles are set as they want."""
-    #     maxOEpoints = 1500
-    #     QuickOpticalChain = self.copy_chain()
-    #     QuickOpticalChain.source_rays = np.random.choice(self.source_rays, maxRays, replace=False).tolist()
-        QuickOpticalChain.source_rays = np.random.choice(self.source_rays, maxRays, replace=False).tolist()
-    #     return quickfig
-
     def render(self):
         """Create a fairly good-looking 3D rendering of the optical chain."""
         fig = mplots.RayRenderGraph(

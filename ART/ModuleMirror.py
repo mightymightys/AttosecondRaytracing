@@ -897,7 +897,7 @@ def _ReflectionMirrorRay(Mirror, PointMirror, Ray):
     RayReflected.point = PointMirror
     RayReflected.vector = VectorRayReflected
     RayReflected.incidence = mgeo.AngleBetweenTwoVectors(
-    RayReflected.path = np.linalg.norm(PointMirror - PointRay) + Ray.path
+    -VectorRay, NormalMirror
     )
     RayReflected.path = Ray.path + (np.linalg.norm(PointMirror - PointRay),)
 
