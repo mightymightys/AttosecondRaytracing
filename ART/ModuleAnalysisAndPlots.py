@@ -649,7 +649,7 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
 
     print("...rendering image of optical chain...", end="", flush=True)
     fig = pvqt.BackgroundPlotter(window_size=(1500, 500), notebook=False)
-
+    fig.set_background('white')
     ray_meshes = RenderRays(RayListHistory, EndDistance, maxRays)
     colors = generate_distinct_colors(len(ray_meshes))
     for i,ray in enumerate(ray_meshes):
