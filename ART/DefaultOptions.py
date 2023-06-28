@@ -22,7 +22,7 @@ DefaultAnalysisOptions = {
     "save_results": True,  # save the simulation results to disk, to analyse later
     "OEPointsToRender": 2000,
     "OEPointsScale": 5,
-    "draw_mesh":True,
+    "draw_mesh":False,
 }
 
 # %%

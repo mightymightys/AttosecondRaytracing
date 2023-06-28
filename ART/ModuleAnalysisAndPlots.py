@@ -663,7 +663,8 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
         if draw_mesh and mesh is not None:
             fig.add_mesh(mesh, color = color)
         fig.add_mesh(pointcloud, point_size=scale_spheres, color = color, render_points_as_spheres = True)
-    fig.show()
+    fig.show(interactive_update = True)
+    
     print(
         "\r\033[K", end="", flush=True
     )  # move to beginning of the line with \r and then delete the whole line with \033[K
