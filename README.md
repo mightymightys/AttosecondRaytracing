@@ -1,4 +1,4 @@
-![A rendering of two toroidal mirrors with an intermediate collimated section.](./docs/doc_illustrationrender.png)
+![A rendering of two toroidal mirrors with an intermediate collimated section.](./docs/pdoc/images/doc_illustrationrender.png)
 
 
 [ART - Attosecond Ray Tracing](https://github.com/mightymightys/AttosecondRaytracing) - is a free python code written by Stefan Haessler, André Kalouguine, and Anthony Guillaume of
