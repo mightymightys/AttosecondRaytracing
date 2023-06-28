@@ -525,7 +525,7 @@ def MirrorProjection(OpticalChain, ReflectionNumber: int, Detector=None, ColorCo
 
 
 # %%
-def RenderOpticalElement(OE, OEpoints=2000, draw_mesh = False):
+def _RenderOpticalElement(OE, OEpoints, draw_mesh = False):
     OpticPointList, edge_faces = OE.type.get_grid3D(OEpoints, edges=True)  # in the optic's coordinate system
     # transform OpticPointList into "lab-frame"
     OpticPointList = mgeo.TranslationPointList(OpticPointList, -OE.type.get_centre())
@@ -533,16 +533,13 @@ def RenderOpticalElement(OE, OEpoints=2000, draw_mesh = False):
     OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([1, 0, 0]), MirrorMajorAxisPrime)
     OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0, 0, 1]), OE.normal)
     OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)
-
-    # plot 3D-drig of OE as little spheres
-    x = np.asarray([i[0] - OE.normal[0] * 0.5 for i in OpticPointList])
-    y = np.asarray([i[1] - OE.normal[1] * 0.5 for i in OpticPointList])
-    z = np.asarray([i[2] - OE.normal[2] * 0.5 for i in OpticPointList])
+    
+    if not draw_mesh:    
+        OpticPointList = [point - OE.normal*1 for point in OpticPointList]
 
     optic_pts = pv.PolyData(OpticPointList)
     tess = None
     if draw_mesh:
-        e = list(itertools.chain.from_iterable(edge_faces))
         pts_coord = pv.PolyData(OpticPointList)
         lines = list(
             itertools.chain.from_iterable([[[2, e[i], e[i + 1]] for i in range(len(e) - 1)] for e in edge_faces])
@@ -559,17 +556,15 @@ def RenderOpticalElement(OE, OEpoints=2000, draw_mesh = False):
         )
         # Can't figure out some edge cases such as when part of the support is outside of the mirror
         tess = pts_coord.delaunay_2d(edge_source=edges)
-        triangles = tess.faces.reshape(-1, 4)[:, 1:]
     return optic_pts, tess
 
-def RenderRays(RayListHistory, EndDistance=None, maxRays=150, color_by_number = True):
+def _RenderRays(RayListHistory, EndDistance=None, maxRays=150, color_by_number = True):
     meshes = []
     # Ray display
     for k in range(len(RayListHistory)):
         x = []
         y = []
         z = []
-        connections = []
         if k != len(RayListHistory) - 1:
             knums = list(
                 map(lambda x: x.number, RayListHistory[k])
@@ -616,7 +611,7 @@ def generate_distinct_colors(num_colors):
 
     return distinct_colors
 
-def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, scale_spheres=0.0, draw_mesh=False):
+def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, scale_spheres=5.0, draw_mesh=False, cycle_ray_colors = False):
     """
     Renders an image of the Optical setup and the traced rays.
 
@@ -649,22 +644,26 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
 
     print("...rendering image of optical chain...", end="", flush=True)
     fig = pvqt.BackgroundPlotter(window_size=(1500, 500), notebook=False)
-
-    ray_meshes = RenderRays(RayListHistory, EndDistance, maxRays)
-    colors = generate_distinct_colors(len(ray_meshes))
+    fig.set_background('white')
+    
+    ray_meshes = _RenderRays(RayListHistory, EndDistance, maxRays)
+    if cycle_ray_colors:
+        colors = generate_distinct_colors(len(ray_meshes))
+    else:
+        colors = [[0.7, 0, 0]]*len(ray_meshes)
     for i,ray in enumerate(ray_meshes):
         color = pv.Color(colors[i])
         fig.add_mesh(ray, color=color)
 
     # Optics display
     for i,OE in enumerate(OpticalChain.optical_elements):
-        pointcloud, mesh = RenderOpticalElement(OE, OEpoints, draw_mesh = draw_mesh)
+        pointcloud, mesh = _RenderOpticalElement(OE, OEpoints, draw_mesh)
         color = pv.Color(colors[i+1])
         color = colorsys.hsv_to_rgb(*(colorsys.rgb_to_hsv(*color[:-1]))*np.array([1,0.2,1]))
         if draw_mesh and mesh is not None:
             fig.add_mesh(mesh, color = color)
         fig.add_mesh(pointcloud, point_size=scale_spheres, color = color, render_points_as_spheres = True)
-    fig.show(interactive_update = True)
+    fig.show()
     
     print(
         "\r\033[K", end="", flush=True

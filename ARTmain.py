@@ -200,7 +200,8 @@ def make_plots(OpticalChain, RayListAnalysed, Detector, SourceProperties, Detect
             AnalysisOptions["maxRaysToRender"],
             AnalysisOptions["OEPointsToRender"],
             AnalysisOptions["OEPointsScale"],
-            draw_mesh=AnalysisOptions["draw_mesh"],
+            draw_mesh = AnalysisOptions["draw_mesh"],
+            cycle_ray_colors = AnalysisOptions["cycle_ray_colors"]
         )
 
     if AnalysisOptions["plot_DelayMirrorProjection"]:
