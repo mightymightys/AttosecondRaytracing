@@ -524,7 +524,7 @@ def MirrorProjection(OpticalChain, ReflectionNumber: int, Detector=None, ColorCo
 
 
 # %%
-def RenderOpticalElement(OE, OEpoints=2000):
+def RenderOpticalElement(OE, OEpoints=2000, draw_mesh = False):
     OpticPointList, edge_faces = OE.type.get_grid3D(OEpoints, edges=True)  # in the optic's coordinate system
     # transform OpticPointList into "lab-frame"
     OpticPointList = mgeo.TranslationPointList(OpticPointList, -OE.type.get_centre())
@@ -539,25 +539,26 @@ def RenderOpticalElement(OE, OEpoints=2000):
     z = np.asarray([i[2] - OE.normal[2] * 0.5 for i in OpticPointList])
 
     optic_pts = pv.PolyData(OpticPointList)
-
-    e = list(itertools.chain.from_iterable(edge_faces))
-    pts_coord = pv.PolyData(OpticPointList)
-    lines = list(
-        itertools.chain.from_iterable([[[2, e[i], e[i + 1]] for i in range(len(e) - 1)] for e in edge_faces])
-    )
-    faces = list(itertools.chain.from_iterable([[len(i) - 1] + i[:-1] for i in edge_faces]))
-    if lines == []:
-        lines = [0]
-    if faces == []:
-        faces = [0]
-    edges = pv.PolyData(
-        OpticPointList,
-        lines=lines,
-        faces=faces,
-    )
-    # Can't figure out some edge cases such as when part of the support is outside of the mirror
-    tess = pts_coord.delaunay_2d(edge_source=edges)
-    triangles = tess.faces.reshape(-1, 4)[:, 1:]
+    tess = None
+    if draw_mesh:
+        e = list(itertools.chain.from_iterable(edge_faces))
+        pts_coord = pv.PolyData(OpticPointList)
+        lines = list(
+            itertools.chain.from_iterable([[[2, e[i], e[i + 1]] for i in range(len(e) - 1)] for e in edge_faces])
+        )
+        faces = list(itertools.chain.from_iterable([[len(i) - 1] + i[:-1] for i in edge_faces]))
+        if lines == []:
+            lines = [0]
+        if faces == []:
+            faces = [0]
+        edges = pv.PolyData(
+            OpticPointList,
+            lines=lines,
+            faces=faces,
+        )
+        # Can't figure out some edge cases such as when part of the support is outside of the mirror
+        tess = pts_coord.delaunay_2d(edge_source=edges)
+        triangles = tess.faces.reshape(-1, 4)[:, 1:]
     return optic_pts, tess
 
 def RenderRays(RayListHistory, EndDistance=None, maxRays=150, color_by_number = True):
@@ -656,10 +657,11 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
 
     # Optics display
     for i,OE in enumerate(OpticalChain.optical_elements):
-        pointcloud, mesh = RenderOpticalElement(OE, OEpoints)
+        pointcloud, mesh = RenderOpticalElement(OE, OEpoints, draw_mesh = draw_mesh)
         color = pv.Color(colors[i+1])
         color = colorsys.hsv_to_rgb(*(colorsys.rgb_to_hsv(*color[:-1]))*np.array([1,0.2,1]))
-        fig.add_mesh(mesh, color = color)
+        if draw_mesh and mesh is not None:
+            fig.add_mesh(mesh, color = color)
         fig.add_mesh(pointcloud, point_size=scale_spheres, color = color, render_points_as_spheres = True)
     fig.show()
     print(
