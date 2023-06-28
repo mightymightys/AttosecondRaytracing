@@ -43,10 +43,9 @@ class MeasuredMap(Defect):
         self.DerivX, self.DerivY = np.gradient(self.deformation, rect/self.deformation.shape)
         DerivInterpX = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(self.DerivX), method="linear")
         DerivInterpY = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(self.DerivY), method="linear")
-        SurfInterp = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(deformation), method="linear")
+        SurfInterp = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(self.deformation), method="linear")
 
-        self.rms = np.std(deformation)
-        self.deformation = deformation
+        self.rms = np.std(Map)
         self.DerivInterp = lambda x: np.array([DerivInterpX(x[:2]), DerivInterpY(x[:2])])
         self.SurfInterp = lambda x: SurfInterp(x[:2])
     def get_normal(self, Point):

@@ -208,10 +208,9 @@ class OpticalChain:
             None,
             maxRays=300,
             OEpoints = 3000,
-            scale_spheres=0.5,
-            tube_width=0.05,
-            slow_method=False,
+            scale_spheres=5,
             draw_mesh=False,
+            cycle_ray_colors = False
             )
         return fig
 

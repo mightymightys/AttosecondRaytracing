@@ -611,7 +611,7 @@ def generate_distinct_colors(num_colors):
 
     return distinct_colors
 
-def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, scale_spheres=5.0, draw_mesh=False, cycle_ray_colors = False):
+def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=200, OEpoints=3000, scale_spheres=5.0, draw_mesh=False, cycle_ray_colors = False):
     """
     Renders an image of the Optical setup and the traced rays.
 
