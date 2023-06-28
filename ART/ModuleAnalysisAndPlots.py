@@ -15,6 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pyvista as pv
+import pyvistaqt as pvqt
 import colorcet as cc
 import colorsys
 
@@ -647,7 +648,7 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
         EndDistance = np.linalg.norm(OpticalChain.source_rays[0].point - OpticalChain.optical_elements[0].position)
 
     print("...rendering image of optical chain...", end="", flush=True)
-    fig = pv.Plotter(window_size=(1500, 500), notebook=False)
+    fig = pvqt.BackgroundPlotter(window_size=(1500, 500), notebook=False)
 
     ray_meshes = RenderRays(RayListHistory, EndDistance, maxRays)
     colors = generate_distinct_colors(len(ray_meshes))
