@@ -657,12 +657,12 @@ def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=150, OEpoints=2000, s
 
     # Optics display
     for i,OE in enumerate(OpticalChain.optical_elements):
-        pointcloud, mesh = RenderOpticalElement(OE, OEpoints)
+        pointcloud, mesh = RenderOpticalElement(OE, OEpoints, draw_mesh = draw_mesh)
         color = pv.Color(colors[i+1])
         color = colorsys.hsv_to_rgb(*(colorsys.rgb_to_hsv(*color[:-1]))*np.array([1,0.2,1]))
         if draw_mesh and mesh is not None:
             fig.add_mesh(mesh, color = color)
-        fig.add_mesh(pointcloud, point_size=scale_spheres, color = color, render_points_as_spheres = True, draw_mesh = draw_mesh)
+        fig.add_mesh(pointcloud, point_size=scale_spheres, color = color, render_points_as_spheres = True)
     fig.show()
     print(
         "\r\033[K", end="", flush=True
