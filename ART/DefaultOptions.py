@@ -7,7 +7,11 @@ Created on Wed Jan  4 13:54:51 2023
 DefaultAnalysisOptions = {
     "verbose": True,  # print intermediate results and info in the console?
     "plot_Render": False,  # render optical elements and rays, and how many rays to render?
-    "maxRaysToRender": 150,
+    "maxRaysToRender": 200,
+    "OEPointsToRender": 3000,
+    "OEPointsScale": 5,
+    "draw_mesh": False,
+    "cycle_ray_colors": False,
     "DrawAiryAndFourier": True,  # Draw Airy spot and Fourier-limited duration in the following plots?
     "plot_SpotDiagram": False,  # produce an interactive spot diagram without color coding the spots?
     "plot_DelaySpotDiagram": False,  # produce an interactive spot diagram with ray delays color coded?
@@ -20,9 +24,6 @@ DefaultAnalysisOptions = {
     "plot_IntensityMirrorProjection": False,  # produce a plot of the ray intensities at the detector projected onto the mirror surface?
     "plot_IncidenceMirrorProjection": False,  # produce a plot of the ray incidence angles at the detector projected onto the mirror surface?
     "save_results": True,  # save the simulation results to disk, to analyse later
-    "OEPointsToRender": 2000,
-    "OEPointsScale": 5,
-    "draw_mesh":True,
 }
 
 # %%

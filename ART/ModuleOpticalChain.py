@@ -17,6 +17,7 @@ import ART.ModuleProcessing as mp
 import ART.ModuleGeometry as mgeo
 import ART.ModuleOpticalRay as mray
 import ART.ModuleOpticalElement as moe
+import ART.ModuleSource as msource
 
 # from ART.ModuleAnalysisAndPlots import RayRenderGraph
 import ART.ModuleAnalysisAndPlots as mplots
@@ -207,10 +208,9 @@ class OpticalChain:
             None,
             maxRays=300,
             OEpoints = 3000,
-            scale_spheres=0.5,
-            tube_width=0.05,
-            slow_method=False,
+            scale_spheres=5,
             draw_mesh=False,
+            cycle_ray_colors = False
             )
         return fig
 
@@ -371,9 +371,10 @@ class OpticalChain:
     def get_source_loop_list(self, axis: str, loop_variable_values: np.ndarray):
         """
         Produces a list of OpticalChain-objects, which are all variations of this
-        instance by moving the source-ray-bundle.
-        The variation is specified by axis as one of
-        ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random"],
+        instance by modifying the source-ray-bundle. 
+        The modification can be a tilt in degrees, a shift in mm, or in the case of the "divergence" by
+        varying the divergence half-angle (in rad) of a point source. It specified by the "axis" parameter, which is one of
+        ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random", "divergence"],
         by the values given in the list or numpy-array "loop_variable_values", e.g. np.linspace(start, stop, number).
         This list can then be looped over by ARTmain.
 
@@ -399,8 +400,8 @@ class OpticalChain:
             "shift_vert",
             "shift_horiz",
             "shift_random",
-            "all_random",
-        ]:
+            "divergence"
+            ]:
             raise ValueError(
                 'For automatic loop-list generation, the axis must be one of ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random"].'
             )
@@ -416,6 +417,7 @@ class OpticalChain:
             "shift_vert": "source shift vertical (mm)",
             "shift_horiz": "source shift horizontal (mm)",
             "shift_random": "source shift random-direction (mm)",
+            "divergence": "point-source divergence half-angle (rad)"
         }
         loop_variable_name = loop_variable_name_strings[axis]
 
@@ -430,7 +432,14 @@ class OpticalChain:
                 ModifiedOpticalChain.tilt_source(axis[5:], x)
             elif axis in ["shift_vert", "shift_horiz", "shift_random"]:
                 ModifiedOpticalChain.shift_source(axis[6:], x)
-
+            elif axis in ["divergence"]:
+                ModifiedOpticalChain.source_rays = msource.PointSource(self.source_rays[0].point,
+                                                                       self.source_rays[0].vector,
+                                                                       x,
+                                                                       len(self.source_rays),
+                                                                       self.source_rays[0].wavelength)
+                ModifiedOpticalChain.source_rays = msource.ApplyGaussianIntensityToRayList(ModifiedOpticalChain.source_rays, self.source_rays[-1].intensity)
+                
             # append the modified optical chain to the list
             OpticalChainList.append(ModifiedOpticalChain)
 
