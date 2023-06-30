@@ -43,10 +43,9 @@ class MeasuredMap(Defect):
         self.DerivX, self.DerivY = np.gradient(self.deformation, rect/self.deformation.shape)
         DerivInterpX = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(self.DerivX), method="linear")
         DerivInterpY = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(self.DerivY), method="linear")
-        SurfInterp = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(deformation), method="linear")
+        SurfInterp = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(self.deformation), method="linear")
 
-        self.rms = np.std(deformation)
-        self.deformation = deformation
+        self.rms = np.std(self.deformation)
         self.DerivInterp = lambda x: np.array([DerivInterpX(x[:2]), DerivInterpY(x[:2])])
         self.SurfInterp = lambda x: SurfInterp(x[:2])
     def get_normal(self, Point):
@@ -73,66 +72,33 @@ class Fourrier(Defect):
     def __init__(self, Support, RMS, slope=-2, smallest=0.01, biggest=10):
         # The sizes are the wavelength in mm
         rect = Support._CircumRect()
-        k_max = np.pi / smallest
-        k_min = np.pi / biggest
-        ResX = int(2 ** math.ceil(math.log2(k_max * rect[0] / 2)))
-        ResY = int(2 ** math.ceil(math.log2(k_max * rect[1] / 2)))
-        ResX = int(round(k_max * rect[0] / 2))
-        ResY = int(round(k_max * rect[1] / 2))
+        k_max = 2 / smallest
+        k_min = 2 / biggest
+        ResX = int(round(k_max * rect[0] / 2))+1
+        ResY = int(round(k_max * rect[1]))
 
-        # TODO Ensure that we don't get astigmatic pixels because of log/ceil
-        if slope == -2:
-            integ = np.log(k_max / k_min)
-        else:
-            a = slope + 2
-            integ = (k_max**a - k_min**a) / a
-        # kX = np.linspace(0, k_max, num=ResX)
-        # kY = np.linspace(0, k_max, num=ResY)
-        # kXX, kYY = np.meshgrid(kX, kY)
         kXX, kYY = np.meshgrid(
             np.linspace(0, k_max, num=ResX, dtype='float32'),
-            np.linspace(0, k_max, num=ResY, dtype='float32'),
+            np.linspace(-k_max, k_max, num=ResY, dtype='float32'),
             sparse=True)
 
-        ## 1stversion
-        FFT = np.sqrt(kXX**2 + kYY**2, dtype='complex64')  # Matrix of k norms
-        mask = (FFT > k_min) & (FFT < k_max)
-        FFT[np.logical_not(mask)] = 0.0
-        FFT[mask] = np.sqrt(FFT[mask]**slope * (2 / np.pi * RMS**2 / integ))
-        del mask
+        maskedFFT = np.ma.masked_outside(np.sqrt(kXX**2 + kYY**2), k_min, k_max)
 
-        # ## 2nd version
-        # D = np.sqrt(kXX**2 + kYY**2)  # Matrix of k norms
-        # mask = (D > k_min) & (D < k_max)
-        # #b = np.log(2 / np.pi * RMS**2 / integ)
-        # FFT = np.zeros_like(D)
-        # #FFT[mask] = D[mask] ** slope * np.exp(b) #why do we first calc. b as a log and then use its exp()? Just leave both away? 
-        # FFT[mask] = D[mask] **slope * (2 / np.pi * RMS**2 / integ)
-        # FFT = np.sqrt(FFT)
+        FFT = maskedFFT**slope * np.exp(
+            1j *np.random.uniform(0, 2 * np.pi, size=maskedFFT.shape).astype('float32')
+            )
+        FFT = FFT.data*(1-FFT.mask)
 
-        def tiled(x):
-            return np.block([
-                [np.transpose(np.rot90(x)), x],
-                [np.rot90(x, k=2), np.transpose(np.rot90(x, k=-1))]
-            ])
-        phase = np.random.uniform(0, 2 * np.pi, size=FFT.shape).astype('float32')
-        FFT = FFT * np.exp(1j * phase)
-        del phase
-        FFT_tiled = tiled(FFT)
+        deformation = np.fft.irfft2(np.fft.ifftshift(FFT, axes=0))
+        RMS_factor = RMS/np.std(deformation)
+        deformation *= RMS_factor
+
+        DerivX = np.fft.irfft2(np.fft.ifftshift(FFT * 1j * kXX * RMS_factor, axes=0))
+        DerivY = np.fft.irfft2(np.fft.ifftshift(FFT * 1j * kYY * RMS_factor, axes=0))
         del FFT
-        gridsize = FFT_tiled.shape
 
-        deformation = np.fft.irfft2(np.fft.fftshift(FFT_tiled), gridsize)
-
-        kXX2, kYY2 = np.meshgrid(np.linspace(-k_max, k_max, num=ResX * 2,  dtype='float32'), np.linspace(-k_max, k_max, num=ResY * 2,  dtype='float32'), sparse=True)
-        #DerivFFTX_tiled = FFT_tiled * 1j * kXX2
-        #DerivFFTY_tiled = FFT_tiled * 1j * kYY2 
-        DerivX = np.fft.irfft2(np.fft.fftshift(FFT_tiled * 1j * kXX2), gridsize)
-        DerivY = np.fft.irfft2(np.fft.fftshift(FFT_tiled * 1j * kYY2), gridsize)
-        del FFT_tiled
-
-        X = np.linspace(-rect[0], rect[0], num=ResX * 2)  # TODO why
-        Y = np.linspace(-rect[1], rect[1], num=ResY * 2)
+        X = np.linspace(-rect[0], rect[0], num=(ResX-1)*2) # Because iRfft
+        Y = np.linspace(-rect[1], rect[1], num=ResY)
 
         DerivInterpX = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(DerivX), method="linear")
         DerivInterpY = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(DerivY), method="linear")
@@ -140,12 +106,10 @@ class Fourrier(Defect):
 
         self.DerivX = DerivX
         self.DerivY = DerivY
-        self.rms = np.sqrt(np.mean(deformation**2))
+        self.rms = np.std(deformation)
         self.deformation = deformation
         self.DerivInterp = lambda x: np.array([DerivInterpX(x[:2]), DerivInterpY(x[:2])])
         self.SurfInterp = lambda x: SurfInterp(x[:2])
-
-        print(self.rms)
 
     def get_normal(self, Point):
         """
