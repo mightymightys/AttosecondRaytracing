@@ -458,8 +458,8 @@ def FindOptimalDistance(
     NumericalAperture = ReturnNumericalAperture(RayList, 1)
     if Amplitude is None:
         Amplitude = min(4 * np.ceil(SizeSpot / np.tan(np.arcsin(NumericalAperture))), FirstDistance)
-    # Step = Amplitude/10
-    Step = Amplitude / 5  # good enough in half the time ;-)
+    Step = Amplitude/10
+    #Step = Amplitude / 5  # pretty good in half the time ;-)
 
     if verbose:
         print(
