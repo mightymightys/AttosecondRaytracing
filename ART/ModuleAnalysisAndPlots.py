@@ -534,8 +534,9 @@ def _RenderOpticalElement(OE, OEpoints, draw_mesh = False):
     OpticPointList = mgeo.RotationPointList(OpticPointList, np.array([0, 0, 1]), OE.normal)
     OpticPointList = mgeo.TranslationPointList(OpticPointList, OE.position)
     
+    # shift optics surfaces a little back normally?
     if not draw_mesh:    
-        OpticPointList = [point - OE.normal*1 for point in OpticPointList]
+        OpticPointList = [point - OE.normal*0.5 for point in OpticPointList]
 
     optic_pts = pv.PolyData(OpticPointList)
     tess = None
