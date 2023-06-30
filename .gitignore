@@ -144,3 +144,5 @@ dmypy.json
 
 docs/src/build
 .hugo.*
+*.orig
+*.directory
