@@ -37,7 +37,7 @@ FocalEffective = 25.4  # in mm
 
 Mirror = mmirror.MirrorParabolic(FocalEffective, 0, Support)
 
-Defect = mdef.Fourrier(Support, RMS=100000, smallest=0.1)
+Defect = mdef.Fourrier(Support, RMS=1e-1, smallest=0.01)
 DeformedMirror = mmirror.DeformedMirror(Mirror, [Defect])
 
 DistanceList = [15]  # 50.8,
