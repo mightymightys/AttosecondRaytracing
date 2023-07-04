@@ -12,15 +12,13 @@ the mirror. Rays that do not hit the support are not propagated any further.
 
 Created in 2019
 
-@author: Anthony Guillaume and Stefan Haessler and Charles Bourassin-Bouchet
+@author: Anthony Guillaume and Stefan Haessler and Semptum and Charles Bourassin-Bouchet
 """
 # %% Modules
 
 import numpy as np
 import ART.ModuleGeometry as mgeo
-import ART.ModuleDefects as mdef
 import math
-from scipy.spatial.transform import Rotation as R
 
 
 # %%
@@ -954,7 +952,7 @@ class DeformedMirror:
             d.get_normal(PointMirror - C) for d in self.DeformationList
         ]
         for i in defects_normals:
-            base_normal = normal_add(base_normal, i)
+            base_normal = mgeo.normal_add(base_normal, i)
             base_normal /= np.linalg.norm(base_normal)
         return base_normal
 
@@ -977,13 +975,4 @@ class DeformedMirror:
             Intersect -= Ray.vector * h / np.cos(alpha)
         return Intersect
 
-def normal_add(N1, N2):
-    normal1 = N1 / np.linalg.norm(N1)
-    normal2 = N2 / np.linalg.norm(N2)
-    grad1X = -normal1[0] / normal1[2]
-    grad1Y = -normal1[1] / normal1[2]
-    grad2X = -normal2[0] / normal2[2]
-    grad2Y = -normal2[1] / normal2[2]
-    gradX = grad1X + grad2X
-    gradY = grad1Y + grad2Y
-    return np.array([-gradX, -gradY, 1])
+

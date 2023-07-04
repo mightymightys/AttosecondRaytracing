@@ -348,7 +348,8 @@ def _drawDelayGraph(RayListAnalysed, Detector, Distance, DeltaFT, DrawAiryAndFou
     axisLim = 1.1 * max(AiryRadius, 0.5 * FocalSpotSize * 1000)
     ax.set_xlim(-axisLim, axisLim)
     ax.set_ylim(-axisLim, axisLim)
-
+    # ax.set_zlim(-axisLim/3*10, axisLim/3*10) #same scaling as spatial axes 
+    
     plt.show()
     fig.canvas.draw()
 

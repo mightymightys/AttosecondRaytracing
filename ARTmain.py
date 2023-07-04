@@ -12,7 +12,7 @@ import importlib.util
 import ART.ModuleProcessing as mp
 import ART.ModuleDetector as mdet
 import ART.ModuleAnalysisAndPlots as mplots
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import ART.ModuleOpticalChain as moc
 
 

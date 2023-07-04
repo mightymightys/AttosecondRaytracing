@@ -73,7 +73,7 @@ AnalysisOptions = {
     "plot_IncidenceMirrorProjection": False,
     "save_results": False,
     "OEPointsToRender": 4000,
-    "OEPointsScale": 0,
+    "OEPointsScale": 3,
 }
 
 if __name__ == "__main__":

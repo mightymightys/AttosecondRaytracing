@@ -69,9 +69,12 @@ class Fourrier(Defect):
     """
     
     """
-    def __init__(self, Support, RMS, slope=-2, smallest=0.01, biggest=10):
+    def __init__(self, Support, RMS, slope=-2, smallest=0.1, biggest=None):
         # The sizes are the wavelength in mm
         rect = Support._CircumRect()
+        if biggest is None:
+            biggest = np.max(rect)
+            
         k_max = 2 / smallest
         k_min = 2 / biggest
         ResX = int(round(k_max * rect[0] / 2))+1
@@ -97,9 +100,11 @@ class Fourrier(Defect):
         DerivY = np.fft.irfft2(np.fft.ifftshift(FFT * 1j * kYY * RMS_factor, axes=0))
         del FFT
 
-        X = np.linspace(-rect[0], rect[0], num=(ResX-1)*2) # Because iRfft
-        Y = np.linspace(-rect[1], rect[1], num=ResY)
-
+        #X = np.linspace(-rect[0], rect[0], num=(ResX-1)*2) # Because iRfft
+        #Y = np.linspace(-rect[1], rect[1], num=ResY)
+        X = np.linspace(-rect[0]/2, rect[0]/2, num=(ResX-1)*2) # Because iRfft
+        Y = np.linspace(-rect[1]/2, rect[1]/2, num=ResY)
+        
         DerivInterpX = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(DerivX), method="linear")
         DerivInterpY = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(DerivY), method="linear")
         SurfInterp = scipy.interpolate.RegularGridInterpolator((X, Y), np.transpose(deformation), method="linear")
@@ -174,17 +179,3 @@ class Zernike(Defect):
     def PV(self):
         pass
 
-
-def normal_add(N1, N2):
-    """
-    Simple function that takes in two normal vectors of a deformation and calculates the total normal vector if the two deformations were individually applied.
-    """
-    normal1 = N1 / np.linalg.norm(N1)
-    normal2 = N2 / np.linalg.norm(N2)
-    grad1X = -normal1[0] / normal1[2]
-    grad1Y = -normal1[1] / normal1[2]
-    grad2X = -normal2[0] / normal2[2]
-    grad2Y = -normal2[1] / normal2[2]
-    gradX = grad1X + grad2X
-    gradY = grad1Y + grad2Y
-    return np.array([-gradX, -gradY, 1])
