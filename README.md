@@ -23,39 +23,40 @@ The detailed documentaion can be found [here](https://mightymightys.github.io/At
 
 A quickstart documentation will very soon (promised ;-) be added in the following.
 
-### Installation / Dependencies
-
-You can just download the code as a zip file from here. Or if you are using the git version control software,
-ou can clone the repository like so:
-    
-    git clone https://github.com/mightymightys/AttosecondRaytracing.git
-
-You are welcome to fork the code and contribute to its further development
+## Dependencies
 
 The code requires Python 3.6 or newer and depends on the libraries [NumPy](https://numpy.org), 
 [Numpy-Quaternion](https://github.com/moble/quaternion),  [matplotlib](https://matplotlib.org),
-and for 3D-rendering of optical configurations and rays,  [Mayavi](https://docs.enthought.com/mayavi/mayavi).
+and for 3D-rendering of optical configurations and rays,  [PyVista](https://github.com/pyvista/pyvista).
 
-We strongly recommend using an anaconda/miniconda python distribution, and recreating the virtual
-conda-environment *ARTenv*, fixed in the file **ARTenvironment.yml** contained in the repository.
-This will make sure you have a combination of versions of all dependencies that has been tested to work
-as expected. In a terminal, do:
-    
-    conda env create -f ARTenvironment.yml
-    conda activate ARTenv
-    
-Otherwise you can install the crucial dependencies easily if you use a miniconda distribution by entering in the Anaconda prompt:
-    
-    conda install -c anaconda numpy
-    conda install -c anaconda matplotlib
-    conda install -c conda-forge quaternion
-    conda install -c conda-forge mayavi
+### Using `pip`
+If installing using `pip`, we recommend installing the dependencies in a virtual environment, for instance using 
+```Shell
+python -m venv <new_virtual_environment_folder>
+```
+This lets you install and use the software without interfering with the system installation of Python.
 
-With some luck, this will let ART work in the base environment. However, in particular the Mayavi package
-(or rather the VTK package that it depends on) is not always available for the most recent python version.
+As for the installation of the dependencies:
+```Shell
+pip install numpy numpy-quaternion matplotlib pyvista scipy colorcet
+```
+
+### Using Anaconda
+Just as with `pip`, we recommend using a separate virtual environment to install and use ART. 
+
+## Installation
+
+You can just download the code as a zip file from here. Or if you are using the git version control software,
+ou can clone the repository like so:
+
+```Shell
+git clone https://github.com/mightymightys/AttosecondRaytracing.git
+```
+
+You are welcome to fork the code and contribute to its further development
 
 
-### Running ART 
+## Running ART 
 
 To run ART, you run the appropriately named ***ARTmain.py*** in the console, supplying a
 configuration-file as an argument, like so:
