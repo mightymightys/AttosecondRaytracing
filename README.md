@@ -42,7 +42,7 @@ pip install numpy numpy-quaternion matplotlib pyvista scipy colorcet
 ```
 
 ### Using Anaconda
-Just as with `pip`, we recommend using a separate virtual environment to install and use ART. 
+Just as with `pip`, we recommend using a separate virtual environment to install and use ART. The dependencies are all available in the *conda-forge* repository.
 
 ## Installation
 
