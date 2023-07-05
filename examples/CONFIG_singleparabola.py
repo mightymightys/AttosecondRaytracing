@@ -80,8 +80,7 @@ All plot_*-options are False by default.
 AnalysisOptions = {
     'verbose': True,         # print intermediate results and info in the console?
 
-    'plot_Render': True,    # render optical elements and rays, and how many rays to render (more than 200 gets very slow)?
-    'maxRaysToRender': 150,
+    'plot_Render': True,    # render optical elements and rays
 
     'DrawAiryAndFourier': True,  # Draw Airy spot and Fourier-limited duration in the following plots?
     

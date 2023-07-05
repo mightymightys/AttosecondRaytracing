@@ -100,8 +100,6 @@ class Fourrier(Defect):
         DerivY = np.fft.irfft2(np.fft.ifftshift(FFT * 1j * kYY * RMS_factor, axes=0))
         del FFT
 
-        #X = np.linspace(-rect[0], rect[0], num=(ResX-1)*2) # Because iRfft
-        #Y = np.linspace(-rect[1], rect[1], num=ResY)
         X = np.linspace(-rect[0]/2, rect[0]/2, num=(ResX-1)*2) # Because iRfft
         Y = np.linspace(-rect[1]/2, rect[1]/2, num=ResY)
         

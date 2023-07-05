@@ -59,7 +59,6 @@ DetectorOptions = {
 AnalysisOptions = {
     "verbose": True,
     "plot_Render": True,
-    "maxRaysToRender": 150,
     "DrawAiryAndFourier": False,
     "plot_SpotDiagram": False,
     "plot_DelaySpotDiagram": False,
