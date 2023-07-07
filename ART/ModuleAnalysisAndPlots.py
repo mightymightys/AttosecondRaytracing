@@ -560,7 +560,7 @@ def _RenderOpticalElement(OE, OEpoints, draw_mesh = False):
         tess = pts_coord.delaunay_2d(edge_source=edges)
     return optic_pts, tess
 
-def _RenderRays(RayListHistory, EndDistance=None, maxRays=150, color_by_number = True):
+def _RenderRays(RayListHistory, EndDistance, maxRays=150, color_by_number = True):
     meshes = []
     # Ray display
     for k in range(len(RayListHistory)):
@@ -613,7 +613,7 @@ def generate_distinct_colors(num_colors):
 
     return distinct_colors
 
-def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=200, OEpoints=3000, scale_spheres=5.0, draw_mesh=False, cycle_ray_colors = False):
+def RayRenderGraph(OpticalChain, EndDistance=None, maxRays=300, OEpoints=3000, scale_spheres=5.0, draw_mesh=False, cycle_ray_colors = False):
     """
     Renders an image of the Optical setup and the traced rays.
 
