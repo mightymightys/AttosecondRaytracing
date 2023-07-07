@@ -489,12 +489,10 @@ def FindOptimalDistance(
 # %%
 def FindCentralRay(RayList: list[mray.Ray]):
     """
-    Out of a the list of Ray-objects, RayList, return the one Ray-object whose Ray.number is 0.
-    This is the ray which the functions in ModuleSource set up as the central ray, i.e.
-    the one initially launched on the "optical axis".
-    Should there be several rays whose number-attribute =0 (which is a bad situation), only
-    the first one encountered in the list is returned.
-
+    Out of a the list of Ray-objects, RayList, determine the average direction
+    vector and source point, and the return a Ray-object representing this 
+    central ray of the RayList.
+    
     Parameters
     ----------
         RayList : list of Ray-objects
@@ -503,10 +501,11 @@ def FindCentralRay(RayList: list[mray.Ray]):
     -------
         CentralRay : Ray-object
     """
-    for k in RayList:
-        if k.number == 0:
-            return k
-    return None
+      
+    CentralVector = np.mean( [x.vector for x in RayList], axis=0)
+    CentralPoint = np.mean( [x.point for x in RayList], axis=0)
+    
+    return mray.Ray(CentralPoint, CentralVector)
 
 
 def StandardDeviation(List: list[float, np.ndarray]) -> float:
