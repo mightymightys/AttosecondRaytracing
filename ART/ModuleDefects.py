@@ -81,8 +81,8 @@ class Fourrier(Defect):
         ResY = int(round(k_max * rect[1]))
 
         kXX, kYY = np.meshgrid(
-            np.linspace(0, k_max, num=ResX, dtype='float32'),
-            np.linspace(-k_max, k_max, num=ResY, dtype='float32'),
+            np.linspace(0, k_max, num=ResX, dtype='float32', endpoint=False),
+            np.linspace(-k_max, k_max, num=ResY, dtype='float32', endpoint=False),
             sparse=True)
 
         maskedFFT = np.ma.masked_outside(np.sqrt(kXX**2 + kYY**2), k_min, k_max)
@@ -96,9 +96,10 @@ class Fourrier(Defect):
         RMS_factor = RMS/np.std(deformation)
         deformation *= RMS_factor
 
-        DerivX = np.fft.irfft2(np.fft.ifftshift(FFT * 1j * kXX * RMS_factor, axes=0))
-        DerivY = np.fft.irfft2(np.fft.ifftshift(FFT * 1j * kYY * RMS_factor, axes=0))
-        del FFT
+        DerivX = np.fft.irfft2(np.fft.ifftshift(FFT * 1j * kXX * RMS_factor, axes=0))*np.pi/2
+        kY = np.concatenate((kYY[kYY.shape[0]//2:],kYY[:kYY.shape[0]//2]))
+        DerivY = np.fft.irfft2(np.fft.ifftshift(FFT * 1j * RMS_factor, axes=0)*kY)*np.pi/2
+        #del FFT
 
         X = np.linspace(-rect[0]/2, rect[0]/2, num=(ResX-1)*2) # Because iRfft
         Y = np.linspace(-rect[1]/2, rect[1]/2, num=ResY)
