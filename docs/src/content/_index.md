@@ -35,4 +35,4 @@ with multi-mirror setups is in preparation and will become the reference that we
 this code in your work.
 
 
-Please start by reading the [Installation and Usage](/usage) pages.
+Please start by reading the [Installation and Usage](usage) pages.
