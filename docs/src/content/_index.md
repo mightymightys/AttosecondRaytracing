@@ -6,7 +6,7 @@ cascade:
   - type: "docs"
 ---
 
-![A rendering of two toroidal mirrors with an intermediate collimated section.](../docs/pdoc/images/doc_illustrationrender.png)
+![A rendering of two toroidal mirrors with an intermediate collimated section.](doc_illustrationrender.png)
 
 {{% pageinfo %}}
 This documentation web page is a work in progress. Please do not hesitate to raise issues in the [Github repository](https://github.com/mightymightys/AttosecondRaytracing) of the project.
@@ -35,4 +35,4 @@ with multi-mirror setups is in preparation and will become the reference that we
 this code in your work.
 
 
-Please start by reading the [Installation and Usage](/usage) pages.
+Please start by reading the [Installation and Usage](usage) pages.
