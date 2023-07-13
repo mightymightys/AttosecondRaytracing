@@ -608,7 +608,7 @@ def _which_indeces(lst):
 
 
 # %%
-def save_compressed(obj, filename: str):
+def save_compressed(obj, filename: str = None):
     """Save (=pickle) an object 'obj' to a compressed file with name 'filename'."""
     if not type(filename) == str:
         filename = "kept_data_" + datetime.now().strftime("%Y-%m-%d-%Hh%M")
