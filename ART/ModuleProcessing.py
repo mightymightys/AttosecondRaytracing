@@ -136,8 +136,7 @@ def OEPlacement(
     DistanceList: list[(int, float)],
     IncidenceAngleList: list[float],
     IncidencePlaneAngleList: list[float] = None,
-    Description: str = "",
-    render: bool = False,
+    Description: str = ""
 ):
     """
     Automatically place optical elements in the "lab frame" according to given distances and incidence angles.
@@ -188,9 +187,6 @@ def OEPlacement(
         Description : str, optional
             A string to describe the optical setup.
 
-        render : bool, optional
-            Whether save a png-image with a rendering of the optical setup.
-
     Returns
     -------
         OpticalChainList : list[OpticalChain-object]
@@ -200,8 +196,6 @@ def OEPlacement(
         OpticalChain : OpticalChain-object
 
     """
-    if render:
-        from mayavi import mlab
 
     if IncidencePlaneAngleList is None:
         IncidencePlaneAngleList = np.zeros(len(OpticsList))
@@ -241,34 +235,13 @@ def OEPlacement(
             ModifiedOpticalChain.loop_variable_value = x
             OpticalChainList.append(ModifiedOpticalChain)
 
-            if render:
-                # to produce and save renderings of the setup for each iteration in the loop:
-                mlab.options.offscreen = True
-                fig = ModifiedOpticalChain.render()
-                name = loop_variable_name + "=" + "{:.2f}".format(x) + ".png"
-                name = name.replace(" ", "_")
-                print("...saving image...", end="", flush=True)
-                mlab.savefig(name, figure=fig, magnification=3)
-                print(
-                    "\r\033[K", end="", flush=True
-                )  # move to beginning of the line with \r and then delete the whole line with \033[K
-
-        if render:
-            mlab.options.offscreen = False
-
         return OpticalChainList
 
     elif total_nested == 0:
         OpticalChain = _singleOEPlacement(
             SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description
         )  # all simple
-        if render:
-            mlab.options.offscreen = True
-            fig = OpticalChain.render()
-            name = "OpticalChain_" + datetime.now().strftime("%Y-%m-%d-%Hh%M") + ".png"
-            mlab.savefig(name, figure=fig, magnification=3)
-            mlab.options.offscreen = False
-
+        
         return OpticalChain
 
 
