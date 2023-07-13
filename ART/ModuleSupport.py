@@ -544,7 +544,10 @@ def gen_rectangle_contour(dimX, dimY, NbPoints):
 
 def gen_circle_contour(radius, NbPoints):
     # calculate angle between points
-    angle = 2 * math.pi / NbPoints
+    if NbPoints == 0:
+        return np.array([])
+    else:    
+        angle = 2 * math.pi / NbPoints
     # generate points
     points = [(radius * math.cos(i * angle), radius * math.sin(i * angle)) for i in range(NbPoints)]
     return np.array(points)

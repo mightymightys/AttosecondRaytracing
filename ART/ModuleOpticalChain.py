@@ -612,3 +612,39 @@ class OpticalChain:
             OpticalChainList.append(ModifiedOpticalChain)
 
         return OpticalChainList
+    
+    def get_OE_random_loop_list(self, rotate_std: float, shift_std: float, number_sims: int):
+        """
+        Produces a list of OpticalChain-objects, which are all variations of
+        this instance by rotating and shifting all optical elements.
+        
+        by the values given in the list or numpy-array "loop_variable_values",
+        e.g. np.linspace(start, stop, number).
+        This list can then be looped over by ARTmain.
+    
+        Parameters
+        ----------
+    
+    
+        Returns
+        -------
+            OpticalChainList : list[OpticalChain]
+    
+        """
+        loop_variable_name = "all optical elements randomly rotated with std=" + str(rotate_std) + "deg and and shifted with Std="+ str(shift_std) + "mm"
+    
+        OpticalChainList = []
+        for i in range(number_sims):
+            # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
+            ModifiedOpticalChain = self.copy_chain()
+            ModifiedOpticalChain.loop_variable_name = loop_variable_name
+            ModifiedOpticalChain.loop_variable_value = i
+    
+            for j in range(len(self.optical_elements)):
+                ModifiedOpticalChain.rotate_OE(j, "random", np.random.normal(loc=0, scale=rotate_std))
+                ModifiedOpticalChain.shift_OE(j, "random", np.random.normal(loc=0, scale=shift_std))
+    
+            # append the modified optical chain to the list
+            OpticalChainList.append(ModifiedOpticalChain)
+    
+        return OpticalChainList
