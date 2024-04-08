@@ -615,16 +615,23 @@ class OpticalChain:
     
     def get_OE_random_loop_list(self, rotate_std: float, shift_std: float, number_sims: int):
         """
-        Produces a list of OpticalChain-objects, which are all variations of
-        this instance by rotating and shifting all optical elements.
-        
-        by the values given in the list or numpy-array "loop_variable_values",
-        e.g. np.linspace(start, stop, number).
+        Produces a list of OpticalChain-objects of length "number_sims", which are all variations
+        of this instance by rotating and shifting all optical elements about randomly chosen 
+        axes and along randomly chosen directions, respectively.
+        The rotation angle and shift distance is chosen randomly from normal distributions
+        with the standard deviations "rotate_std" and "shift_std" respectively.
         This list can then be looped over by ARTmain.
     
         Parameters
         ----------
-    
+            rotate_std : float
+                Standard deviation in deg of the normal distribution of rotation angles.
+
+            shift_std : float
+                Standard deviation in mm of the normal distribution of shift distances.
+                 
+            number_sims : int
+                Number of misaligned optical chains to produce.
     
         Returns
         -------

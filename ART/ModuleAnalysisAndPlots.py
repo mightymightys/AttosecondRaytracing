@@ -408,12 +408,12 @@ def DelayGraph(
             movingDetector.shiftByDistance(distStep)
             Dist += distStep
             ax = fig.axes[0]
-            cam = [ax.azim, ax.elev, ax.dist]
+            cam = [ax.azim, ax.elev, ax._dist]
             fig, sameNumericalAperture, sameAiryRadius, newFocalSpotSize = _drawDelayGraph(
                 RayListAnalysed, movingDetector, Dist, DeltaFT, DrawAiryAndFourier, ColorCoded, fig
             )
             ax = fig.axes[0]
-            ax.azim, ax.elev, ax.dist = cam
+            ax.azim, ax.elev, ax._dist = cam
         elif event.key == "left":
             if Dist > 1.5 * distStep:
                 movingDetector.shiftByDistance(-distStep)
@@ -422,13 +422,13 @@ def DelayGraph(
                 movingDetector.shiftToDistance(0.5 * distStep)
                 Dist = 0.5 * distStep
             ax = fig.axes[0]
-            cam = [ax.azim, ax.elev, ax.dist]
+            cam = [ax.azim, ax.elev, ax._dist]
 
             fig, sameNumericalAperture, sameAiryRadius, newFocalSpotSize = _drawDelayGraph(
                 RayListAnalysed, movingDetector, Dist, DeltaFT, DrawAiryAndFourier, ColorCoded, fig
             )
             ax = fig.axes[0]
-            ax.azim, ax.elev, ax.dist = cam
+            ax.azim, ax.elev, ax._dist = cam
         else:
             return fig
         distStep = min(

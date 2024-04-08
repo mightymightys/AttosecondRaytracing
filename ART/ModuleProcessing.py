@@ -198,13 +198,14 @@ def OEPlacement(
     """
 
     if IncidencePlaneAngleList is None:
-        IncidencePlaneAngleList = np.zeros(len(OpticsList))
+        IncidencePlaneAngleList = np.zeros(len(OpticsList)).tolist()
 
     nest_indx_distance = _which_indeces(DistanceList)
     nest_indx_incidence = _which_indeces(IncidenceAngleList)
     nest_indx_incplane = _which_indeces(IncidencePlaneAngleList)
 
     total_nested = len(nest_indx_incidence + nest_indx_incplane + nest_indx_distance)
+
     if total_nested > 1:
         raise ValueError(
             "Only one element of one of the lists IncidenceAngleList, IncidencePlaneAngleList, or DistanceList can be a list or array itself. Otherwise things get too tangled..."
@@ -608,7 +609,7 @@ def _which_indeces(lst):
 
 
 # %%
-def save_compressed(obj, filename: str):
+def save_compressed(obj, filename: str = None):
     """Save (=pickle) an object 'obj' to a compressed file with name 'filename'."""
     if not type(filename) == str:
         filename = "kept_data_" + datetime.now().strftime("%Y-%m-%d-%Hh%M")

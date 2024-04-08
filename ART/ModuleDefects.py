@@ -9,6 +9,7 @@ Created on Fri Mar 10 2023
 # %% Modules
 
 import numpy as np
+#import cupy as cp
 from abc import ABC, abstractmethod
 import scipy
 import math

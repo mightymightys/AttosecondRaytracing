@@ -7,7 +7,6 @@ Created in Apr 2020
 
 import numpy as np
 
-
 # %%
 class Ray:
     """
