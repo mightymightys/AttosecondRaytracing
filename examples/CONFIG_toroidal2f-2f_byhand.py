@@ -6,13 +6,16 @@ Created in Apr 2020
 """
 #%% Modules
 #import copy
+
 import numpy as np
-import ART.ModuleMirror as mmirror
-import ART.ModuleSupport as msupp
-import ART.ModuleOpticalElement as moe
-import ART.ModuleSource as msource
-from ARTmain import main
-import ART.ModuleOpticalChain as moc
+import ARTcore.ModuleMirror as mmirror
+import ARTcore.ModuleSupport as msupp
+import ARTcore.ModuleProcessing as mp
+import ARTcore.ModuleMask as mmask
+from ART.ARTmain import main
+import ARTcore.ModuleOpticalElement as moe
+import ARTcore.ModuleSource as msource
+import ARTcore.ModuleOpticalChain as moc
 #import ART.ModuleProcessing as mp
 
 

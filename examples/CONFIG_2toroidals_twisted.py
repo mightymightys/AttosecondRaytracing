@@ -7,11 +7,11 @@ Created in Jan 2023
 #%% Modules
 #import copy
 import numpy as np
-import ART.ModuleMirror as mmirror
-import ART.ModuleMask as mmask
-import ART.ModuleSupport as msupp
-import ART.ModuleProcessing as mp
-from ARTmain import main
+import ARTcore.ModuleMirror as mmirror
+import ARTcore.ModuleMask as mmask
+import ARTcore.ModuleSupport as msupp
+import ARTcore.ModuleProcessing as mp
+from ART.ARTmain import main
 
 #%%########################################################################
 """ Source properties """
@@ -49,7 +49,7 @@ IncidencePlaneAngleList = [0, 0, np.linspace(-90, 90, 10) ]
 
 # produce a png-image of each of the varied optical chains ?
 render = False
-OpticalChainList =  mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description, render)
+OpticalChainList =  mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description)
 
 #OpticalChainList[0].quickshow()
 

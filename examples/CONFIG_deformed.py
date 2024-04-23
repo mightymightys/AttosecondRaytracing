@@ -6,12 +6,12 @@ Created in Jan 2023
 """
 # %% Modules
 # import copy
-import ART.ModuleMirror as mmirror
-import ART.ModuleSupport as msupp
-import ART.ModuleProcessing as mp
-import ART.ModuleDefects as mdef
+import ARTcore.ModuleMirror as mmirror
+import ARTcore.ModuleSupport as msupp
+import ARTcore.ModuleProcessing as mp
+import ARTcore.ModuleDefects as mdef
 import numpy as np
-from ARTmain import main
+from ART.ARTmain import main
 
 # %%########################################################################
 """ Source properties """

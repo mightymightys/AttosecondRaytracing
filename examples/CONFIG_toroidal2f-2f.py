@@ -7,10 +7,10 @@ Created in Apr 2020
 #%% Modules
 #import copy
 import numpy as np
-import ART.ModuleMirror as mmirror
-import ART.ModuleSupport as msupp
-import ART.ModuleProcessing as mp
-from ARTmain import main
+import ARTcore.ModuleMirror as mmirror
+import ARTcore.ModuleSupport as msupp
+import ARTcore.ModuleProcessing as mp
+from ART.ARTmain import main
 
 #%%########################################################################
 """ Source properties """

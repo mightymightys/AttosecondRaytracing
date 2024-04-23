@@ -6,11 +6,11 @@ Created in October 2020
 #%% Modules
 
 import numpy as np
-import ART.ModuleMirror as mmirror
-import ART.ModuleSupport as msupp
-import ART.ModuleProcessing as mp
-import ART.ModuleMask as mmask
-from ARTmain import main
+import ARTcore.ModuleMirror as mmirror
+import ARTcore.ModuleSupport as msupp
+import ARTcore.ModuleProcessing as mp
+import ARTcore.ModuleMask as mmask
+from ART.ARTmain import main
 
 
 #%%########################################################################
@@ -51,7 +51,7 @@ DistanceList = [400, Focal-400, np.linspace(Focal-200, Focal+200, 11)] #one elem
 
 # produce a png-image of each of the varied optical chains ?
 render = False
-OpticalChainList =  mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description, render)
+OpticalChainList =  mp.OEPlacement(SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description)
 
 #OpticalChainList[0].quickshow()
 

@@ -27,7 +27,6 @@ pdoc.render_helpers.formatter.cssclass = "chroma pdoc-code"
 
 modules = [
     #"DefaultOptions",
-    "ModuleAnalysisAndPlots",
     "ModuleDetector",
     "ModuleGeometry",
     "ModuleMask",
@@ -40,7 +39,7 @@ modules = [
     "ModuleSupport",
     "ModuleDefects",
 ]
-prefix = "../ART/"
+prefix = "../AttosecondRayTracing_core/src/ARTcore/"
 
 # Generate API documentation using pdoc
 api_output_dir = here / "pdoc" / "output"
@@ -65,12 +64,12 @@ for module in modules:
         all_modules=all_modules,
         root_module_name=pdoc.render_helpers.root_module_name(all_modules),
         )
-    outfile = api_output_dir / "ART"/ f"{module.replace('.', '/')}_toc.html"
+    outfile = api_output_dir / "ARTcore"/ f"{module.replace('.', '/')}_toc.html"
     outfile.parent.mkdir(parents=True, exist_ok=True)
     outfile.write_bytes(toc.encode())
 
 
-    html_filename = api_output_dir / "ART" / f"{module}.html"
+    html_filename = api_output_dir / "ARTcore" / f"{module}.html"
     markdown_filename = api_content_dir / f"{module}.md"
     markdown_content = textwrap.dedent(f"""\
         ---
@@ -110,7 +109,7 @@ if site_output_dir.exists():
 if (here / "src" / "static" / "api").exists():
     shutil.rmtree(here / "src" / "static" / "api")
 
-htmls = api_output_dir / "ART"
+htmls = api_output_dir / "ARTcore"
 os.mkdir(here / "src" / "static" / "api")
 shutil.copytree(htmls, site_output_dir )
 copytree(images_dir, here / "src" / "static" / "api" )

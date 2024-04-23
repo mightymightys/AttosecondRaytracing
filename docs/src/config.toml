@@ -1,4 +1,3 @@
-baseURL = 'http://example.org/'
 languageCode = 'en-us'
 title = ''
 
@@ -6,12 +5,9 @@ title = ''
 contentDir = "content"
 defaultContentLanguage = "en"
 defaultContentLanguageInSubdir = false
-# Useful when translating.
 enableMissingTranslationPlaceholders = true
 
 enableRobotsTXT = true
-
-# Will give values to .Lastmod etc.
 enableGitInfo = true
 
 # You can add your own taxonomies
@@ -22,11 +18,7 @@ category = "categories"
 [params.taxonomy]
 # set taxonomyCloud = [] to hide taxonomy clouds
 taxonomyCloud = ["tags", "categories"]
-
-# If used, must have same length as taxonomyCloud
 taxonomyCloudTitle = ["Tag Cloud", "Categories"]
-
-# set taxonomyPageHeader = [] to hide taxonomies on the page headers
 taxonomyPageHeader = ["tags", "categories"]
 
 
@@ -43,12 +35,11 @@ blog = "/:section/:year/:month/:day/:slug/"
 
 # Language configuration
 
-[languages]
 [languages.en]
 title = "Attosecond Ray Tracing"
-description = "Documentation for the ART raytracing software"
 languageName ="English"
-
+[language.en.params]
+description = "Documentation for the ART raytracing software"
 # Weight used for sorting.
 weight = 1
 

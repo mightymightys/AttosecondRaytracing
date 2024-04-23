@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="67.815544mm"
+   height="31.115385mm"
+   viewBox="0 0 67.815543 31.115386"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="Mask.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="2.6532575"
+     inkscape:cx="123.62162"
+     inkscape:cy="111.74943"
+     inkscape:window-width="2560"
+     inkscape:window-height="1360"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g3588" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-149.30659,112.21513)">
+    <g
+       id="g3588"
+       transform="translate(-1.5875,-2.1166667)"
+       style="fill:#b38e8e;fill-opacity:1">
+      <rect
+         style="fill:#bb4747;fill-opacity:1;stroke:#000000;stroke-width:0.4;stroke-linejoin:round;stroke-dasharray:none"
+         id="rect3430"
+         width="67.415543"
+         height="30.715385"
+         x="151.09409"
+         y="-109.89847"
+         rx="0.80252504"
+         ry="1.096922" />
+      <text
+         xml:space="preserve"
+         style="font-size:7.05556px;line-height:0.75;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#4a4a4a;fill-opacity:1;stroke-width:0.264583"
+         x="153.92996"
+         y="-101.10857"
+         id="text3540"><tspan
+           sodipodi:role="line"
+           id="tspan3538"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05556px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';fill:#000000;fill-opacity:1;stroke-width:0.264583"
+           x="153.92996"
+           y="-101.10857">Mask</tspan></text>
+    </g>
+    <g
+       id="g3582"
+       transform="translate(-3.7041668,-4.2333335)">
+      <rect
+         style="fill:#b0b0b0;fill-opacity:1;stroke:#000000;stroke-width:0.4;stroke-linejoin:round;stroke-dasharray:none"
+         id="rect3428"
+         width="50.550064"
+         height="15.247552"
+         x="167.63705"
+         y="-94.553703"
+         rx="0.73462373"
+         ry="1.096922" />
+      <text
+         xml:space="preserve"
+         style="font-size:7.05556px;line-height:0.75;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+         x="170.77469"
+         y="-85.820801"
+         id="text3486"><tspan
+           sodipodi:role="line"
+           id="tspan3484"
+           style="font-size:7.05556px;fill:#000000;fill-opacity:1;stroke-width:0.264583"
+           x="170.77469"
+           y="-85.820801">Support</tspan></text>
+    </g>
+  </g>
+</svg>

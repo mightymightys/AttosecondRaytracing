@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "package_name.__version__"}
+
+[project]
+name = "AttosecondRayTracing"
+version = "0.92"
+authors = [
+  { name="Stefan Haessler", email="stefan.haessler@ensta-paris.fr" },
+  { name="André Kalouguine", email="andre.kalouguine@ensta-paris.fr" },
+  { name="Anthony Guillaume"}
+]
+description = "Attosecond Ray Tracing visualisation package"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies= ["AttosecondRayTracing_core", "pyvista", "matplotlib", "pyvistaqt", "colorcet"]
+
+[project.urls]
+Homepage = "https://github.com/mightymightys/AttosecondRaytracing"
