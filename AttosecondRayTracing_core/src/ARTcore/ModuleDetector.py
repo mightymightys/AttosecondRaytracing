@@ -2,64 +2,189 @@
 Provides a class which represents a virtual detector —a plane in 3D space— with methods
 to analyze the impact points of a ray bundle intercepting it.
 
-This module is used by 'ARTmain' to set up a detector according to the values in the *DetectorOptions*-dictionary filled in the CONFIG-scripts..
-
 ![Illustration of the detector plane.](detector.svg)
 
 
 
 Created in Sept 2020
 
-@author: Stefan Haessler
+@author: Stefan Haessler + André Kalouguine
 """
 # %% Modules
 
 import numpy as np
+import quaternion
+from abc import ABC, abstractmethod
+
 import ARTcore.ModuleProcessing as mp
+import ARTcore.ModuleOpticalRay as mray
 import ARTcore.ModuleGeometry as mgeo
+from ARTcore.ModuleGeometry import Point, Vector, Origin
+
+# This is to allow multiple constructors based on the type of the first argument
+from functools import singledispatchmethod
+import logging
+from copy import copy
+import time
+
+
+logger = logging.getLogger(__name__)
 
 LightSpeed = 299792458000
 
-
-# %%
-class Detector:
+# %% Abstract class
+class Detector(ABC):
     """
-    A detector is simply a plane in 3D-lab-space.
-    It is defined by a point Detector.centre and its
-    normal vector Detector.normal (thought to point towards the incoming rays).
-    These are optional arguments when creating a Detector-instance, because they can
-    later be set automatically by the method Detector.autoplace().
-    The Detector has a reference point "RefPoint", with respect to which a distance
-    can be returned via the method Detector.get distance.
+    Abstract class describing a detector and the properties/methods it has to have. 
+    It implements the required components for the detector to behave as a 3D object.
+    Non-abstract subclasses of `Detector` should implement the remaining
+    functiuons such as the detection of rays
+    """
+    @property
+    def r(self):
+        """
+        Return the offset of the optical element from its reference frame to the lab reference frame.
+        Not that this is **NOT** the position of the optical element's center point. Rather it is the
+        offset of the reference frame of the optical element from the lab reference frame.
+        """
+        return self._r
+
+    @r.setter
+    def r(self, NewPosition):
+        """
+        Set the offset of the optical element from its reference frame to the lab reference frame.
+        """
+        if isinstance(NewPosition, mgeo.Point) and len(NewPosition) == 3:
+            self._r = NewPosition
+        else:
+            raise TypeError("Position must be a 3D mgeo.Point.")
+    @property
+    def q(self):
+        """
+        Return the orientation of the optical element.
+        The orientation is stored as a unit quaternion representing the rotation from the optic's coordinate frame to the lab frame.
+        """
+        return self._q
+    
+    @q.setter
+    def q(self, NewOrientation):
+        """
+        Set the orientation of the optical element.
+        This function normalizes the input quaternion before storing it.
+        If the input is not a quaternion, raise a TypeError.
+        """
+        if isinstance(NewOrientation, np.quaternion):
+            self._q = NewOrientation.normalized()
+        else:
+            raise TypeError("Orientation must be a quaternion.")
+
+    @property
+    def position(self):
+        """
+        Return the position of the basepoint of the optical element. Often it is the same as the optical centre.
+        This position is the one around which all rotations are performed.
+        """
+        return self.r0 + self.r
+    
+    @property
+    def orientation(self):
+        """
+        Return the orientation of the optical element.
+        The utility of this method is unclear.
+        """
+        return self.q
+    
+    @property
+    def basis(self):
+        return self.r0, self.r, self.q
+    
+    def __init__(self):
+        self._r = mgeo.Vector([0.0, 0.0, 0.0])
+        self._q = np.quaternion(1, 0, 0, 0)
+        self.r0 = mgeo.Point([0.0, 0.0, 0.0])
+
+    @abstractmethod
+    def centre(self):
+        """
+        (0,0) point of the detector.
+        """
+        pass
+
+    @abstractmethod
+    def refpoint(self):
+        """
+        Reference point from which to measure the distance of the detector. 
+        Usually the center of the previous optical element.
+        """
+        pass
+
+    @property
+    def distance(self):
+        """
+        Return distance of the Detector from its reference point Detector.refpoint.
+        """
+        return (self.refpoint - self.centre).norm
+
+    @distance.setter
+    def distance(self, NewDistance: float):
+        """
+        Shift the Detector to the distance NewDistance from its reference point Detector.refpoint.
+
+        Parameters
+        ----------
+            NewDistance : number
+                The distance (absolute) to which to shift the Detector.
+        """
+        vector = (self.centre - self.refpoint).normalized
+        self.centre = self.refpoint + vector * NewDistance
+
+    @abstractmethod
+    def get_2D_points(self, RayList):
+        pass
+
+    @abstractmethod
+    def get_3D_points(self, RayList):
+        pass
+
+    @abstractmethod
+    def __copy__(self):
+        pass
+
+
+# %% Infinite plane detector class
+class InfiniteDetector(Detector):
+    """
+    Simple infinite plane.
+    Beyond being just a solid object, the 
 
     Attributes
     ----------
         centre : np.ndarray
             3D Point in the Detector plane.
 
-        normal : np.ndarray
-           3D Normal vector on the Detector plane.
-
         refpoint : np.ndarray
             3D reference point from which to measure the Detector distance.
     """
-
-    def __init__(self, RefPoint: np.ndarray, Centre=None, Normal=None):
+    def __init__(self):
+        super().__init__()
+        self._centre = mgeo.Origin
+        self._refpoint = mgeo.Origin
+    
+    def __copy__(self):
         """
-        Parameters
-        ----------
-            RefPoint : np.ndarray
-                3D Reference point from which to measure the Detector distance.
-
-            Centre : np.ndarray, optional
-               3D Point in the Detector plane.
-
-            Normal : np.ndarray, optional
-               3D Normal vector on the Detector plane.
+        Returns a new Detector object with the same properties.
         """
-        self.centre = Centre
-        self.normal = Normal
-        self.refpoint = RefPoint
+        result = InfiniteDetector()
+        result._centre = copy(self._centre)
+        result._refpoint = copy(self._refpoint)
+        result._r = copy(self._r)
+        result._q = copy(self._q)
+        result.r0 = copy(self.r0)
+        return result
+    
+    @property
+    def normal(self):
+        return mgeo.Vector([0,0,1]).from_basis(*self.basis)
 
     @property
     def centre(self):
@@ -68,24 +193,12 @@ class Detector:
     # a setter function
     @centre.setter
     def centre(self, Centre):
-        if type(Centre) == np.ndarray and Centre.shape == (3,) or Centre is None:
-            self._centre = Centre
+        if isinstance(Centre, np.ndarray) and Centre.shape == (3,):
+            self._centre = mgeo.Point(Centre)
+            self.r = self._centre # Simply because r0 is 0,0,0 anyways
         else:
             raise TypeError("Detector Centre must be a 3D-vector, given as numpy.ndarray of shape (3,).")
-
-    @property
-    def normal(self):
-        return self._normal
-
-    @normal.setter
-    def normal(self, Normal):
-        if type(Normal) == np.ndarray and Normal.shape == (3,) and np.linalg.norm(Normal) > 0:
-            self._normal = Normal / np.linalg.norm(Normal)
-        elif Normal is None:
-            self._normal = Normal
-        else:
-            raise TypeError("Detector Normal must be a 3D-vector of norm >0, given as numpy.ndarray of shape (3,).")
-
+    
     @property
     def refpoint(self):
         return self._refpoint
@@ -93,18 +206,35 @@ class Detector:
     # a setter function
     @refpoint.setter
     def refpoint(self, RefPoint):
-        if type(RefPoint) == np.ndarray and RefPoint.shape == (3,):
-            self._refpoint = RefPoint
+        if isinstance(RefPoint, np.ndarray) and RefPoint.shape == (3,):
+            self._refpoint = mgeo.Point(RefPoint)
         else:
-            raise TypeError("Detector RefPoint must a 3D-vector, given as numpy.ndarray of shape (3,).")
+            raise TypeError("Detector RefPoint must a 3D-Point")
 
-    # %% METHODS FOR PLACING THE DETECTOR ##################################################################
+    # %% Detector placement methods
 
-    def copy_detector(self):
+    @property
+    def distance(self):
         """
-        Returns a new Detector object with the same properties.
+        Return distance of the Detector from its reference point Detector.refpoint.
         """
-        return Detector(self.refpoint, self.centre, self.normal)
+        return (self.refpoint - self.centre).norm
+    
+    @distance.setter
+    def distance(self, NewDistance: float):
+        """
+        Shift the Detector to the distance NewDistance from its reference point Detector.refpoint.
+
+        Parameters
+        ----------
+            NewDistance : number
+                The distance (absolute) to which to shift the Detector.
+        """
+        vector = (self.centre - self.refpoint).normalized()
+        self.centre = self.refpoint + vector * NewDistance
+    
+    def set_distance(self,x):
+        self.distance = x
 
     def autoplace(self, RayList, DistanceDetector: float):
         """
@@ -119,76 +249,166 @@ class Detector:
             DistanceDetector : float
                 The distance at which to place the Detector.
         """
-        CentralRay = mp.FindCentralRay(RayList)
+        #CentralRay = mp.FindCentralRay(RayList)
+        CentralRay = RayList[0]
         if CentralRay is None:
-            DetectorNormal = np.array([0, 0, 0])
-            CentralPoint = np.array([0, 0, 0])
+            logger.warning(f"Could not find central ray! The list of rays has a length of {len(RayList)}")
+            CentralPoint = mgeo.Origin
             for k in RayList:
-                DetectorNormal = DetectorNormal + k.vector
-                CentralPoint = CentralPoint + k.point
-            DetectorNormal = -DetectorNormal / len(RayList)
+                CentralPoint = CentralPoint + (k.point - mgeo.Origin)
             CentralPoint = CentralPoint / len(RayList)
         else:
-            DetectorNormal = -CentralRay.vector
+            logger.debug(f"Found central ray, using it to position detector: \n{CentralRay}")
             CentralPoint = CentralRay.point
 
-        self.normal = DetectorNormal
-        self.centre = CentralPoint - DetectorNormal * DistanceDetector
+        self.centre = CentralPoint + CentralRay.vector * DistanceDetector
         self.refpoint = CentralPoint
+        self.q = mgeo.QRotationVector2Vector(mgeo.Vector([0,0,1]), -CentralRay.vector)
 
-    def get_distance(self):
-        """
-        Return distance of the Detector-plane from its reference point Detector.refpoint.
-        """
-        return np.linalg.norm(
-            self.refpoint - mgeo.IntersectionLinePlane(self.refpoint, -self.normal, self.centre, self.normal)
-        )
+    # %% Detector optimisation methods
+    def test_callback_distances(self, RayList, distances, callback,
+                                provide_points=False,
+                                detector_reference_frame=False):
+        LocalRayList = [k.to_basis(*self.basis) for k in RayList]
+        N = len(distances)
+        # Calculate the impact points
+        Points = mgeo.IntersectionRayListZPlane(LocalRayList, distances)
+        values = []
+        for k in range(N):
+            Points[k] = Points[k]._add_dimension() + mgeo.Point([0,0,distances[k]])
+            values += [callback(RayList, Points[k], self.basis)]
+        return values
 
-    def shiftToDistance(self, NewDistance: float):
+    def optimise_distance(self, RayList, Range,  callback, 
+                          detector_reference_frame=False,
+                          provide_points=False,
+                          maxiter=5, 
+                          tol=1e-6,
+                          splitting=50,
+                          Nrays=1000,
+                          callback_iteration=None
+        ):
         """
-        Shift the Detector to the distance NewDistance from its reference point Detector.refpoint.
+        Optimise the position of the detector within the provided range, trying to 
+        maximise some value calculated by the callback function.
+
+        The callback function receives a list of rays that already hit the detector.
+        If requested, the rays can be provided in the reference frame of the detector.
+
+        The callback function should return a single value that is to be minimised.
+
+        The function splits the range into `splitting` points and uses the `IntersectionRayListZPlane`
+        function to calculate the impact points for all of these.
+        If `provide_points` is set to True, the function will pass on the result to the callback function.
+        Otherwise it will generate rays for the callback function, including calculating the paths.
+
+        It will then find the best value and redo the iteration around that value.
+        Repeat until either the maximum number of iterations is reached or the tolerance is met.
 
         Parameters
         ----------
-            NewDistance : float
-                The distance (absolute) to which to shift the Detector.
-        """
-        if type(NewDistance) == int or type(NewDistance) == float or type(NewDistance) == np.float64:
-            shiftby = NewDistance - self.get_distance()  # by that much in the self.normal-direction
-        else:
-            raise TypeError("The new Detector Distance must be int or float.")
+            RayList : list[Ray]
+                A list of objects of the ModuleOpticalRay.Ray-class.
 
-        self._centre += -shiftby * self.normal
+            Range : tuple
+                The range of distances to consider for the detector placement.
 
-    def shiftByDistance(self, Shift: float):
+            callback : function
+                The function to be minimised. It should take a list of rays and return a single value.
+
+            detector_reference_frame : bool
+                If True, the rays are provided in the reference frame of the detector.
+
+            provide_points : bool
+                If True, the callback function will receive the impact points directly.
+
+            maxiter : int
+                The maximum number of iterations to perform.
+
+            tol : float
+                The tolerance to reach before stopping the iteration.
+
+            splitting : int
+                The number of points to split the range into.
+        
+        Returns
+        ----------
+            The optimal distance of the detector.
         """
-        Shift the Detector *by* the distance Shift along its normal vector Detector.normal.
+        Range = [i-self.distance for i in Range]
+        if Nrays<len(RayList):
+            RayList = np.random.choice(RayList, Nrays, replace=False)
+        previous_best = None
+        values = [0]*splitting
+        for i in range(maxiter):
+            if callback_iteration is not None:
+                callback_iteration(i, Range)
+            # Split the range into `splitting` points
+            distances = np.linspace(*Range, splitting)
+            values = self.test_callback_distances(RayList, distances, callback, 
+                                                  provide_points=provide_points, 
+                                                  detector_reference_frame=detector_reference_frame)
+            best = np.argmin(values)
+            # Update the range
+            if best == 0:
+                Range = (distances[0], distances[2])
+            elif best == splitting - 1:
+                Range = (distances[-3], distances[-1])
+            else:
+                Range = (distances[best - 1], distances[best + 1])
+            # Check if the tolerance is met
+            if i>0:
+                if np.abs(values[best] - previous_best) < tol:
+                    break
+            previous_best = values[best]
+        self.distance -= distances[best]
+
+    def _spot_size(self, RayList, Points, basis):
+        """
+        Returns focal spot size.
 
         Parameters
         ----------
-            Shift : float
-                The distance (relative) *by* which to shift the Detector.
+            Points : mgeo.PointArray
+                The points where the rays hit the detector.
+        Returns
+        ----------
+            float
         """
-        if type(Shift) == int or type(Shift) == float or type(Shift) == np.float64:
-            self._centre = self.centre - Shift * self.normal  # directly set _centre, i.e. circumvent setter
-            # because we already checked shift here, and centre
-            # and normal have been checked before
-        else:
-            raise TypeError("The Detector Distance Shift must be int or float.")
-
-    def _iscomplete(self):
+        center = mgeo.Point(np.mean(Points[:,:2], axis=0))
+        distances = (Points[:,:2] - center).norm
+        return np.std(distances)
+    
+    def _delay_std(self, RayList, Points, basis):
         """
-        Checks whether the Detector plane is defined by a centre-point and normal-vector.
+        Returns the standard deviation of the delays of the rays
+
+        Parameters
+        ----------
+            RayList : list[Ray]
+                A list of objects of the ModuleOpticalRay.Ray-class.
+
+        Returns
+        ----------
+            float
         """
-        if self.centre is None or self.normal is None:
-            raise TypeError("The detector has no centre and normal vectors defined yet.")
-            return False
-        else:
-            return True
+        #paths = np.array([np.sum(k.path) for k in RayList])
+        paths = np.sum(np.array([k.path for k in RayList], dtype=float), axis=1)
+        StartingPoints = mgeo.PointArray([k.point for k in RayList])
+        XYZ = Points.from_basis(*basis)
+        LastDistances = (XYZ - StartingPoints).norm
+        return float(np.std(paths+LastDistances))
 
-    # %% METHODS TO GET THE DETECTOR REPONSE ##################################################################
+    def _over_intensity(self, RayList, Points, Basis):
+        """
+        Calculates spot_size * delay_std for the given RayList.
+        """
+        spot_size = self._spot_size(RayList, Points, Basis)
+        delay_std = self._delay_std(RayList, Points, Basis)
+        return spot_size * delay_std
 
-    def get_PointList3D(self, RayList) -> list[np.ndarray]:
+    # %% Detector response methods 
+    def get_3D_points(self, RayList) -> list[np.ndarray]:
         """
         Returns the list of 3D-points in lab-space where the rays in the
         list RayList hit the detector plane.
@@ -202,54 +422,37 @@ class Detector:
         ----------
             ListPointDetector3D : list[np.ndarray of shape (3,)]
         """
-        if self._iscomplete():
-            ListPointDetector3D = []
-            append = ListPointDetector3D.append
-            for k in RayList:
-                append(mgeo.IntersectionLinePlane(k.point, k.vector, self.centre, self.normal))
-            return ListPointDetector3D
+        return self.get_2D_points(RayList)[0]._add_dimension().from_basis(*self.basis)
 
-    def get_PointList2D(self, RayList) -> list[np.ndarray]:
+    def get_2D_points(self, RayList) -> list[np.ndarray]:
         """
         Returns the list of 2D-points in the detector plane, with the origin at Detector.centre.
 
         Parameters
         ----------
             RayList : list[Ray]
-                A list of objects of the ModuleOpticalRay.Ray-class.
+                A list of objects of the ModuleOpticalRay.Ray-class of length N
 
         Returns
         ----------
-            ListPointDetector2D : list[np.ndarray of shape (2,)]
+            XY : np.ndarray of shape (N,2)
         """
-        if self._iscomplete():
-            ListPointDetector3D = self.get_PointList3D(RayList)
+        return mgeo.IntersectionRayListZPlane([r.to_basis(*self.basis) for r in RayList])
 
-            ListPointDetector3D = [
-                k - self.centre for k in ListPointDetector3D
-            ]  # Equivalent to taking the detector's central point as the origin
-            ListPointDetector3D = mgeo.RotationPointList(ListPointDetector3D, self.normal, np.array([0, 0, 1]))
-
-            ListPointDetector2D = [k[0:2] for k in ListPointDetector3D]
-            return ListPointDetector2D
-
-    def get_PointList2DCentre(self, RayList) -> list[np.ndarray]:
+    def get_centre_2D_points(self, RayList) -> list[np.ndarray]:
         """
-        Returns the list of 2D-points in the detector plane, with the origin centered in the point cloud.
+        Returns the center of the 2D array of points.
 
         Parameters
         ----------
-            RayLis* : list[Ray]
+            RayList* : list[Ray]
                 A list of objects of the ModuleOpticalRay.Ray-class.
 
         Returns
         ----------
             ListPointDetector2DCentre : list[np.ndarray of shape (2,)]
         """
-        if self._iscomplete():
-            ListPointDetector2D = self.get_PointList2D(RayList)
-            ListPointDetector2DCentre = mgeo.CentrePointList(ListPointDetector2D)
-            return ListPointDetector2DCentre
+        return np.mean(self.get_2D_points(RayList), axis=0)
 
     def get_Delays(self, RayList) -> list[float]:
         """
@@ -268,12 +471,11 @@ class Detector:
         ----------
             DelayList : list[float]
         """
-        if self._iscomplete():
-            DetectorPointList3D = self.get_PointList3D(RayList)
-            OpticalPathList = []
-            for k in range(len(RayList)):
-                OpticalPathList.append(np.linalg.norm(RayList[k].point - DetectorPointList3D[k]) + np.sum(RayList[k].path))
-
-            MeanPath = np.mean(OpticalPathList)
-            DelayList = [(k - MeanPath) / LightSpeed * 1e15 for k in OpticalPathList]  # in fs, c in mm/s
-            return DelayList
+        XYZ = self.get_2D_points(RayList)[0]._add_dimension().from_basis(*self.basis)
+        StartingPoints = mgeo.PointArray([k.point for k in RayList])
+        LastDistances = (XYZ - StartingPoints).norm
+        PreviousDistances = np.array([np.array(k.path) for k in RayList])
+        Distances = np.hstack((PreviousDistances, LastDistances[:, np.newaxis]))
+        TotalPaths = np.sum(Distances, axis=1)
+        MeanPath = np.mean(TotalPaths)
+        return list((TotalPaths-MeanPath) / LightSpeed * 1e15) # in fs

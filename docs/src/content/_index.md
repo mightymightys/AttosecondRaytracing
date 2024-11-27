@@ -1,9 +1,7 @@
 ---
 title: Attosecond Ray Tracing
 linkTitle: Attosecond Ray Tracing
-type: docs
-cascade:
-  - type: "docs"
+type: "docs"
 ---
 
 ![A rendering of two toroidal mirrors with an intermediate collimated section.](doc_illustrationrender.png)

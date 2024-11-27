@@ -2,6 +2,7 @@
 title: "Articles"
 linkTitle: "Articles"
 weight: 4
+type: docs
 description: >
   See your project in action!
 ---

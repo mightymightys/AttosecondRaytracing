@@ -1,0 +1,40 @@
+/********************
+ * * BGN: Link icons **
+ ********************/
+[class^="icon_"]::after {
+    display: inline-block;
+    text-decoration: none;
+    white-space: pre-wrap;
+    margin-left: 0.25em;
+    width: 1em;
+}
+.icon_external::after     { content: "\1F517";                                    /* 🔗 */ }
+
+.icon_chat::after         { content: "\1F4AC";                                    /* 💬 */ }
+.icon_ftp::after          { content: "\2194\FE0F";                                /* ↔️ */ }
+.icon_magnet::after       { content: "\1F9F2";                                    /* 🧲 */ }
+.icon_mail::after         { content: "\1F4E7";                                    /* 📧 */ }
+.icon_remote::after       { content: "\1F4BB";                                    /* 💻 */ }
+.icon_tel::after          { content: "\260E\FE0F";                                /* ☎️ */ }
+
+.icon_books::after        { content: "\1F4D6";                                    /* 📖 */ }
+.icon_pdf::after     { content: "\1F4C4";                                    /* 📄 */ }
+.icon_text::after         { content: "\1F4DD";                                    /* 📝 */ }
+.icon_presentation::after { content: url("../img/link-icons-presentation.svg");   /* https://openclipart.org/detail/36505/tango-x-office-presentation */ }
+.icon_spreadsheet::after  { content: url("../img/link-icons-spreadsheet.svg");    /* https://openclipart.org/detail/36517/tango-x-office-spreadsheet */ }
+
+.icon_audio::after        { content: "\1F3B5";                                    /* 🎵 */ }
+.icon_video::after        { content: "\1F4FD\FE0F";                               /* 📽️ */ }
+.icon_subtitle::after     { content: url("../img/link-icons-subtitle.svg");       /* https://openclipart.org/detail/212110/mimetype-subtitle */ }
+
+.icon_executable::after   { content: url("../img/link-icons-executable.svg");     /* https://openclipart.org/detail/212161/mimetype-binary */ }
+.icon_scripts::after      { content: url("../img/link-icons-scripts.svg");        /* https://openclipart.org/detail/36175/tango-text-x-script */ }
+.icon_python::after      { content: url("../img/python_icon.svg");        /* https://openclipart.org/detail/36175/tango-text-x-script */ }
+
+.icon_fonts::after        { content: url("../img/link-icons-fonts.svg");          /* https://openclipart.org/detail/35257/tango-preferences-desktop-font */ }
+.icon_compressed::after   { content: "\1F5DC\FE0F";                               /* 🗜️ */ }
+.icon_diskimage::after    { content: "\1F4BD";                                    /* 💽 */ }
+.icon_imagediting::after  { content: url("../img/link-icons-imageediting.svg");   /* https://openclipart.org/detail/231061/artists-brush-and-paint */ }
+/********************
+ * * END: Link icons **
+ ********************/

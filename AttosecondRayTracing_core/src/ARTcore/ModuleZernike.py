@@ -1,4 +1,7 @@
 from collections import defaultdict
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def zernike_gradient(x, y, max_order):

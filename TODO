@@ -1,0 +1,28 @@
+What needs to be done:
+
+- Source should become its own class
+- OpticalChain should incorporate Source and possible Detectors
+- Polychromatic diffraction limit using coherent plane waves
+- Change run_ART and add it to setup.py so that we can run ART directly as a command
+ Rotate rays into ref frame of detector, put coordinates into numpy array and quickly solve for x and y positions.
+- Make proper constructor for the Detector class and same for Source class
+ Add to each optical element some more characteristic vectors in addition to "support_normal"
+- Add callbacks to ray-tracing and to other functions such as detector optimisation
+- Implement polychromatic wavefront extraction
+- Implement polychromatic sources
+- Add unit test suite
+- Add simplistic Grating of spherical type? Implement proper reference vectors for it
+- Add support visualisation
+- Add important axes visualisation for OEs
+- Add tolerancing to ART package
+- Add report printing to ART package
+
+
+1. Finish mgeo
+2. Finish Detector
+3. Source class
+4. OpticalChain including Detector and Source
+5. ART plotting review
+6. ART arrows plotting
+7. ART focal spot approximation
+8. Tolerancing

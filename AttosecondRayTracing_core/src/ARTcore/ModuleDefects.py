@@ -14,6 +14,9 @@ from abc import ABC, abstractmethod
 import scipy
 import math
 from ARTcore.ModuleZernike import zernike_gradient
+import logging
+
+logger = logging.getLogger(__name__)
 
 # %% Abstract class
 
@@ -38,7 +41,7 @@ class MeasuredMap(Defect):
     def __init__(self, Support, Map):
         self.deformation = Map
         self. Support = Support
-        rect = Support._CircumRect()
+        rect = Support._CircumRect() # TODO fix this so it just uses a rectangle with known size
         X = np.linspace(-rect[0], rect[0], num=self.deformation.shape[0])
         Y = np.linspace(-rect[1], rect[1], num=self.deformation.shape[1])
         self.DerivX, self.DerivY = np.gradient(self.deformation, rect/self.deformation.shape)
@@ -72,7 +75,7 @@ class Fourrier(Defect):
     """
     def __init__(self, Support, RMS, slope=-2, smallest=0.1, biggest=None):
         # The sizes are the wavelength in mm
-        rect = Support._CircumRect()
+        rect = Support._CircumRect()  # TODO fix this so it just uses a rectangle with known size
         if biggest is None:
             biggest = np.max(rect)
             

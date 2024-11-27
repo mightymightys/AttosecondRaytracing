@@ -2,8 +2,9 @@
 title: "Installation and Usage"
 linkTitle: "Installation and Usage"
 weight: 2
+type: docs
 description: >
-  See your project in action!
+  Information on how to install the code and the standard way of interacting with it.
 ---
 
 {{% pageinfo %}}

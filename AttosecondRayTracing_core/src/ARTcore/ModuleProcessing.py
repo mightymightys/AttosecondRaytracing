@@ -9,6 +9,16 @@ Created in Apr 2020
 @author: Anthony Guillaume + Stefan Haessler
 """
 # %% Modules
+import ARTcore.ModuleGeometry as mgeo
+from ARTcore.ModuleGeometry import Point, Vector, Origin
+import ARTcore.ModuleMirror as mmirror
+import ARTcore.ModuleMask as mmask
+import ARTcore.ModuleSource as msource
+import ARTcore.ModuleOpticalElement as moe
+import ARTcore.ModuleOpticalRay as mray
+import ARTcore.ModuleSupport as msupp
+import ARTcore.ModuleOpticalChain as moc
+
 import os
 import pickle
 
@@ -18,237 +28,147 @@ from time import perf_counter
 from datetime import datetime
 import copy
 import numpy as np
-import ARTcore.ModuleGeometry as mgeo
-import ARTcore.ModuleMirror as mmirror
-import ARTcore.ModuleMask as mmask
-import ARTcore.ModuleSource as msource
-import ARTcore.ModuleOpticalElement as moe
-import ARTcore.ModuleOpticalRay as mray
-import ARTcore.ModuleSupport as msupp
-import ARTcore.ModuleOpticalChain as moc
+import quaternion
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # %%
-def _singleOEPlacement(
-    SourceProperties: dict,
-    OpticsList: list,
-    DistanceList: list[(int, float)],
-    IncidenceAngleList: list[(int, float)],
-    IncidencePlaneAngleList: list[(int, float)],
-    Description: str,
+def singleOEPlacement(
+    Optic: moe.OpticalElement,
+    Distance: float,
+    IncidenceAngle: float = 0,
+    IncidencePlaneAngle: float = 0,
+    InputRay: mray.Ray = None,
+    AlignmentVector: str = "",
+    PreviousIncidencePlane: mgeo.Vector = mgeo.Vector([0, 1, 0])
 ):
     """
-    Automatic placement and alignment of the optical elements for one optical chain.
+    Automatic placement and alignment of a single optical element.
+    The arguments are:
+    - The optic to be placed.
+    - The distance from the previous optic.
+    - An incidence angle.
+    - An incidence plane angle.
+    - An input ray.
+    - An alignment vector.
+
+    The alignment procedure is as follows:
+    - The optic is initially placed with its center at the source position (origin point of previous master ray). 
+    - It's oriented such that the alignment vector is antiparallel to the master ray. By default, the alignment vector is the support_normal.
+    - The majoraxis of the optic is aligned with the incidence plane. 
+    - The optic is rotated around the incidence plane by the incidence angle.
+    - The optic is rotated around the master ray by the incidence plane angle.
+    - The optic is translated along the master ray by the distance from the previous optic.
+    - The master ray is propagated through the optic without any blocking or diffraction effects and the output ray is used as the master ray for the next optic.
     """
-    Divergence = SourceProperties["Divergence"]
-    SourceSize = SourceProperties["SourceSize"]
-    RayNumber = SourceProperties["NumberRays"]
-    Wavelength = SourceProperties["Wavelength"]
+    # Convert angles to radian and wrap to 2pi
+    IncidencePlaneAngle = np.deg2rad(IncidencePlaneAngle) % (2 * np.pi)
+    IncidenceAngle = np.deg2rad(IncidenceAngle) % (2 * np.pi)
+    if InputRay is None:
+        InputRay = mray.Ray(
+            point=mgeo.Point([0, 0, 0]), 
+            vector=mgeo.Vector([1, 0, 0]),
+            path=(0.0,),
+            number=0,
+            wavelength=800e-9,
+            incidence=0.0,
+            intensity=1.0
+    )
+    OldOpticalElementCentre = InputRay.point
+    MasterRayDirection = InputRay.vector.normalized()
 
-    IncidencePlaneAngleList = [
-        np.deg2rad((i % 360)) for i in IncidencePlaneAngleList
-    ]  # wrap angles into [0,360]deg and convert to radian
-    IncidenceAngleList = [
-        np.deg2rad((i % 360)) for i in IncidenceAngleList
-    ]  # wrap angles into [0,360]deg and convert to radian
+    OpticalElementCentre = OldOpticalElementCentre + MasterRayDirection * Distance
 
-    # Launch source ray bundle from the origin [x,y,z]=[0,0,0] into the x-direction:
-    SourcePosition = np.array([0, 0, 0])
-    SourceDirection = np.array([1, 0, 0])
-    if Divergence == 0:
-        if SourceSize == 0:
-            try:
-                radius = 0.5 * min(OpticsList[0].support.dimX, OpticsList[0].support.dimY)  # for rect. support
-            except AttributeError:
-                radius = OpticsList[0].support.radius  # otherwise it must be a round support
-        else:
-            radius = SourceSize / 2
-        SourceRayList = msource.PlaneWaveDisk(SourcePosition, SourceDirection, radius, RayNumber, Wavelength=Wavelength)
+    logger.debug(f"Old Optical Element Centre: {OldOpticalElementCentre}")
+    logger.debug(f"Master Ray: {InputRay}")
+    logger.debug(f"Optical Element Centre: {OpticalElementCentre}")
+    # for convex mirrors, rotated them by 180° while keeping same incidence plane so we reflect from the "back side"
+    if Optic.curvature == mmirror.Curvature.CONVEX:
+        IncidenceAngle = np.pi - IncidenceAngle
+
+    if hasattr(Optic, AlignmentVector):
+        OpticVector = getattr(Optic, AlignmentVector)
     else:
-        if SourceSize == 0:
-            SourceRayList = msource.PointSource(
-                SourcePosition, SourceDirection, Divergence, RayNumber, Wavelength=Wavelength
-            )
-        else:
-            SourceRayList = msource.ExtendedSource(
-                SourcePosition, SourceDirection, SourceSize, Divergence, RayNumber, Wavelength=Wavelength
-            )
+        logger.warning(f"Optical Element {Optic} does not have an attribute {AlignmentVector}. Using support_normal instead.")
+        OpticVector = Optic.support_normal_ref
+    
+    MajorAxis = Optic.majoraxis_ref
 
-    SourceRayList = msource.ApplyGaussianIntensityToRayList(
-        SourceRayList, 1 / np.e**2
-    )  # Intensity drops to 1/e^2 at edge of ray-bundle
+    IncidencePlane = PreviousIncidencePlane.rotate(mgeo.QRotationAroundAxis(InputRay.vector, -IncidencePlaneAngle))
+    # We calculate a quaternion that will rotate OpticVector against the master ray and MajorAxis into the incidence plane
+    # The convention is that the MajorAxis vector points right if seen from the source with IncidencePlane pointing up
+    # To do that, we first calculate a vector MinorAxis in the reference frame of the optic that is orthogonal to both OpticVector and MajorAxis
+    # Then we calculate a rotation matrix that will:
+    #   - rotate MinorAxis into the IncidencePlane direction
+    #   - rotate OpticVector against the master ray direction
+    #   - rotate MajorAxis into the direction of the cross product of the two previous vectors
+    MinorAxis = -np.cross(OpticVector, MajorAxis)
+    qIncidenceAngle = mgeo.QRotationAroundAxis(IncidencePlane, -IncidenceAngle)
+    q = mgeo.QRotationVectorPair2VectorPair(MinorAxis, IncidencePlane, OpticVector, -MasterRayDirection)
+    q = qIncidenceAngle*q
+    Optic.q = q
+    logger.debug(f"Optic: {Optic}")
+    logger.debug(f"OpticVector: {OpticVector}")
+    logger.debug(f"Rotated OpticVector: {OpticVector.rotate(q)}")
+    logger.debug(f"MasterRayDirection: {MasterRayDirection}")
 
-    # Now successively create and align optical elements
-    SourceRay = [
-        mray.Ray(SourcePosition, SourceDirection)
-    ]  # a single source ray in the central direction of the ray-bundle created above
-    OpticalElements = []
-    OpticalElementCentre = SourcePosition
-    CentralVector = SourceDirection
-    RotationAxis = np.array(
-        [0, 1, 0]
-    )  # Vector perpendicular to the incidence plane, i.e. initially the incidence plane is the x-z-plane.
+    Optic.r = Origin + (OpticalElementCentre - Optic.centre - Optic.r)
 
-    for k, Optic in enumerate(OpticsList):
-        # for convex mirrors, rotated them by 180° them so we reflect from the "back side"
-        if Optic.type == "SphericalCX Mirror" or Optic.type == "CylindricalCX Mirror":
-            IncidenceAngleList[k] = np.pi - IncidenceAngleList[k]
-
-        # shift OpticalElementCentre-point from that of the preceding OE, by the required distance along the central ray vector
-        OpticalElementCentre = CentralVector * DistanceList[k] + OpticalElementCentre
-
-        if abs(IncidencePlaneAngleList[k] - np.pi) < 1e-10:
-            RotationAxis = -RotationAxis
-        else:
-            RotationAxis = mgeo.RotationAroundAxis(CentralVector, -IncidencePlaneAngleList[k], RotationAxis)
-
-        OpticalElementNormal = mgeo.RotationAroundAxis(
-            RotationAxis, -np.pi / 2 + IncidenceAngleList[k], np.cross(CentralVector, RotationAxis)
-        )
-
-        OpticalElementMajorAxis = np.cross(RotationAxis, OpticalElementNormal)
-
-        Element = moe.OpticalElement(Optic, OpticalElementCentre, OpticalElementNormal, OpticalElementMajorAxis)
-
-        OpticalElements.append(Element)
-        auxChain = moc.OpticalChain(SourceRay, OpticalElements)
-
-        if "Mirror" in Optic.type:
-            OutRays = auxChain.get_output_rays()
-            CentralVector = OutRays[-1][0].vector
-        elif Optic.type == "Mask":
-            # CentralVector remains unchanged
-            # in our auxChain, but *not* in the OpticalElements-list, replace mask by completely tansparent "fake version"
-            # to be sure that our CentralVector serving as alignment-guide always passes
-            FakeMask = mmask.Mask(msupp.SupportRoundHole(Radius=100, RadiusHole=100, CenterHoleX=0, CenterHoleY=0))
-            auxChain.optical_elements[-1] = moe.OpticalElement(
-                FakeMask, OpticalElementCentre, OpticalElementNormal, OpticalElementMajorAxis
-            )
-        else:
-            raise NameError("I don`t recognize the type of optical element " + OpticalElements[k].type.type + ".")
-
-    return moc.OpticalChain(SourceRayList, OpticalElements, Description)
+    NextRay = Optic.propagate_raylist(mray.RayList.from_list([InputRay]), alignment=True)[0]
+    
+    return NextRay, IncidencePlane
 
 
 def OEPlacement(
-    SourceProperties: dict,
     OpticsList: list,
-    DistanceList: list[(int, float)],
-    IncidenceAngleList: list[float],
-    IncidencePlaneAngleList: list[float] = None,
-    Description: str = ""
+    InitialRay:mray.Ray = None,
+    Source: msource.Source = None,
+    InputIncidencePlane: mgeo.Vector = None
 ):
     """
-    Automatically place optical elements in the "lab frame" according to given distances and incidence angles.
-    Outputs an OpticalChain-object.
-
-    The source is placed at the origin, and points into the x-direction. The optical elements then follow.
-
-    As long as the angles in IncidencePlaneAngleList are 0, the incidence plane remains the x-z plane, i.e.
-    the optical elements are rotated about the y-axis to set the desired incidence angle between OE-normal
-    and the direction of incidence of the incoming ray-bundle. Otherwise, the incidence plane gets rotated.
-
-    One of the elements of one of the lists 'DistanceList', 'IncidenceAngleList', or 'IncidencePlaneAngleList'
-    can be a list or a numpy-array. In that case, a list of OpticalChain-objects is created which can be looped over.
-
-    Parameters
-    ----------
-        SourceProperties : dict
-            Dictionary with the keys "Divergence" :float, "SourceSize" :float,
-            "NumberRays" :int, and "Wavelength" :float.
-            This determines the source ray-bundle that is created.
-
-        OpticsList : list[Optics-class-objects (Mirorrs or Masks)]
-            List of Optics-objects.
-
-        DistanceList : list[float]
-            List of distances, in mm,  at which place the optics out of the
-            OpticsList from the precending one. For the first optic, this is
-            the distance from the light source.
-
-            One of the elements can ne a list or a numpy-array instead of a float.
-            In that case, a list of OpticalChain-objects is created which can be looped over.
-
-        IncidenceAngleList : list[float]
-            List of incidence angles, in degrees, measured between the central ray
-            of the incident ray bundle and the normal on the optical element.
-
-            One of the elements can ne a list or a numpy-array instead of a float.
-            In that case, a list of OpticalChain-objects is created which can be looped over.
-
-        IncidencePlaneAngleList : list[float], optional
-            List of angles, in degrees, by which the incidence plane is rotated
-            on the optical element with respect to that on the preceding one.
-            Consequently, for the first element, this angle has no qualitative effect.
-
-            One of the elements can ne a list or a numpy-array instead of a float.
-            In that case, a list of OpticalChain-objects is created which can be looped over.
-
-        Description : str, optional
-            A string to describe the optical setup.
-
-    Returns
-    -------
-        OpticalChainList : list[OpticalChain-object]
-
-        or
-
-        OpticalChain : OpticalChain-object
-
+    Automatic placement and alignment of the optical elements for one optical chain.
+    Returns the output ray and the incidence plane of the last optical element.
     """
-
-    if IncidencePlaneAngleList is None:
-        IncidencePlaneAngleList = np.zeros(len(OpticsList)).tolist()
-
-    nest_indx_distance = _which_indeces(DistanceList)
-    nest_indx_incidence = _which_indeces(IncidenceAngleList)
-    nest_indx_incplane = _which_indeces(IncidencePlaneAngleList)
-
-    total_nested = len(nest_indx_incidence + nest_indx_incplane + nest_indx_distance)
-
-    if total_nested > 1:
-        raise ValueError(
-            "Only one element of one of the lists IncidenceAngleList, IncidencePlaneAngleList, or DistanceList can be a list or array itself. Otherwise things get too tangled..."
+    if InitialRay is None:
+        if Source is None:
+            InputRay = InputRay = mray.Ray(
+            point=mgeo.Point([0, 0, 0]), 
+            vector=mgeo.Vector([1, 0, 0]),
+            path=(0.0,),
+            number=0,
+            wavelength=800e-9,
+            incidence=0.0,
+            intensity=1.0
+    )
+        else:
+            InputRay = Source.get_master_ray()
+    else:
+        InputRay = InitialRay.copy_ray()
+    if InputIncidencePlane is None:
+        InputIncidencePlane = mgeo.Vector([0, 1, 0])
+    logger.debug(f"Initial Ray: {InputRay}")
+    logger.debug(f"Initial Incidence Plane: {InputIncidencePlane}")
+    assert np.linalg.norm(np.dot(InputRay.vector, InputIncidencePlane))<1e-6, "InputIncidencePlane is not orthogonal to InputRay.vector"
+    PreviousIncidencePlane = InputIncidencePlane.copy()
+    for i in range(len(OpticsList)):
+        InputRay, PreviousIncidencePlane = singleOEPlacement(
+            OpticsList[i]["OpticalElement"],
+            OpticsList[i]["Distance"],
+            OpticsList[i]["IncidenceAngle"],
+            OpticsList[i]["IncidencePlaneAngle"],
+            InputRay,
+            OpticsList[i]["Alignment"] if "Alignment" in OpticsList[i] else "support_normal",
+            PreviousIncidencePlane
         )
-    elif total_nested == 1:
-        i = (nest_indx_incidence + nest_indx_incplane + nest_indx_distance)[0]
-        loop_variable_name = OpticsList[i].type + "_idx_" + str(i)
-        if nest_indx_incidence:  # if the list is not empty
-            loop_variable_name += " incidence angle (deg)"
-            loop_variable = copy.deepcopy(IncidenceAngleList[i])
-            loop_list = IncidenceAngleList
-        elif nest_indx_distance:  # if the list is not empty
-            loop_variable_name += " distance (mm)"
-            loop_variable = copy.deepcopy(DistanceList[i])
-            loop_list = DistanceList
-        elif nest_indx_incplane:  # if the list is not empty
-            loop_variable_name += " incidence-plane angle rotation (deg)"
-            loop_variable = copy.deepcopy(IncidencePlaneAngleList[i])
-            loop_list = IncidencePlaneAngleList
-
-        OpticalChainList = []
-        for x in loop_variable:
-            loop_list[i] = x
-            ModifiedOpticalChain = _singleOEPlacement(
-                SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description
-            )
-            ModifiedOpticalChain.loop_variable_name = loop_variable_name
-            ModifiedOpticalChain.loop_variable_value = x
-            OpticalChainList.append(ModifiedOpticalChain)
-
-        return OpticalChainList
-
-    elif total_nested == 0:
-        OpticalChain = _singleOEPlacement(
-            SourceProperties, OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, Description
-        )  # all simple
-        
-        return OpticalChain
+    return [i["OpticalElement"] for i in OpticsList]
+    
 
 
 # %%
 def RayTracingCalculation(
-    source_rays: list[mray.Ray], optical_elements: list[moe.OpticalElement], IgnoreDefects = True
+    source_rays: mray.RayList, optical_elements: list[moe.OpticalElement], **kwargs
 ) -> list[list[mray.Ray]]:
     """
     The actual ray-tracing calculation, starting from the list of 'source_rays',
@@ -270,8 +190,6 @@ def RayTracingCalculation(
             List of lists of rays, each item corresponding to the ray-bundle *after*
             the item with the same index in the 'optical_elements'-list.
     """
-    ez = np.array([0, 0, 1])
-    ex = np.array([1, 0, 0])
     output_rays = []
 
     for k in range(0, len(optical_elements)):
@@ -279,35 +197,7 @@ def RayTracingCalculation(
             RayList = source_rays
         else:
             RayList = output_rays[k - 1]
-
-        # Mirror = optical_elements[k].type
-        Position = optical_elements[k].position
-        n = optical_elements[k].normal
-        m = optical_elements[k].majoraxis
-
-        # transform rays into mirror coordinate system
-        RayList = mgeo.TranslationRayList(RayList, -Position)
-        RayList = mgeo.RotationRayList(RayList, n, ez)
-        # FIRST rotate m in the same way as you just did the ray list,
-        # THEN rotate the rays again to match the NEW m with the x-axis !
-        mPrime = mgeo.RotationPoint(m, n, ez)
-        RayList = mgeo.RotationRayList(RayList, mPrime, ex)
-        RayList = mgeo.TranslationRayList(RayList, optical_elements[k].type.get_centre())
-
-        # optical element acts on the rays:
-        if "Mirror" in optical_elements[k].type.type:
-            RayList = mmirror.ReflectionMirrorRayList(optical_elements[k].type, RayList, IgnoreDefects = IgnoreDefects)
-        elif optical_elements[k].type.type == "Mask":
-            RayList = mmask.TransmitMaskRayList(optical_elements[k].type, RayList)
-        else:
-            raise NameError("I don`t recognize the type of optical element " + optical_elements[k].type.type + ".")
-
-        # transform new rays back into "lab frame"
-        RayList = mgeo.TranslationRayList(RayList, -optical_elements[k].type.get_centre())
-        RayList = mgeo.RotationRayList(RayList, ex, mPrime)
-        RayList = mgeo.RotationRayList(RayList, ez, n)
-        RayList = mgeo.TranslationRayList(RayList, Position)
-
+        RayList = optical_elements[k].propagate_raylist(RayList, **kwargs)
         output_rays.append(RayList)
 
     return output_rays
@@ -479,7 +369,7 @@ def FindCentralRay(RayList: list[mray.Ray]):
     CentralVector = np.mean( [x.vector for x in RayList], axis=0)
     CentralPoint = np.mean( [x.point for x in RayList], axis=0)
     
-    return mray.Ray(CentralPoint, CentralVector)
+    return mray.Ray(mgeo.Point(CentralPoint), mgeo.Vector(CentralVector))
 
 
 def StandardDeviation(List: list[float, np.ndarray]) -> float:
@@ -530,67 +420,6 @@ def WeightedStandardDeviation(List: list[float, np.ndarray], Weights: list[float
     average = np.average(List, axis=0, weights=Weights, returned=False)
     variance = np.average((List - average) ** 2, axis=0, weights=Weights, returned=False)
     return np.sqrt(variance.sum())
-
-
-# %%
-def ReturnNumericalAperture(RayList: list[mray.Ray], RefractiveIndex: float = 1) -> float:
-    r"""
-    Returns the numerical aperture associated with the supplied ray-bundle 'Raylist'.
-    This is $n\sin\theta$, where $\theta$ is the maximum angle between any of the rays and the central ray,
-    and $n$ is the refractive index of the propagation medium.
-
-    Parameters
-    ----------
-        RayList : list of Ray-object
-            The ray-bundle of which to determine the NA.
-
-        RefractiveIndex : float, optional
-            Refractive index of the propagation medium, defaults to =1.
-
-    Returns
-    -------
-        NA : float
-    """
-    CentralRay = FindCentralRay(RayList)
-    if CentralRay is None:
-        CentralVector = np.array([0, 0, 0])
-        for k in RayList:
-            CentralVector = CentralVector + k.vector
-        CentralVector = CentralVector / len(RayList)
-    else:
-        CentralVector = CentralRay.vector
-    ListAngleAperture = []
-    for k in RayList:
-        ListAngleAperture.append(mgeo.AngleBetweenTwoVectors(CentralVector, k.vector))
-
-    return np.sin(np.amax(ListAngleAperture)) * RefractiveIndex
-
-
-# %%
-def ReturnAiryRadius(Wavelength: float, NumericalAperture: float) -> float:
-    r"""
-    Returns the radius of the Airy disk: $r = 1.22 \frac\{\lambda\}\{NA\}$,
-    i.e. the diffraction-limited radius of the focal spot corresponding to a given
-    numerical aperture $NA$ and a light wavelength $\lambda$.
-
-    For very small $NA<10^\{-3\}$, diffraction effects becomes negligible and the Airy Radius becomes meaningless,
-    so in that case, a radius of 0 is returned.
-
-    Parameters
-    ----------
-        Wavelength : float
-            Light wavelength in mm.
-
-        NumericalAperture : float
-
-    Returns
-    -------
-        AiryRadius : float
-    """
-    if NumericalAperture > 1e-3 and Wavelength is not None:
-        return 1.22 * 0.5 * Wavelength / NumericalAperture
-    else:
-        return 0  # for very small numerical apertures, diffraction effects becomes negligible and the Airy Radius becomes meaningless
 
 
 # %%

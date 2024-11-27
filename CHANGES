@@ -1,0 +1,5 @@
+List of changes:
+- OpticalElement is now abstract class from which Mirror and Mask inherit
+- The orientation of an optical element is no longer defined by normal and majoraxis but rather by a quaternion
+- Removed the ability to change the geometric properties of optical elements as it is not immediately obvious which parameters stay the same and which change. It's now up to the user.
+- The determination of the geometric properties of Ellipsoidal and Parabolic mirrors is now handled automagically using the DepSolver class. Could be extended to more mirrors in the future.

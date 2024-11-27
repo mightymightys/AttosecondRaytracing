@@ -1,8 +1,11 @@
 ---
 title: "Usage"
 linkTitle: "Usage"
+type: docs
 weight: 2
 ---
+
+Before starting, we strongly recommend checking out the [conventions](../conventions) we use in ART. 
 
 The entry point into the program is the `main()` function found in the `ARTmain.py` file. It has five arguments, one of which is optional:
  - `OpticalChainList`: An `OpticalChainList` object containing all the optical elements to be simulated with their positions as well as a list of initial source rays.

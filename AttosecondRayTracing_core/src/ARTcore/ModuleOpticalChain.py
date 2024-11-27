@@ -13,12 +13,17 @@ Created in Jan 2022
 # %% Modules
 import copy
 import numpy as np
+import logging
+
 import ARTcore.ModuleProcessing as mp
 import ARTcore.ModuleGeometry as mgeo
+from ARTcore.ModuleGeometry import Point, Vector, Origin
 import ARTcore.ModuleOpticalRay as mray
 import ARTcore.ModuleOpticalElement as moe
+import ARTcore.ModuleDetector as mdet
 import ARTcore.ModuleSource as msource
 
+logger = logging.getLogger(__name__)
 
 # %%
 class OpticalChain:
@@ -39,9 +44,7 @@ class OpticalChain:
     and more nicely with OpticalChain.render().
 
     The class also provides methods for (mis-)alignment of the source-[Ray](ModuleOpticalRay.html)-bundle and the
-    [OpticalElements](ModuleOpticalElement.html), as well as methods for producing
-    a list of OpticalChain-objects containing variations of itself.
-
+    [OpticalElements](ModuleOpticalElement.html).
     Attributes
     ----------
         source_rays : list[mray.Ray]
@@ -50,17 +53,11 @@ class OpticalChain:
         optical_elements : list[moe.OpticalElement]
             List of successive optical elements.
 
+        detector: mdet.Detector (optional)
+            The detector (or list of detectors) to analyse the results.
+        
         description : str
             A string to describe the optical setup.
-
-        loop_variable_name : str
-            A string naming a parameter that is varied in a list of OpticalChain-objects,
-            which is useful when looping over variations of an initial configuration.
-
-        loop_variable_value : float
-            The value of that varied parameter, which is useful when looping over
-            variations of an initial configuration.
-
     Methods
     ----------
         copy_chain()
@@ -77,21 +74,15 @@ class OpticalChain:
 
         tilt_source(self, axis, angle)
 
-        get_source_loop_list(axis, loop_variable_values)
-
         ----------
 
         rotate_OE(OEindx, axis, angle)
 
         shift_OE(OEindx, axis, distance)
 
-        get_OE_loop_list(OEindx, axis, loop_variable_values)
-
     """
 
-    def __init__(
-        self, source_rays, optical_elements, description="", loop_variable_name=None, loop_variable_value=None
-    ):
+    def __init__(self, source_rays, optical_elements, detectors, description=""):
         """
         Parameters
         ----------
@@ -100,43 +91,60 @@ class OpticalChain:
 
             optical_elements : list[moe.OpticalElement]
                 List of successive optical elements.
+            
+            detector: mdet.Detector (optional)
+                The detector (or list of detectors) to analyse the results.
 
             description : str, optional
                 A string to describe the optical setup. Defaults to ''.
 
-            loop_variable_name : str, optional
-                A string naming a parameter that is varied in a list of OpticalChain-objects.
-                Defaults to None.
-
-            loop_variable_value : float
-                The value of that varied parameter, which is useful when looping over
-                variations of an initial configuration. Defaults to None.
         """
         self.source_rays = copy.deepcopy(source_rays)
         # deepcopy so this object doesn't get changed when the global source_rays changes "outside"
         self.optical_elements = copy.deepcopy(optical_elements)
         # deepcopy so this object doesn't get changed when the global optical_elements changes "outside"
+        self.detectors = detectors
+        if isinstance(detectors, mdet.Detector):
+            self.detectors = {"Focus": detectors}
         self.description = description
-        self.loop_variable_name = loop_variable_name
-        self.loop_variable_value = loop_variable_value
         self._output_rays = None
-        self._last_optical_elements_hash = None  # for now we don't care which element was changed.
-        # we just always do the whole raytracing again
         self._last_source_rays_hash = None
+        self._last_optical_elements_hash = None
 
-    # using property decorator
-    # a getter function
+    def __repr__(self):
+        pretty_str = "Optical setup [OpticalChain]:\n"
+        pretty_str += f"  - Description: {self.description}\n" if self.description else "Description: Not provided.\n"
+        pretty_str +=  "  - Contains the following elements:\n"
+        pretty_str +=  f"    - Source with {len(self.source_rays)} rays at coordinate origin\n"
+        prev_pos = np.zeros(3)
+        for i, element in enumerate(self.optical_elements):
+            dist = (element.position - prev_pos).norm
+            if i == 0:
+                prev = "source"
+            else:
+                prev = f"element {i-1}"
+            pretty_str += f"    - Element {i}: {element.type} at distance {round(dist)} from {prev}\n"
+            prev_pos = element.position
+        for i, detector in enumerate(self.detector):
+            pretty_str += f"    - Detector {i}: {detector.type} at distance {round(detector.position.norm)} from element {i}\n"
+        return pretty_str
+    
+    def __getitem__(self, i):
+        return self.optical_elements[i]
+    
+    def __len__(self):
+        return len(self.optical_elements)
+
     @property
     def source_rays(self):
         return self._source_rays
 
-    # a setter function
     @source_rays.setter
     def source_rays(self, source_rays):
-        if type(source_rays) == list and all(isinstance(x, mray.Ray) for x in source_rays):
+        if type(source_rays) == mray.RayList:
             self._source_rays = source_rays
         else:
-            raise TypeError("Source_rays must be list of Ray-objects.")
+            raise TypeError("Source_rays must be a RayList object.")
 
     @property
     def optical_elements(self):
@@ -149,40 +157,24 @@ class OpticalChain:
         else:
             raise TypeError("Optical_elements must be list of OpticalElement-objects.")
 
-    @property
-    def loop_variable_name(self):
-        return self._loop_variable_name
-
-    @loop_variable_name.setter
-    def loop_variable_name(self, loop_variable_name):
-        if type(loop_variable_name) == str or (loop_variable_name is None):
-            self._loop_variable_name = loop_variable_name
-        else:
-            raise TypeError("loop_variable_name must be a string.")
-
-    @property
-    def loop_variable_value(self):
-        return self._loop_variable_value
-
-    @loop_variable_value.setter
-    def loop_variable_value(self, loop_variable_value):
-        if type(loop_variable_value) in [int, float, np.float64] or (loop_variable_value is None):
-            self._loop_variable_value = loop_variable_value
-        else:
-            raise TypeError("loop_variable_value must be a number of types int or float.")
-
     # %% METHODS ##################################################################
 
-    def copy_chain(self):
+    def __copy__(self):
         """Return another optical chain with the same source, optical elements and description-string as this one."""
-        return OpticalChain(self.source_rays, self.optical_elements, self.description)
+        return OpticalChain(self.source_rays, self.optical_elements, self.detectors, self.description)
+
+    def __deepcopy__(self, memo):
+        """Return another optical chain with the same source, optical elements and description-string as this one."""
+        return OpticalChain(copy.deepcopy(self.source_rays), copy.deepcopy(self.optical_elements), copy.copy(self.description))
 
     def get_output_rays(self, **kwargs):
         """
         Returns the list of (lists of) output rays, calculate them if this hasn't been done yet,
         or if the source-ray-bundle or anything about the optical elements has changed.
+
+        This is the user-facing method to perform the ray-tracing calculation.
         """
-        current_source_rays_hash = mp._hash_list_of_objects(self.source_rays)
+        current_source_rays_hash = hash(self.source_rays)
         current_optical_elements_hash = mp._hash_list_of_objects(self.optical_elements)
         if (current_source_rays_hash != self._last_source_rays_hash) or (
             current_optical_elements_hash != self._last_optical_elements_hash
@@ -192,12 +184,10 @@ class OpticalChain:
             print(
                 "\r\033[K", end="", flush=True
             )  # move to beginning of the line with \r and then delete the whole line with \033[K
-
             self._last_source_rays_hash = current_source_rays_hash
             self._last_optical_elements_hash = current_optical_elements_hash
 
         return self._output_rays
-
     # %%  methods to (mis-)align the optical chain; just uses the corresponding methods of the OpticalElement class...
 
     def shift_source(self, axis: (str, np.ndarray), distance: float):
@@ -213,7 +203,7 @@ class OpticalChain:
         axis = "vert" means the source position is shifted along the axis perpendicular
         to that incidence plane, i.e. "vertically" away from the former incidence plane..
 
-        axis = "horiz" means the source direciton is rotated about an axis in that
+        axis = "horiz" means the source direciton is translated along thr axis in that
         incidence plane and perpendicular to the current source direction,
         i.e. "horizontally" in the incidence plane, but retaining the same distance
         of source and first optical element.
@@ -352,99 +342,42 @@ class OpticalChain:
 
         self.source_rays = mgeo.RotationAroundAxisRayList(self.source_rays, rot_axis, np.deg2rad(angle))
 
-    def get_source_loop_list(self, axis: str, loop_variable_values: np.ndarray):
+    def partial_realign(self, OEstart, OEstop, DistanceList, IncidenceAngleList, IncidencePlaneAngleList):
         """
-        Produces a list of OpticalChain-objects, which are all variations of this
-        instance by modifying the source-ray-bundle. 
-        The modification can be a tilt in degrees, a shift in mm, or in the case of the "divergence" by
-        varying the divergence half-angle (in rad) of a point source. It specified by the "axis" parameter, which is one of
-        ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random", "divergence"],
-        by the values given in the list or numpy-array "loop_variable_values", e.g. np.linspace(start, stop, number).
-        This list can then be looped over by ARTmain.
-
-        Parameters
-        ----------
-            axis : np.ndarray or str
-                Shift/Rotation axis for the source-modification, specified either
-                as a 3D lab-frame vector or as one of the strings
-                ["tilt_in_plane", "tilt_out_plane", "tilt_random",\
-                 "shift_vert", "shift_horiz", "shift_random"].
-
-             loop_variable_values : list or np.ndarray
-                Values of the shifts (mm) or rotations (deg).
-
-        Returns
-        -------
-            OpticalChainList : list[OpticalChain]
+        This as-of-yet not-implemented method will realign only the parts of the optical chain that are between the elements
+        OEstart and OEstop (both included).
         """
-        if axis not in [
-            "tilt_in_plane",
-            "tilt_out_plane",
-            "tilt_random",
-            "shift_vert",
-            "shift_horiz",
-            "shift_random",
-            "divergence"
-            ]:
-            raise ValueError(
-                'For automatic loop-list generation, the axis must be one of ["tilt_in_plane", "tilt_out_plane", "tilt_random", "shift_vert", "shift_horiz", "shift_random"].'
-            )
-        if type(loop_variable_values) not in [list, np.ndarray]:
-            raise ValueError(
-                "For automatic loop-list generation, the loop_variable_values must be a list or a numpy-array."
-            )
-
-        loop_variable_name_strings = {
-            "tilt_in_plane": "source tilt in-plane (deg)",
-            "tilt_out_plane": "source tilt out-of-plane (deg)",
-            "tilt_random": "source tilt random axis (deg)",
-            "shift_vert": "source shift vertical (mm)",
-            "shift_horiz": "source shift horizontal (mm)",
-            "shift_random": "source shift random-direction (mm)",
-            "divergence": "point-source divergence half-angle (rad)"
-        }
-        loop_variable_name = loop_variable_name_strings[axis]
-
-        OpticalChainList = []
-        for x in loop_variable_values:
-            # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
-            ModifiedOpticalChain = self.copy_chain()
-            ModifiedOpticalChain.loop_variable_name = loop_variable_name
-            ModifiedOpticalChain.loop_variable_value = x
-
-            if axis in ["tilt_in_plane", "tilt_out_plane", "tilt_random"]:
-                ModifiedOpticalChain.tilt_source(axis[5:], x)
-            elif axis in ["shift_vert", "shift_horiz", "shift_random"]:
-                ModifiedOpticalChain.shift_source(axis[6:], x)
-            elif axis in ["divergence"]:
-                ModifiedOpticalChain.source_rays = msource.PointSource(self.source_rays[0].point,
-                                                                       self.source_rays[0].vector,
-                                                                       x,
-                                                                       len(self.source_rays),
-                                                                       self.source_rays[0].wavelength)
-                ModifiedOpticalChain.source_rays = msource.ApplyGaussianIntensityToRayList(ModifiedOpticalChain.source_rays, self.source_rays[-1].intensity)
-                
-            # append the modified optical chain to the list
-            OpticalChainList.append(ModifiedOpticalChain)
-
-        return OpticalChainList
-
+        OpticsList = [i.type for i in self.optical_elements[OEstart:OEstop]]
+        outray = self.get_output_rays()[OEstart-1][0]
+        print(outray)
+        new_elements = mp.OEPlacement(OpticsList, DistanceList, IncidenceAngleList, IncidencePlaneAngleList, outray)
+        self.optical_elements[OEstart:OEstop] = new_elements
+        
     # %%
-    def rotate_OE(self, OEindx: int, axis: str, angle: float):
+    def rotate_OE(self, OEindx: int, ref: str, axis: str, angle: float):
         """
-        Rotate the optical element OpticalChain.optical_elements[OEindx] about
-        axis specified by "pitch", "roll", "yaw", or "random" by angle in degrees.
+        Rotate the optical element OpticalChain.optical_elements[OEindx] with an axis defined relative to the master ray.
+        The axis can either be relative to the incoming master ray or the outgoing one. This is defined  by the "ref" variable 
+        that takes either of the two values:
+            - "in"
+            - "out"
+        In either case the "axis" can take these values:
+            - "roll": Rotation about the master ray. Looking in the same direction as light propagation, positive is counterclockwise
+            - "pitch": Rotation about the vector in the incidence plane that is normal to the master ray.
+            - "yaw": Rotation about the vector normal to the incidence plane and to the master ray.
 
         Parameters
         ----------
             OEindx : int
                 Index of the optical element to modify out of OpticalChain.optical_elements.
 
+            ref : str
+                Reference ray used to define the axes of rotation. Can be either:
+                "in" or "out" or "local_normal" (in+out)
+
             axis : str
                 Rotation axis, specified as one of the strings
-                "pitch", "roll", "yaw", or "random".
-                These define the rotations as specified for the corresponding methods
-                of the OpticalElement-class.
+                "pitch", "roll", "yaw"
 
             angle : float
                 Rotation angle in degree.
@@ -459,33 +392,68 @@ class OpticalChain:
             )
         if type(angle) not in [int, float, np.float64]:
             raise ValueError('The "angle"-argument must be an int or float number.')
-
-        if axis == "pitch":
-            self.optical_elements[OEindx].rotate_pitch_by(angle)
-        elif axis == "roll":
-            self.optical_elements[OEindx].rotate_roll_by(angle)
-        elif axis == "yaw":
-            self.optical_elements[OEindx].rotate_yaw_by(angle)
-        elif axis in ("random", "rotate_random"):
-            self.optical_elements[OEindx].rotate_random_by(angle)
+        MasterRay = [mp.FindCentralRay(self.source_rays)]
+        TracedRay = mp.RayTracingCalculation(MasterRay, self.optical_elements)
+        TracedRay = [MasterRay] + TracedRay
+        match ref:
+            case "out":
+                RefVec = mgeo.Normalize(TracedRay[OEindx+1][0].vector)
+            case "in":
+                RefVec = mgeo.Normalize(TracedRay[OEindx][0].vector)
+            case "localnormal":
+                In = mgeo.Normalize(TracedRay[OEindx][0].vector)
+                Out = mgeo.Normalize(TracedRay[OEindx+1][0].vector)
+                RefVec = mgeo.Normalize(Out-In)
+            case _:
+                raise ValueError('The "ref"-argument must be a string out of ["in", "out", "localnormal].')
+        if 1 - np.dot(self[OEindx].normal,RefVec) > 1e-2:
+            match axis:
+                case "pitch":
+                    self[OEindx].normal = mgeo.RotationAroundAxis(self[OEindx].majoraxis,np.deg2rad(angle),self[OEindx].normal)
+                case "roll":
+                    self[OEindx].normal = mgeo.RotationAroundAxis(RefVec,np.deg2rad(angle),self[OEindx].normal)
+                case "yaw":
+                    self[OEindx].normal = mgeo.RotationAroundAxis(mgeo.Normalize(np.cross(RefVec, self[OEindx].majoraxis)),np.deg2rad(angle),self[OEindx].normal)
+                case _:
+                    raise ValueError('The "axis"-argument must be a string out of ["pitch", "roll", "yaw"].')
         else:
-            raise ValueError('The "axis"-argument must be a string out of ["pitch", "roll", "yaw", "random"].')
+            #If the normal vector is aligned with the ray
+            match axis:
+                case "pitch":
+                    self[OEindx].normal = mgeo.RotationAroundAxis(self[OEindx].majoraxis,np.deg2rad(angle),self[OEindx].normal)
+                case "roll":
+                    self[OEindx].majoraxis = mgeo.RotationAroundAxis(self[OEindx].normal,np.deg2rad(angle),self[OEindx].majoraxis)
+                case "yaw":
+                    self[OEindx].normal = mgeo.RotationAroundAxis(mgeo.Normalize(np.cross(RefVec, self[OEindx].majoraxis)),np.deg2rad(angle),self[OEindx].normal)
+                case _:
+                    raise ValueError('The "axis"-argument must be a string out of ["pitch", "roll", "yaw"].')
 
-    def shift_OE(self, OEindx: int, axis: str, distance: float):
+    def shift_OE(self, OEindx: int, ref: str, axis: str, distance: float):
         """
         Shift the optical element OpticalChain.optical_elements[OEindx] along
-        axis specified by "normal", "major", "cross", or "random" by distance in mm.
+        axis referenced to the master ray.
+
+        The axis can either be relative to the incoming master ray or the outgoing one. This is defined  by the "ref" variable 
+        that takes either of the two values:
+            - "in"
+            - "out"
+        In either case the "axis" can take these values:
+            - "along": Translation along the master ray.
+            - "in_plane": Translation along the vector in the incidence plane that is normal to the master ray.
+            - "out_plane": Translation along the vector normal to the incidence plane and to the master ray.
 
         Parameters
         ----------
             OEindx : int
                 Index of the optical element to modify out of OpticalChain.optical_elements.
 
+            ref : str
+                Reference ray used to define the axes of rotation. Can be either:
+                "in" or "out".
+
             axis : str
-                Rotation axis, specified as one of the strings
-                "normal", "major", "cross", or "random".
-                These define the shifts as specified for the corresponding methods
-                of the OpticalElement-class.
+                Translation axis, specified as one of the strings
+                "along", "in_plane", "out_plane".
 
             distance : float
                 Rotation angle in degree.
@@ -494,148 +462,31 @@ class OpticalChain:
         -------
             Nothing, just modifies OpticalChain.optical_elements[OEindx].
         """
-        if abs(OEindx) > len(self.optical_elements):
+        if abs(OEindx) >= len(self.optical_elements):
             raise ValueError(
                 'The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.'
             )
         if type(distance) not in [int, float, np.float64]:
             raise ValueError('The "dist"-argument must be an int or float number.')
 
-        if axis == "normal":
-            self.optical_elements[OEindx].shift_along_normal(distance)
-        elif axis == "major":
-            self.optical_elements[OEindx].shift_along_major(distance)
-        elif axis == "cross":
-            self.optical_elements[OEindx].shift_along_cross(distance)
-        elif axis == "random":
-            self.optical_elements[OEindx].shift_along_random(distance)
-        else:
-            raise ValueError('The "axis"-argument must be a string out of ["normal", "major", "cross", "random"].')
+        MasterRay = [mp.FindCentralRay(self.source_rays)]
+        TracedRay = mp.RayTracingCalculation(MasterRay, self.optical_elements)
+        TracedRay = [MasterRay] + TracedRay
+        match ref:
+            case "out":
+                RefVec = TracedRay[OEindx+1][0].vector
+            case "in":
+                RefVec = TracedRay[OEindx][0].vector
+            case _:
+                raise ValueError('The "ref"-argument must be a string out of ["in", "out"].')
+        match axis:
+            case "along":
+                self[OEindx].position = self[OEindx].position + distance * mgeo.Normalize(RefVec)
+            case "in_plane":
+                self[OEindx].position = self[OEindx].position + distance * mgeo.Normalize(np.cross(RefVec, np.cross(RefVec, self[OEindx].normal)))
+            case "out_plane":
+                self[OEindx].position = self[OEindx].position + distance * mgeo.Normalize(np.cross(RefVec, self[OEindx].normal))
+            case _:
+                raise ValueError('The "axis"-argument must be a string out of ["along", "in_plane", "out_plane"].')
 
         # some function that randomly misalings one, or several or all ?
-
-    def get_OE_loop_list(self, OEindx: int, axis: str, loop_variable_values: np.ndarray):
-        """
-        Produces a list of OpticalChain-objects, which are all variations of
-        this instance by moving one degree of freedom of its optical element
-        with index OEindx.
-        The vaiations is specified by 'axis' as one of
-        ["pitch", "roll", "yaw", "rotate_random",\
-         "shift_normal", "shift_major", "shift_cross", "shift_random"],
-        by the values given in the list or numpy-array "loop_variable_values",
-        e.g. np.linspace(start, stop, number).
-        This list can then be looped over by ARTmain.
-
-        Parameters
-        ----------
-            OEindx :int
-                Index of the optical element to modify out of OpticalChain.optical_elements.
-
-            axis : np.ndarray or str
-                Shift/Rotation axis, specified as one of the strings
-                ["pitch", "roll", "yaw", "rotate_random",\
-                 "shift_normal", "shift_major", "shift_cross", "shift_random"].
-
-             loop_variable_values : list or np.ndarray
-                Values of the shifts (mm) or rotations (deg).
-
-        Returns
-        -------
-            OpticalChainList : list[OpticalChain]
-
-        """
-        if abs(OEindx) > len(self.optical_elements):
-            raise ValueError(
-                'The "OEnumber"-argument is out of range compared to the length of OpticalChain.optical_elements.'
-            )
-        if axis not in [
-            "pitch",
-            "roll",
-            "yaw",
-            "rotate_random",
-            "shift_normal",
-            "shift_major",
-            "shift_cross",
-            "shift_random",
-        ]:
-            raise ValueError(
-                'For automatic loop-list generation, the axis must be one of ["pitch", "roll", "yaw", "shift_normal", "shift_major", "shift_cross"].'
-            )
-        if type(loop_variable_values) not in [list, np.ndarray]:
-            raise ValueError(
-                "For automatic loop-list generation, the loop_variable_values must be a list or a numpy-array."
-            )
-
-        OE_name = self.optical_elements[OEindx].type.type + "_idx_" + str(OEindx)
-
-        loop_variable_name_strings = {
-            "pitch": OE_name + " pitch rotation (deg)",
-            "roll": OE_name + " roll rotation (deg)",
-            "yaw": OE_name + " yaw rotation (deg)",
-            "rotate_random": OE_name + " random rotation (deg)",
-            "shift_normal": OE_name + " shift along normal axis (mm)",
-            "shift_major": OE_name + " shift along major axis (mm)",
-            "shift_cross": OE_name + " shift along (normal x major)-direction (mm)",
-            "shift_random": OE_name + " shift along random axis (mm)",
-        }
-        loop_variable_name = loop_variable_name_strings[axis]
-
-        OpticalChainList = []
-        for x in loop_variable_values:
-            # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
-            ModifiedOpticalChain = self.copy_chain()
-            ModifiedOpticalChain.loop_variable_name = loop_variable_name
-            ModifiedOpticalChain.loop_variable_value = x
-
-            if axis in ("pitch", "roll", "yaw", "rotate_random"):
-                ModifiedOpticalChain.rotate_OE(OEindx, axis, x)
-            elif axis in ("shift_normal", "shift_major", "shift_cross", "shift_random"):
-                ModifiedOpticalChain.shift_OE(OEindx, axis[6:], x)
-
-            # append the modified optical chain to the list
-            OpticalChainList.append(ModifiedOpticalChain)
-
-        return OpticalChainList
-    
-    def get_OE_random_loop_list(self, rotate_std: float, shift_std: float, number_sims: int):
-        """
-        Produces a list of OpticalChain-objects of length "number_sims", which are all variations
-        of this instance by rotating and shifting all optical elements about randomly chosen 
-        axes and along randomly chosen directions, respectively.
-        The rotation angle and shift distance is chosen randomly from normal distributions
-        with the standard deviations "rotate_std" and "shift_std" respectively.
-        This list can then be looped over by ARTmain.
-    
-        Parameters
-        ----------
-            rotate_std : float
-                Standard deviation in deg of the normal distribution of rotation angles.
-
-            shift_std : float
-                Standard deviation in mm of the normal distribution of shift distances.
-                 
-            number_sims : int
-                Number of misaligned optical chains to produce.
-    
-        Returns
-        -------
-            OpticalChainList : list[OpticalChain]
-    
-        """
-        loop_variable_name = "all optical elements randomly rotated with std=" + str(rotate_std) + "deg and and shifted with Std="+ str(shift_std) + "mm"
-    
-        OpticalChainList = []
-        for i in range(number_sims):
-            # always start with a fresh deep-copy the AlignedOpticalChain, to then modify it and append it to the list
-            ModifiedOpticalChain = self.copy_chain()
-            ModifiedOpticalChain.loop_variable_name = loop_variable_name
-            ModifiedOpticalChain.loop_variable_value = i
-    
-            for j in range(len(self.optical_elements)):
-                ModifiedOpticalChain.rotate_OE(j, "random", np.random.normal(loc=0, scale=rotate_std))
-                ModifiedOpticalChain.shift_OE(j, "random", np.random.normal(loc=0, scale=shift_std))
-    
-            # append the modified optical chain to the list
-            OpticalChainList.append(ModifiedOpticalChain)
-    
-        return OpticalChainList

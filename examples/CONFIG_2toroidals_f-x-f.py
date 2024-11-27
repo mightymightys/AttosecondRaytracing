@@ -10,8 +10,8 @@ import ARTcore.ModuleMirror as mmirror
 import ARTcore.ModuleSupport as msupp
 import ARTcore.ModuleProcessing as mp
 import ARTcore.ModuleMask as mmask
-from ART.ARTmain import main
-
+import ARTcore.ModuleSource as mos
+import ARTcore.ModuleOpticalChain as moc
 
 #%%########################################################################
 """ Source properties """
@@ -47,7 +47,7 @@ OpticsList = [Mask, ToroidalMirror, ToroidalMirror]
 IncidenceAngleList = [0, AngleIncidence, -AngleIncidence] #in deg
 IncidencePlaneAngleList = [0, 0, 0]
 # loop over the distance between the 2 toroidal mirrors:
-DistanceList = [400, Focal-400, np.linspace(Focal-200, Focal+200, 11)] #one element is an array of values, so a list of optical chains will be created
+DistanceList = [400, Focal-400, np.linspace(Focal-200, Focal+200, 1)] #one element is an array of values, so a list of optical chains will be created
 
 # produce a png-image of each of the varied optical chains ?
 render = False

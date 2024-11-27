@@ -1,152 +1,97 @@
 """
 Created in Apr 2020
 
-@author: Anthony Guillaume + Stefan Haessler
+@author: Anthony Guillaume + Stefan Haessler + André Kalouguine
 """
 # %% Modules
 
 import numpy as np
+import logging
+import ARTcore.ModuleGeometry as mgeo
+logger = logging.getLogger(__name__)
+import time
+from dataclasses import dataclass, replace
 
-# %%
+# %% Ray class definition
+
+@dataclass(slots=True)
 class Ray:
     """
     Represents an optical ray from geometrical optics.
+    In order to optimize lookups, Rays are represented as dataclasses.
+    The mandatory attributes are:
+    - point: mgeo.Point
+    - vector: mgeo.Vector
     """
+    point: mgeo.Point
+    vector: mgeo.Vector
+    path: tuple = (0.0,)
+    number: int = None
+    wavelength: float = None
+    incidence: float = None
+    intensity: float = None
 
-    # __slots__ = ('_point', '_vector', '_path', '_number', '_wavelength', '_incidence', '_intensity') #doesn't bring a significant performance improvement
-
-    def __init__(
-        self,
-        Point: np.ndarray,
-        Vector: np.ndarray,
-        Path=(0.0,),
-        Number=None,
-        Wavelength=None,
-        Incidence=None,
-        Intensity=None,
-    ):
+    def to_basis(self, r0, r, q):
         """
-        Parameters
-        ----------
-            Point : np.ndarray
-                Point source of the ray..
-
-            Vector : np.ndarray
-                Direction unit-vector of the ray..
-
-            Path : List of floats, optional TODO correct considering update to list
-                Path length in mm covered by ray *before* its starting Point. The default is 0.
-
-            Number : int, optional
-                Index needed to link the incident ray and the reflected ray. The default is None, but it should be set by afterwards setting the attribute Ray._number.!
-
-            Wavelength : float, optional
-                Wavelength of the light in mm. The default is None.
-
-            Incidence : float, optional
-                Incidence angle in radian of the ray on the optical element *from which it originates*.
-                Gets calculated during ray tracing. The default is None. The source rays therefore have "None" incidence.
-
-            Intensity : float, optional
-                Intensity, or more strictly speaking the fluence fraction in arb.u. carried by the ray. The default is None.
-
+        Transforms the ray to the basis defined by the origin r0, the x-axis r and the y-axis q.
         """
-        self.point = Point  # the setter checks
-        self.vector = Vector  # the setter checks and normalizes
-        self._path = Path
-        self._wavelength = Wavelength
-        self._incidence = Incidence
-        self._intensity = Intensity
-        if type(Number) == int or Number is None:
-            self._number = Number
-        else:
-            raise TypeError("Ray Number must be an integer.")
+        return Ray(
+            self.point.to_basis(r0, r, q),
+            self.vector.to_basis(r0, r, q),
+            self.path,
+            self.number,
+            self.wavelength,
+            self.incidence,
+            self.intensity,
+        )
+    
+    def from_basis(self, r0, r, q):
+        """
+        Transforms the ray from the basis defined by the origin r0, the x-axis r and the y-axis q.
+        """
+        return Ray(
+            self.point.from_basis(r0, r, q),
+            self.vector.from_basis(r0, r, q),
+            self.path,
+            self.number,
+            self.wavelength,
+            self.incidence,
+            self.intensity,
+        )
 
-    """
-    Removing the setters and getters with their checks would gain about 10-30% speed because we use the Ray-class a lot.
-    Then the main risk seems that we can no longer trust in the vector being a unit vector.
-    """
+    def rotate(self, q):
+        """
+        Rotates the ray by the quaternion q.
+        """
+        return Ray(
+            self.point.rotate(q),
+            self.vector.rotate(q),
+            self.path,
+            self.number,
+            self.wavelength,
+            self.incidence,
+            self.intensity,
+        )
+    
+    def translate(self, t):
+        """
+        Rotates the ray by the vector t
+        """
+        return Ray(
+            self.point.translate(t),
+            self.vector,
+            self.path,
+            self.number,
+            self.wavelength,
+            self.incidence,
+            self.intensity,
+        )
 
-    @property
-    def point(self):
-        return self._point
-
-    @point.setter
-    def point(self, Point):
-        if type(Point) == np.ndarray and len(Point) == 3:
-            self._point = Point
-        else:
-            raise TypeError("Ray Point must be a 3D numpy.ndarray, but it is  %s." % type(Point))
-
-    @property
-    def vector(self):
-        return self._vector
-
-    @vector.setter
-    def vector(self, Vector):
-        if type(Vector) == np.ndarray and len(Vector) == 3 and np.linalg.norm(Vector) > 1e-9:
-            self._vector = Vector / np.linalg.norm(Vector)
-        else:
-            raise TypeError("Ray Vector must be a 3D numpy.ndarray with finite length.")
-
-    @property
-    def path(self):
-        return self._path
-
-    @path.setter
-    def path(self, Path):
-        self._path = Path
-
-    @property
-    def number(self):
-        return self._number
-
-    # actually, we don't want to number to be changable afterwards, so not setter
-    # @number.setter
-    # def number(self, Number):
-    #     if type(Number) == int or Number is None:
-    #           self._number = Number
-    #     else: raise TypeError('Ray Number must be an integer.')
-
-    @property
-    def wavelength(self):
-        return self._wavelength
-
-    @wavelength.setter
-    def wavelength(self, Wavelength):
-        if type(Wavelength) in [int, float, np.float64]:
-            self._wavelength = Wavelength
-        else:
-            raise TypeError("Ray Wavelength must be int or float or None.")
-
-    @property
-    def incidence(self):
-        return self._incidence
-
-    @incidence.setter
-    def incidence(self, Incidence):
-        if type(Incidence) in [float, np.float64]:
-            self._incidence = Incidence
-        else:
-            raise TypeError("Ray Incidence must be a float or None.")
-
-    @property
-    def intensity(self):
-        return self._intensity
-
-    @intensity.setter
-    def intensity(self, Intensity):
-        if type(Intensity) in [int, float, np.float64]:
-            self._intensity = Intensity
-        else:
-            raise TypeError("Ray Intensity must be int or float or None.")
-
-    # %%
-    def copy_ray(self):
+    def __copy__(self):
         """
         Returns a new OpticalRay object with the same properties.
         """
-        return Ray(self.point, self.vector, self.path, self.number, self.wavelength, self.incidence, self.intensity)
+        return replace(self)
 
     def __hash__(self):
         point_tuple = tuple(self.point.reshape(1, -1)[0])
@@ -154,3 +99,174 @@ class Ray:
         return hash(
             point_tuple + vector_tuple + (self.path, self.number, self.wavelength, self.incidence, self.intensity)
         )
+
+
+@dataclass(slots=True)
+class RayList:
+    """
+    Class representing a list of rays in a form that is well suited to calculations.
+    Specifically, the points, vectors etc are all numpy arrays
+    It can then be converted to a list of Ray objects with the method 
+    """
+    point: mgeo.PointArray
+    vector: mgeo.VectorArray
+    path: np.ndarray
+    number: np.ndarray
+    wavelength: np.ndarray
+    incidence: np.ndarray
+    intensity: np.ndarray
+
+    @classmethod
+    def from_list(cls, rays):
+        N = len(rays)
+        N_r = len(rays[0].path)
+        points = np.zeros((N, 3))
+        vectors = np.zeros((N, 3))
+        paths = np.zeros((N, N_r))
+        numbers = np.zeros(N, dtype=int)
+        wavelengths = np.zeros(N)
+        incidences = np.zeros(N)
+        intensities = np.zeros(N)
+        for i, ray in enumerate(rays):
+            points[i:,] = ray.point
+            vectors[i:,] = ray.vector
+            paths[i:,] = ray.path
+            numbers[i] = ray.number
+            wavelengths[i] = ray.wavelength
+            incidences[i] = ray.incidence
+            intensities[i] = ray.intensity
+        return cls(
+            mgeo.PointArray(points),
+            mgeo.VectorArray(vectors),
+            paths,
+            numbers,
+            wavelengths,
+            incidences,
+            intensities,
+        )
+
+    @property
+    def N(self):
+        return len(self.point)
+    
+    def __getitem__(self, key):
+        if isinstance(key, slice) or isinstance(key, list):
+            return RayList(
+                self.point[key],
+                self.vector[key],
+                self.path[key],
+                self.number[key],
+                self.wavelength[key],
+                self.incidence[key],
+                self.intensity[key],
+            )
+        return Ray(
+            self.point[key],
+            self.vector[key],
+            self.path[key],
+            self.number[key],
+            self.wavelength[key],
+            self.incidence[key],
+            self.intensity[key],
+        )
+    
+    def __len__(self):
+        return self.N
+    
+    def __iter__(self):
+        return (Ray(point=self.point[i],
+                    vector=self.vector[i],
+                    path=tuple(self.path[i]),
+                    number=int(self.number[i]),
+                    wavelength=float(self.wavelength[i]),
+                    incidence=float(self.incidence[i]),
+                    intensity=float(self.intensity[i])) for i in range(self.N))
+
+    def to_basis(self, r0, r, q):
+        """
+        Transforms the ray to the basis defined by the origin r0, the x-axis r and the y-axis q.
+        """
+        return RayList(
+            self.point.to_basis(r0, r, q),
+            self.vector.to_basis(r0, r, q),
+            self.path,
+            self.number,
+            self.wavelength,
+            self.incidence,
+            self.intensity,
+        )
+    
+    def from_basis(self, r0, r, q):
+        """
+        Transforms the ray from the basis defined by the origin r0, the x-axis r and the y-axis q.
+        """
+        return RayList(
+            self.point.from_basis(r0, r, q),
+            self.vector.from_basis(r0, r, q),
+            self.path,
+            self.number,
+            self.wavelength,
+            self.incidence,
+            self.intensity,
+        )
+
+    def rotate(self, q):
+        """
+        Rotates the ray by the quaternion q.
+        """
+        return Ray(
+            self.point.rotate(q),
+            self.vector.rotate(q),
+            self.path,
+            self.number,
+            self.wavelength,
+            self.incidence,
+            self.intensity,
+        )
+    
+    def translate(self, t):
+        """
+        Rotates the ray by the vector t
+        """
+        return Ray(
+            self.point.translate(t),
+            self.vector,
+            self.path,
+            self.number,
+            self.wavelength,
+            self.incidence,
+            self.intensity,
+        )
+
+    def __copy__(self):
+        """
+        Returns a new OpticalRay object with the same properties.
+        """
+        return RayList(
+            self.point.copy(),
+            self.vector.copy(),
+            self.path.copy(),
+            self.number.copy(),
+            self.wavelength.copy(),
+            self.incidence.copy(),
+            self.intensity.copy(),
+        )
+
+    def __hash__(self):
+        points = self.point.reshape(1, -1)[0]
+        vectors = self.vector.reshape(1, -1)[0]
+        paths = self.path.reshape(1, -1)[0]
+        result = np.concatenate((points, vectors, paths, self.number, self.wavelength, self.incidence, self.intensity))
+        result = result[~np.isnan(result)]
+        result.flags.writeable = False
+        result_hash = hash(result.data.tobytes())
+        return result_hash
+
+    def __repr__(self) -> str:
+        intro = f"RayList with {self.N} rays\n"
+        average = mgeo.Vector(np.mean(self.vector)).normalized()
+        vectors = self.vector.normalized()
+        angles = np.arccos(np.clip(np.dot(vectors, average), -1.0, 1.0))
+        avg_string = "On average, the rays are oriented along the vector:\n" + str(average) + "\n"
+        NA = f"Numerical aperture: {np.max(np.sin(angles)):.3f}\n"
+        return intro +avg_string+ NA

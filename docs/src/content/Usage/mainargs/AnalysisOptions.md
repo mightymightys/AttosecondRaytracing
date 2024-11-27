@@ -1,6 +1,7 @@
 ---
 title: "AnalysisOptions"
 weight: 4
+type: docs
 ---
 
 {{% alert title="Summary" color="primary" %}}

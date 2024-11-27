@@ -1,6 +1,6 @@
-{{ if eq .Page.File.Dir "API/" }}
+{{ if or (hasSuffix .Page.File.Dir "API/") (eq .Page.File.Dir "API/") }}
 <hr>
-{{ (printf "%s%s%s%s" .Page.File.Dir "html/" $.File.BaseFileName "_toc.html") | readFile | safeHTML }}
+{{ (printf "%s%s%s%s" .Page.File.Dir ".html/" $.File.BaseFileName "_toc.html") | readFile | safeHTML }}
 {{ else }}
 <hr>
 {{ if not .Params.notoc -}}

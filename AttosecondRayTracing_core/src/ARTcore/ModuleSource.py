@@ -1,8 +1,14 @@
 """
-Provides functions that create lists of Ray-objects that can serve as light sources for the start of the ray tracing calculation.
-
-These are called by 'ARTmain' according to the values in the *SourceProperties*-dictionary filled in the CONFIG-scripts..
-
+Provides a definition of sources of light.
+A source can be either a composite source (a sum of sources) or a simple source.
+A simple source is defined by 4 parameters:
+- Spectrum
+- Angular power distribution
+- Ray origins distribution
+- Ray directions distribution
+A reason to use composite sources is for when the power and ray distributions depend on the wavelength.
+Another source option is the source containing just a list of rays that can be prepared manually.
+Finally another source option is one used for alignment, containing a single ray.
 
 
 Created in 2019
@@ -11,248 +17,283 @@ Created in 2019
 """
 
 # %% Modules
-
-import numpy as np
 import ARTcore.ModuleOpticalRay as mray
 import ARTcore.ModuleGeometry as mgeo
+from ARTcore.ModuleGeometry import Point, Vector, Origin
 import ARTcore.ModuleProcessing as mp
 
-# %%
+from ARTcore.DepGraphDefinitions import UniformSpectraCalculator
 
+import numpy as np
+from abc import ABC, abstractmethod
+import logging
 
-def _Cone(Angle: float, NbRays: int, Wavelength=None):
+logger = logging.getLogger(__name__)
+
+# %% Abstract base classes for sources
+class Source(ABC):
     """
-    Return a list of rays filling a cone according to Vogel's spiral.
-
-    Parameters
-    ----------
-        Angle : float
-            Cone apex *half*-angle in radians.
-
-        NbRays : int
-            Number of rays in the list.
-
-        Wavelength : float, optional
-            Wavelength of the light, set as attribute to all rays.
+    Abstract base class for sources.
+    Fundamentally a source just has to be able to return a list of rays.
+    To do so, we make it callable.
     """
-    Height = 1
-    Radius = Height * np.tan(Angle)
+    @abstractmethod
+    def __call__(self,N):
+        pass
 
-    MatrixXY = mgeo.SpiralVogel(NbRays, Radius)
-
-    RayList = []
-
-    for k in range(NbRays):
-        x = MatrixXY[k, 0]
-        y = MatrixXY[k, 1]
-        RayList.append(mray.Ray(np.array([0, 0, 0]), np.array([x, y, Height]), Number=k, Wavelength=Wavelength))
-
-    return RayList
-
-
-# %%
-def PointSource(S: np.ndarray, Axis: np.ndarray, Divergence: float, NbRays: int, Wavelength=None):
+class PowerDistribution(ABC):
     """
-    Return a list of rays simulating rays from a point source.
-
-    ![Illustration of a point source.](pointsource.svg)
-
-    Parameters
-    ----------
-        S : np.ndarray
-            Coordinate vector of the source point (in mm).
-
-        Axis : np.ndarray
-            Axis vector of the cone (main direction of the rays)
-
-        Divergence : float
-            Cone apex *half*-angle in *radians* (similar to gaussian beam).
-
-        NbRays : int
-            Number of rays in the list.
-
-        Wavelength : float, optional
-            Wavelength of the light, set as attribute to all rays.
-
+    Abstract base class for angular power distributions.
     """
-    RayList = _Cone(Divergence, NbRays, Wavelength=Wavelength)
-    RayList = mgeo.RotationRayList(RayList, np.array([0, 0, 1]), Axis)
-    RayList = mgeo.TranslationRayList(RayList, S)
-    return RayList
-
-
-# %%
-def ExtendedSource(S: np.ndarray, Axis: np.ndarray, Diameter: float, Divergence: float, NbRays: int, Wavelength=None):
+    @abstractmethod
+    def __call__(self, Origins, Directions):
+        """
+        Return the power of the rays coming 
+        from the origin points Origins to the directions Directions.
+        """
+        pass
+class RayOriginsDistribution(ABC):
     """
-    Return a list of rays simulating rays from an extended array of point sources, distributed over a disk with Diameter.
-
-    Parameters
-    ----------
-        S : np.ndarray
-            Coordinate vector of the source point (in mm).
-
-        Axis : np.ndarray
-            Axis vector of the cone (main direction of the rays)
-
-        Diameter : float
-            Diameter of the extended source
-
-        Divergence : float
-            Cone apex *half*-angle in *radians* (similar to gaussian beam).
-
-        NbRays : int
-            Number of rays in the list.
-
-        Wavelength : float, optional
-            Wavelength of the light, set as attribute to all rays.
-
+    Abstract base class for ray origins distributions.
     """
-    NbPointSources = max(5, int(250 * Diameter))
-    NbPointSources = min(NbPointSources, 100)
+    @abstractmethod
+    def __call__(self, N):
+        """
+        Return the origins of N rays.
+        """
+        pass
 
-    MatrixXY = mgeo.SpiralVogel(NbPointSources, Diameter / 2)  # the positions of the point sources
-
-    NbRaysPerPointSource = max(100, int(NbRays / NbPointSources))
-    RayList = []
-    PointSourceRayList = _Cone(Divergence, NbRaysPerPointSource, Wavelength=Wavelength)
-    for k in range(NbPointSources):
-        ShiftedPointSourceRayList = mgeo.TranslationRayList(PointSourceRayList, [MatrixXY[k, 0], MatrixXY[k, 1], 0])
-        for l in range(NbRaysPerPointSource):
-            ShiftedPointSourceRayList[l]._number += (
-                k * NbRaysPerPointSource
-            )  # we allow ourselves exceptionally to modify the "internal" _number attribute
-        RayList.extend(ShiftedPointSourceRayList)
-
-    RayList = mgeo.RotationRayList(RayList, np.array([0, 0, 1]), Axis)
-    RayList = mgeo.TranslationRayList(RayList, S)
-    return RayList
-
-
-# %%
-def PlaneWaveDisk(Centre: np.ndarray, Axis: np.ndarray, Radius: float, NbRays: int, Wavelength=None):
+class RayDirectionsDistribution(ABC):
     """
-    Return a list of rays, all parallel and distributed over a round cross section according to a Vogel-spiral (see illustration). Simulating a 'round' collimated beam.
-
-    ![Illustration of a Vogel spiral.](doc_VogelSpiral.png)
-
-    Parameters
-    ----------
-        Centre : np.ndarray
-            Coordinate vector of the center of the source disk (in mm).
-
-        Axis : np.ndarray
-            Axis vector of the the plane wave (vector of all rays)
-
-        Radius : float
-            Radius of the source ray-bundle.
-
-        NbRays : int
-            Number of rays in the list.
-
-        Wavelength : float, optional
-            Wavelength of the light, set as attribute to all rays.
-
+    Abstract base class for ray directions distributions.
     """
-    MatrixXY = mgeo.SpiralVogel(NbRays, Radius)
-    RayList = []
-    num = 0
-    for k in range(NbRays - 1):
-        x = MatrixXY[k, 0]
-        y = MatrixXY[k, 1]
-        RayList.append(mray.Ray(np.array([x, y, 0]), np.array([0, 0, 1]), Number=num, Wavelength=Wavelength))
-        num = num + 1
-    RayList = mgeo.RotationRayList(RayList, np.array([0, 0, 1]), Axis)
-    RayList = mgeo.TranslationRayList(RayList, Centre)
-    return RayList
+    @abstractmethod
+    def __call__(self, N):
+        """
+        Return the directions of N rays.
+        """
+        pass
 
-
-# %%
-def PlaneWaveSquare(Centre: np.ndarray, Axis: np.ndarray, SideLength: float, NbRays: int, Wavelength=None):
+class Spectrum(ABC):
     """
-    Return a list of rays, all parallel and distributed over a square cross section awith SideLength. Simulating a 'square' collimated beam.
-
-    Parameters
-    ----------
-        Centre : np.ndarray
-            Coordinate vector of the center of the source disk (in mm).
-
-        Axis : np.ndarray
-            Axis vector of the the plane wave (vector of all rays)
-
-        SideLength : float
-            Side length of the square source ray-bundle.
-
-        NbRays : int
-            Number of rays in the list.
-
-        Wavelength : float, optional
-            Wavelength of the light, set as attribute to all rays.
-
+    Abstract base class for spectra.
     """
-    RayList = []
-    x = np.linspace(-SideLength / 2, SideLength / 2, int(np.sqrt(NbRays)))
-    y = np.linspace(-SideLength / 2, SideLength / 2, int(np.sqrt(NbRays)))
-    RayList.append(mray.Ray(np.array([0, 0, 0]), np.array([0, 0, 1]), Number=0))
-    num = 1
-    for i in x:
-        for j in y:
-            if abs(x) > 1e-4 and abs(y) > 1e-4:
-                RayList.append(mray.Ray(np.array([i, j, 0]), np.array([0, 0, 1]), Number=num, Wavelength=Wavelength))
-                num += 1
-    RayList = mgeo.RotationRayList(RayList, np.array([0, 0, 1]), Axis)
-    RayList = mgeo.TranslationRayList(RayList, Centre)
-    return RayList
+    @abstractmethod
+    def __call__(self, N):
+        """
+        Return the wavelengths of N rays.
+        """
+        pass
 
-
-# %%
-# def GaussianIntensity(r,z,I0, Wavelength, Divergence):
-
-#     w0 = Wavelength / (np.pi * Divergence)
-#     zR = np.pi * w0**2 / Wavelength
-#     wz = w0 * np.sqrt(1+(z/zR)**2)
-#     return I0 * np.exp(-2 * (r/wz)**2) / (1+(z/zR)**2)
-
-
-def ApplyGaussianIntensityToRayList(RayList, IntensityFraction=1 / np.e**2):
+# %% Specific power distributions
+class SpatialGaussianPowerDistribution(PowerDistribution):
     """
-    Apply a Gaussain intensity profile to a ray list, with intensity =1 at the center and falling
-    to 'IntensityFraction' at the edge (arbitrary units).
-
-    Parameters
-    ----------
-        RayList : list of Ray-objects
-            Coordinate vector of the center of the source disk (in mm).
-
-        IntensityFraction : float, optional
-            Relative intensity in (0,1), reached at the edge of the ray bundle. Default is 1/e^2.
-
+    Spatial Gaussian power distribution.
     """
-    if IntensityFraction >= 1 or IntensityFraction <= 0:
-        # raise ValueError('IntensityFraction should be between 0 and 1!')
-        print(
-            "When applying a Gaussian intensity profile to a ray list, the IntensityFraction should be between 0 and 1! I'm setting it to 1/e^2."
+    def __init__(self, Power, W0):
+        self.Power = Power
+        self.W0 = W0
+
+    def __call__(self, Origins, Directions):
+        """
+        Return the power of the rays coming 
+        from the origin points Origins to the directions Directions.
+        """
+        return self.Power * np.exp(-2 * np.linalg.norm(Origins, axis=1) ** 2 / self.W0 ** 2)
+    
+class AngularGaussianPowerDistribution(PowerDistribution):
+    """
+    Angular Gaussian power distribution.
+    """
+    def __init__(self, Power, Divergence):
+        self.Power = Power
+        self.Divergence = Divergence
+
+    def __call__(self, Origins, Directions):
+        """
+        Return the power of the rays coming 
+        from the origin points Origins to the directions Directions.
+        """
+        return self.Power * np.exp(-2 * np.arccos(np.dot(Directions, [0, 0, 1])) ** 2 / self.Divergence ** 2)
+
+class GaussianPowerDistribution(PowerDistribution):
+    """
+    Gaussian power distribution.
+    """
+    def __init__(self, Power, W0, Divergence):
+        self.Power = Power
+        self.W0 = W0
+        self.Divergence = Divergence
+
+    def __call__(self, Origins, Directions):
+        """
+        Return the power of the rays coming 
+        from the origin points Origins to the directions Directions.
+        """
+        return self.Power * np.exp(-2 * (Origins-mgeo.Origin).norm ** 2 / self.W0 ** 2) * np.exp(-2 * np.array(np.arccos(np.dot(Directions, mgeo.Vector([1, 0, 0])))) ** 2 / self.Divergence ** 2)
+
+class UniformPowerDistribution(PowerDistribution):
+    """
+    Uniform power distribution.
+    """
+    def __init__(self, Power):
+        self.Power = Power
+
+    def __call__(self, Origins, Directions):
+        """
+        Return the power of the rays coming 
+        from the origin points Origins to the directions Directions.
+        """
+        return self.Power * np.ones(len(Origins))
+
+# %% Specific ray origins distributions
+class PointRayOriginsDistribution(RayOriginsDistribution):
+    """
+    Point ray origins distribution.
+    """
+    def __init__(self, Origin):
+        self.Origin = Origin
+
+    def __call__(self, N):
+        """
+        Return the origins of N rays.
+        """
+        return mgeo.PointArray([self.Origin for i in range(N)])
+    
+class DiskRayOriginsDistribution(RayOriginsDistribution):
+    """
+    Disk ray origins distribution. Uses the Vogel spiral to initialize the rays.
+    """
+    def __init__(self, Origin, Radius):
+        self.Origin = Origin
+        self.Radius = Radius
+
+    def __call__(self, N):
+        """
+        Return the origins of N rays.
+        """
+        MatrixXY = mgeo.SpiralVogel(N, self.Radius)
+        return mgeo.PointArray([self.Origin + mgeo.Vector([MatrixXY[i, 0], MatrixXY[i, 1], 0]) for i in range(N)])
+    
+# %% Specific ray directions distributions
+class UniformRayDirectionsDistribution(RayDirectionsDistribution):
+    """
+    Uniform ray directions distribution.
+    """
+    def __init__(self, Direction):
+        self.Direction = Direction
+
+    def __call__(self, N):
+        """
+        Return the directions of N rays.
+        """
+        return mgeo.VectorArray([self.Direction for i in range(N)])
+
+class ConeRayDirectionsDistribution(RayDirectionsDistribution):
+    """
+    Cone ray directions distribution. Uses the Vogel spiral to initialize the rays.
+    """
+    def __init__(self, Direction, Angle):
+        self.Direction = Direction
+        self.Angle = Angle
+
+    def __call__(self, N):
+        """
+        Return the directions of N rays.
+        """
+        Height = 1
+        Radius = Height * np.tan(self.Angle)
+        MatrixXY = mgeo.SpiralVogel(N, Radius)
+        q = mgeo.QRotationVector2Vector(mgeo.Vector([0, 0, 1]), self.Direction)
+        return mgeo.VectorArray([[MatrixXY[i, 0], MatrixXY[i, 1], Height] for i in range(N)]).rotate(q).normalized()
+
+
+# %% Specific spectra
+class SingleWavelengthSpectrum(Spectrum):
+    """
+    Single wavelength spectrum.
+    """
+    def __init__(self, Wavelength):
+        self.Wavelength = Wavelength
+
+    def __call__(self, N):
+        """
+        Return the wavelengths of N rays.
+        """
+        return np.ones(N) * self.Wavelength
+
+class UniformSpectrum(Spectrum):
+    """
+    Uniform spectrum.
+    Can be specified as a r
+    """
+    def __init__(self, eVMax = None, eVMin = None, eVCentral = None, 
+                 lambdaMax = None, lambdaMin = None, lambdaCentral = None, 
+                 eVWidth = None, lambdaWidth = None):
+        # Using the DepSolver, we calculate the minimum and maximum wavelengths
+        values, steps = UniformSpectraCalculator().calculate_values(
+            lambda_min = lambdaMin, 
+            lambda_max = lambdaMax, 
+            lambda_center = lambdaCentral, 
+            lambda_width = lambdaWidth,
+            eV_min = eVMin,
+            eV_max = eVMax,
+            eV_center = eVCentral,
+            eV_width = eVWidth
         )
-        IntensityFraction = 1 / np.e**2
+        self.lambdaMin = values['lambda_min']
+        self.lambdaMax = values['lambda_max']
+    def __call__(self, N):
+        """
+        Return the wavelengths of N rays.
+        """
+        return np.linspace(self.lambdaMin, self.lambdaMax, N)
 
-    Axis = mp.FindCentralRay(RayList).vector
-    Divergence = 0
-    for l in RayList:
-        # find the largest angle with the central ray out of all the rays in the list
-        Divergence = max(Divergence, mgeo.AngleBetweenTwoVectors(Axis, l.vector))
 
-    if (
-        Divergence > 1e-12
-    ):  # we're dealing with a point source and not a plane wave, so we can apply Gaussian intensity profile as function of angle
-        for k in RayList:
-            Angle = mgeo.AngleBetweenTwoVectors(Axis, k.vector)
-            Intensity = np.exp(-2 * (np.tan(Angle) / Divergence) ** 2 * -0.5 * np.log(IntensityFraction))
-            k.intensity = Intensity
-    else:  # otherwise we apply it as function of ray distance from the Axis
-        MaxDist = 0
-        for l in RayList:
-            MaxDist = max(MaxDist, np.linalg.norm(l.point))
-        for k in RayList:
-            Intensity = np.exp(-2 * (np.linalg.norm(k.point) / MaxDist) ** 2 * -0.5 * np.log(IntensityFraction))
-            k.intensity = Intensity
+# %% Simple sources
+class SimpleSource(Source):
+    """
+    A simple source is defined by 4 parameters:
+    - Spectrum
+    - Power distribution
+    - Ray origins distribution
+    - Ray directions distribution
+    """
 
-    return RayList
+    def __init__(self, Spectrum, PowerDistribution, RayOriginsDistribution, RayDirectionsDistribution):
+        self.Spectrum = Spectrum
+        self.PowerDistribution = PowerDistribution
+        self.RayOriginsDistribution = RayOriginsDistribution
+        self.RayDirectionsDistribution = RayDirectionsDistribution
+
+    def __call__(self, N):
+        """
+        Return a list of N rays from the simple source.
+        """
+        Wavelengths = self.Spectrum(N)
+        Origins = self.RayOriginsDistribution(N)
+        Directions = self.RayDirectionsDistribution(N)
+        Powers = self.PowerDistribution(Origins, Directions)
+        RayList = []
+        for i in range(N):
+            RayList.append(mray.Ray(Origins[i], Directions[i], wavelength=Wavelengths[i], number=i, intensity=Powers[i]))
+        return mray.RayList.from_list(RayList)
+
+
+class ListSource(Source):
+    """
+    A source containing just a list of rays that can be prepared manually.
+    """
+    def __init__(self, Rays):
+        self.Rays = Rays
+
+    def __call__(self, N):
+        """
+        Return the list of rays.
+        """
+        if N < len(self.Rays):
+            return self.Rays[:N]
+        elif N>len(self.Rays):
+            logger.warning("Requested number of rays is greater than the number of rays in the source. Returning the whole source.")
+            return self.Rays    
+        return mray.RayList.from_list(self.Rays)
