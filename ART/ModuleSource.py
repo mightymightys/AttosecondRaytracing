@@ -107,12 +107,15 @@ def ExtendedSource(S: np.ndarray, Axis: np.ndarray, Diameter: float, Divergence:
             Wavelength of the light, set as attribute to all rays.
 
     """
-    NbPointSources = max(5, int(250 * Diameter))
-    NbPointSources = min(NbPointSources, 100)
+    MinNoPointSources = 30
+    MinRaysPerPointSource = 300
+    
+    NbPointSources = max(MinNoPointSources, int(250 * Diameter))
+    NbPointSources = min(NbPointSources, int(NbRays /MinRaysPerPointSource))
 
     MatrixXY = mgeo.SpiralVogel(NbPointSources, Diameter / 2)  # the positions of the point sources
 
-    NbRaysPerPointSource = max(100, int(NbRays / NbPointSources))
+    NbRaysPerPointSource = max(MinRaysPerPointSource, int(NbRays / NbPointSources))
     RayList = []
     PointSourceRayList = _Cone(Divergence, NbRaysPerPointSource, Wavelength=Wavelength)
     for k in range(NbPointSources):

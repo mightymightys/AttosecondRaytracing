@@ -398,6 +398,8 @@ class MirrorToroidal:
     ----------
         majorradius : float
             Major radius of the toroid in mm.
+            Attention: this is the distance to the *center* of the smaller circle of the torus (see sketch),
+            whereas sometimes manufacturers specify the distance to the surface of the mirror, which would be majorradius + minorradius.
 
         minorradius : float
             Minor radius of the toroid in mm.
@@ -424,6 +426,8 @@ class MirrorToroidal:
         ----------
             MajorRadius : float
                 Major radius of the toroid in mm.
+                Attention: this is the distance to the *center* of the smaller circle of the torus (see sketch),
+                whereas sometimes manufacturers specify the distance to the surface of the mirror, which would be majorradius + minorradius.
 
             MinorRadius : float
                 Minor radius of the toroid in mm.
