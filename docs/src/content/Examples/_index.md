@@ -2,8 +2,9 @@
 title: "Examples"
 linkTitle: "Examples"
 weight: 3
+type: docs
 description: >
-  See your project in action!
+  Some examples of ray-traced systems that you can use as a starting point for your own simulation.
 ---
 
 {{% pageinfo %}}

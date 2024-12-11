@@ -1,6 +1,7 @@
 ---
 title: "OpticalChainList"
 weight: 1
+type: docs
 ---
 
 {{% alert title="Summary" color="primary" %}}

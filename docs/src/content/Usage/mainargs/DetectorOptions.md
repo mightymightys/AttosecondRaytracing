@@ -1,6 +1,7 @@
 ---
 title: "DetectorOptions"
 weight: 3
+type: docs
 ---
 
 {{% alert title="Summary" color="primary" %}}

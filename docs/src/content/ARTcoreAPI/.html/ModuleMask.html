@@ -1,0 +1,728 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css" integrity="sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js" integrity="sha384-PwRUT/YqbnEjkZO0zZxNqcxACrXe+j766U2amXcgMg5457rve2Y7I6ZJSm2A0mS4" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false}
+            ]
+        });
+    });
+</script>
+
+<!--
+<div class="td-toc"><nav id="TableOfContents"><div>
+            <h2>API Documentation</h2>
+                <ul class="memberlist">
+            <li>
+                    <a class="variable" href="#logger">logger</a>
+            </li>
+            <li>
+                    <a class="class" href="#Mask">Mask</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Mask.__init__">Mask</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mask.type">type</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mask.support">support</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mask.curvature">curvature</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mask.oe_frame_normal">oe_frame_normal</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mask.oe_frame_majoraxis">oe_frame_majoraxis</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Mask.get_local_normal">get_local_normal</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Mask.get_centre">get_centre</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Mask.get_grid3D">get_grid3D</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="function" href="#TransmitMaskRayList">TransmitMaskRayList</a>
+            </li>
+    </ul>
+
+</div></nav></div>
+-->
+
+<!--
+We comment the TOC out because we want to integrate it into the page layout of Docsy
+-->
+
+
+<div class="pdoc">
+            <section class="module-info">
+                    
+
+                        <div class="docstring"><p>Provides a class for masks, which are a type of optical element that simply stops rays that hit it.</p>
+
+<p>Also provides the function <em>TransmitMaskRayList</em> that returns the rays transmitted by the mask.</p>
+
+<p><img src="Mask.svg" alt="Illustration the Mask-class." /></p>
+
+<p>Created in 2021</p>
+
+<p>@author: Stefan Haessler + André Kalouguine</p>
+</div>
+
+                        <input id="mod-ModuleMask-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+
+                        <label class="view-source-button" for="mod-ModuleMask-view-source"><span>View Source</span></label>
+
+                        <div class="chroma pdoc-code"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="sd">Provides a class for masks, which are a type of optical element that simply stops rays that hit it.</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="sd">Also provides the function *TransmitMaskRayList* that returns the rays transmitted by the mask.</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a><span class="sd">![Illustration the Mask-class.](Mask.svg)</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">Created in 2021</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="sd">@author: Stefan Haessler + André Kalouguine</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="c1"># %% Modules</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="kn">import</span> <span class="nn">ARTcore.ModuleGeometry</span> <span class="k">as</span> <span class="nn">mgeo</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="kn">import</span> <span class="nn">ARTcore.ModuleSupport</span> <span class="k">as</span> <span class="nn">msup</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="kn">import</span> <span class="nn">ARTcore.ModuleOpticalElement</span> <span class="k">as</span> <span class="nn">moe</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="kn">import</span> <span class="nn">ARTcore.ModuleMirror</span> <span class="k">as</span> <span class="nn">mmirror</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="kn">import</span> <span class="nn">logging</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="c1"># %%############################################################################</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">moe</span><span class="o">.</span><span class="n">OpticalElement</span><span class="p">):</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    A mask: a plane surface of the shape of its [Support](ModuleSupport.html), which stops all rays that hit it,</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">    while all other rays continue their path unchanged. No diffraction effects.</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">    Attributes</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">    ----------</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">        support : [Support](ModuleSupport.html)-object</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">        type : str &#39;Mask&#39;.</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    Methods</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">    ----------</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a><span class="sd">        get_local_normal(Point)</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a><span class="sd">        get_centre()</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a><span class="sd">        get_grid3D(NbPoints)</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a><span class="sd">        Parameters</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a><span class="sd">        ----------</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;Mask&quot;</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">curvature</span> <span class="o">=</span> <span class="n">mmirror</span><span class="o">.</span><span class="n">Curvature</span><span class="o">.</span><span class="n">FLAT</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_positionned</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="k">if</span> <span class="s2">&quot;position&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>            <span class="n">NewPosition</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">]</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">NewPosition</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">NewPosition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Defining position of spherical mirror during creation&quot;</span><span class="p">)</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">NewPosition</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_positionned</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_orientation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quaternion</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_oriented</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>        <span class="k">if</span> <span class="s2">&quot;orientation&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>            <span class="n">NewOrientation</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;orientation&quot;</span><span class="p">]</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">NewOrientation</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">quaternion</span><span class="p">:</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Defining orientation of spherical mirror during creation&quot;</span><span class="p">)</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_orientation</span> <span class="o">=</span> <span class="n">NewOrientation</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_oriented</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">oe_frame_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">oe_frame_majoraxis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>        <span class="k">match</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">):</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRound</span><span class="p">:</span>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Round </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Radius: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">radius</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRectangle</span><span class="p">:</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Rectangular </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimX</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimY</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRectangleHole</span><span class="p">:</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Rectangular holey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimX</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimY</span><span class="si">}</span><span class="s2">, hole radius: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">radiushole</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRectangleRectHole</span><span class="p">:</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Rectangular holey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> with rectangular hole&quot;</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimX</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimY</span><span class="si">}</span><span class="s2">, hole size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">holeX</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">holeY</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRoundHole</span><span class="p">:</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Round holey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Radius: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">radius</span><span class="si">}</span><span class="s2">, hole radius: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">radiushole</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>            <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="s2">&quot;Custom shape&quot;</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>        <span class="n">pretty_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="n">pretty_str</span><span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">-</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="se">\n\t</span><span class="s2">-&quot;</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positionned</span><span class="p">:</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>            <span class="n">pretty_str</span><span class="o">+=</span><span class="sa">f</span><span class="s2">&quot;Position: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>            <span class="n">pretty_str</span><span class="o">+=</span><span class="s2">&quot;Not positionned</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>        <span class="n">pretty_str</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">-&quot;</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oriented</span><span class="p">:</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>            <span class="n">pretty_str</span><span class="o">+=</span><span class="sa">f</span><span class="s2">&quot;Orientation: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">orientation</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>            <span class="n">pretty_str</span><span class="o">+=</span><span class="s2">&quot;Not oriented</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>        <span class="k">return</span> <span class="n">pretty_str</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="k">def</span> <span class="nf">_get_intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the intersection point between Ray and the xy-plane,</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="sd">        where rays do NOT hit the mask&#39;s support&quot;&quot;&quot;</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>        <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ray</span><span class="o">.</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="n">I</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span> <span class="o">*</span> <span class="n">t</span> <span class="o">+</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_IncludeSupport</span><span class="p">(</span><span class="n">I</span><span class="p">):</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="n">I</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>        <span class="k">return</span> <span class="n">PointIntersection</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="k">def</span> <span class="nf">get_local_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return normal unit vector in point &#39;Point&#39; on the mask.&quot;&quot;&quot;</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="k">return</span> <span class="n">Normal</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return 3D coordinates of the point on the mask surface at the center of its support.&quot;&quot;&quot;</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">NbPoint</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points of the mask surface,</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a><span class="sd">        sampling the support in a number NbPoints of points. </span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>        <span class="n">E</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">]</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>        <span class="n">contour</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">NbPoint</span><span class="p">))</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>        <span class="n">contours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_Contour_points</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="k">if</span> <span class="n">E</span><span class="p">:</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>            <span class="n">contours</span><span class="p">,</span> <span class="n">contour_edges</span> <span class="o">=</span> <span class="n">contours</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="n">contours</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span> <span class="o">-</span> <span class="n">contour</span><span class="p">)</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">]))</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="k">if</span> <span class="n">E</span><span class="p">:</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>            <span class="k">return</span> <span class="n">ListCoordXYZ</span><span class="p">,</span> <span class="n">contour_edges</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="c1"># %%############################################################################</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="k">def</span> <span class="nf">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the transmitted ray&quot;&quot;&quot;</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>    <span class="n">PointRay</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>    <span class="n">VectorRay</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>    <span class="n">NormalMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">get_local_normal</span><span class="p">(</span><span class="n">PointMask</span><span class="p">)</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="n">AngleIncidence</span> <span class="o">=</span> <span class="n">mgeo</span><span class="o">.</span><span class="n">AngleBetweenTwoVectors</span><span class="p">(</span><span class="n">VectorRay</span><span class="p">,</span> <span class="n">NormalMask</span><span class="p">)</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>    <span class="n">Path</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">path</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">PointMask</span> <span class="o">-</span> <span class="n">PointRay</span><span class="p">),)</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">copy_ray</span><span class="p">()</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">point</span> <span class="o">=</span> <span class="n">PointMask</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">vector</span> <span class="o">=</span> <span class="n">VectorRay</span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">incidence</span> <span class="o">=</span> <span class="n">AngleIncidence</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>    <span class="n">RayTransmitted</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>    <span class="k">return</span> <span class="n">RayTransmitted</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a><span class="c1"># %%</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a><span class="k">def</span> <span class="nf">TransmitMaskRayList</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">RayList</span><span class="p">):</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a><span class="sd">    Returns the the transmitted rays that pass the mask for the list of</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a><span class="sd">    incident rays ListRay.</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="sd">    Rays that hit the support are not further propagated.</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="sd">    Updates the reflected rays&#39; incidence angle and path.</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a><span class="sd">    Parameters</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="sd">    ----------</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="sd">        Mask : Mask-object</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="sd">        ListRay : list[Ray-object]</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>    <span class="n">ListRayTransmitted</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>    <span class="k">for</span> <span class="n">Ray</span> <span class="ow">in</span> <span class="n">RayList</span><span class="p">:</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>        <span class="n">PointMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">_get_intersection</span><span class="p">(</span><span class="n">Ray</span><span class="p">)</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>        <span class="k">if</span> <span class="n">PointMask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>            <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">)</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>            <span class="n">ListRayTransmitted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RayTransmitted</span><span class="p">)</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="k">return</span> <span class="n">ListRayTransmitted</span>
+</span></pre></div>
+
+
+            </section>
+                <section id="logger">
+                    <div class="attr variable">
+            <span class="name">logger</span>        =
+<span class="default_value">&lt;Logger <a href="">ARTcore.ModuleMask</a> (WARNING)&gt;</span>
+
+        
+    </div>
+    <a class="headerlink" href="#logger"></a>
+    
+    
+
+                </section>
+                <section id="Mask">
+                            <input id="Mask-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Mask</span><wbr>(<span class="base"><a href="ModuleOpticalElement.html#OpticalElement">ARTcore.ModuleOpticalElement.OpticalElement</a></span>):
+
+                <label class="view-source-button" for="Mask-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mask"></a>
+            <div class="chroma pdoc-code"><pre><span></span><span id="Mask-27"><a href="#Mask-27"><span class="linenos"> 27</span></a><span class="k">class</span> <span class="nc">Mask</span><span class="p">(</span><span class="n">moe</span><span class="o">.</span><span class="n">OpticalElement</span><span class="p">):</span>
+</span><span id="Mask-28"><a href="#Mask-28"><span class="linenos"> 28</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask-29"><a href="#Mask-29"><span class="linenos"> 29</span></a><span class="sd">    A mask: a plane surface of the shape of its [Support](ModuleSupport.html), which stops all rays that hit it,</span>
+</span><span id="Mask-30"><a href="#Mask-30"><span class="linenos"> 30</span></a><span class="sd">    while all other rays continue their path unchanged. No diffraction effects.</span>
+</span><span id="Mask-31"><a href="#Mask-31"><span class="linenos"> 31</span></a>
+</span><span id="Mask-32"><a href="#Mask-32"><span class="linenos"> 32</span></a><span class="sd">    Attributes</span>
+</span><span id="Mask-33"><a href="#Mask-33"><span class="linenos"> 33</span></a><span class="sd">    ----------</span>
+</span><span id="Mask-34"><a href="#Mask-34"><span class="linenos"> 34</span></a><span class="sd">        support : [Support](ModuleSupport.html)-object</span>
+</span><span id="Mask-35"><a href="#Mask-35"><span class="linenos"> 35</span></a>
+</span><span id="Mask-36"><a href="#Mask-36"><span class="linenos"> 36</span></a><span class="sd">        type : str &#39;Mask&#39;.</span>
+</span><span id="Mask-37"><a href="#Mask-37"><span class="linenos"> 37</span></a>
+</span><span id="Mask-38"><a href="#Mask-38"><span class="linenos"> 38</span></a><span class="sd">    Methods</span>
+</span><span id="Mask-39"><a href="#Mask-39"><span class="linenos"> 39</span></a><span class="sd">    ----------</span>
+</span><span id="Mask-40"><a href="#Mask-40"><span class="linenos"> 40</span></a><span class="sd">        get_local_normal(Point)</span>
+</span><span id="Mask-41"><a href="#Mask-41"><span class="linenos"> 41</span></a>
+</span><span id="Mask-42"><a href="#Mask-42"><span class="linenos"> 42</span></a><span class="sd">        get_centre()</span>
+</span><span id="Mask-43"><a href="#Mask-43"><span class="linenos"> 43</span></a>
+</span><span id="Mask-44"><a href="#Mask-44"><span class="linenos"> 44</span></a><span class="sd">        get_grid3D(NbPoints)</span>
+</span><span id="Mask-45"><a href="#Mask-45"><span class="linenos"> 45</span></a>
+</span><span id="Mask-46"><a href="#Mask-46"><span class="linenos"> 46</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Mask-47"><a href="#Mask-47"><span class="linenos"> 47</span></a>
+</span><span id="Mask-48"><a href="#Mask-48"><span class="linenos"> 48</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="Mask-49"><a href="#Mask-49"><span class="linenos"> 49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask-50"><a href="#Mask-50"><span class="linenos"> 50</span></a><span class="sd">        Parameters</span>
+</span><span id="Mask-51"><a href="#Mask-51"><span class="linenos"> 51</span></a><span class="sd">        ----------</span>
+</span><span id="Mask-52"><a href="#Mask-52"><span class="linenos"> 52</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object</span>
+</span><span id="Mask-53"><a href="#Mask-53"><span class="linenos"> 53</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Mask-54"><a href="#Mask-54"><span class="linenos"> 54</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;Mask&quot;</span>
+</span><span id="Mask-55"><a href="#Mask-55"><span class="linenos"> 55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
+</span><span id="Mask-56"><a href="#Mask-56"><span class="linenos"> 56</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+</span><span id="Mask-57"><a href="#Mask-57"><span class="linenos"> 57</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">curvature</span> <span class="o">=</span> <span class="n">mmirror</span><span class="o">.</span><span class="n">Curvature</span><span class="o">.</span><span class="n">FLAT</span>
+</span><span id="Mask-58"><a href="#Mask-58"><span class="linenos"> 58</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_positionned</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="Mask-59"><a href="#Mask-59"><span class="linenos"> 59</span></a>        <span class="k">if</span> <span class="s2">&quot;position&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+</span><span id="Mask-60"><a href="#Mask-60"><span class="linenos"> 60</span></a>            <span class="n">NewPosition</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">]</span>
+</span><span id="Mask-61"><a href="#Mask-61"><span class="linenos"> 61</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">NewPosition</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">NewPosition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+</span><span id="Mask-62"><a href="#Mask-62"><span class="linenos"> 62</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Defining position of spherical mirror during creation&quot;</span><span class="p">)</span>
+</span><span id="Mask-63"><a href="#Mask-63"><span class="linenos"> 63</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">NewPosition</span>
+</span><span id="Mask-64"><a href="#Mask-64"><span class="linenos"> 64</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_positionned</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="Mask-65"><a href="#Mask-65"><span class="linenos"> 65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_orientation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quaternion</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Mask-66"><a href="#Mask-66"><span class="linenos"> 66</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_oriented</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="Mask-67"><a href="#Mask-67"><span class="linenos"> 67</span></a>        <span class="k">if</span> <span class="s2">&quot;orientation&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+</span><span id="Mask-68"><a href="#Mask-68"><span class="linenos"> 68</span></a>            <span class="n">NewOrientation</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;orientation&quot;</span><span class="p">]</span>
+</span><span id="Mask-69"><a href="#Mask-69"><span class="linenos"> 69</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">NewOrientation</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">quaternion</span><span class="p">:</span>
+</span><span id="Mask-70"><a href="#Mask-70"><span class="linenos"> 70</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Defining orientation of spherical mirror during creation&quot;</span><span class="p">)</span>
+</span><span id="Mask-71"><a href="#Mask-71"><span class="linenos"> 71</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_orientation</span> <span class="o">=</span> <span class="n">NewOrientation</span>
+</span><span id="Mask-72"><a href="#Mask-72"><span class="linenos"> 72</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_oriented</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="Mask-73"><a href="#Mask-73"><span class="linenos"> 73</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">oe_frame_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+</span><span id="Mask-74"><a href="#Mask-74"><span class="linenos"> 74</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">oe_frame_majoraxis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="Mask-75"><a href="#Mask-75"><span class="linenos"> 75</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span><span id="Mask-76"><a href="#Mask-76"><span class="linenos"> 76</span></a>
+</span><span id="Mask-77"><a href="#Mask-77"><span class="linenos"> 77</span></a>    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Mask-78"><a href="#Mask-78"><span class="linenos"> 78</span></a>        <span class="k">match</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">):</span>
+</span><span id="Mask-79"><a href="#Mask-79"><span class="linenos"> 79</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRound</span><span class="p">:</span>
+</span><span id="Mask-80"><a href="#Mask-80"><span class="linenos"> 80</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Round </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-81"><a href="#Mask-81"><span class="linenos"> 81</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Radius: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">radius</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-82"><a href="#Mask-82"><span class="linenos"> 82</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRectangle</span><span class="p">:</span>
+</span><span id="Mask-83"><a href="#Mask-83"><span class="linenos"> 83</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Rectangular </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-84"><a href="#Mask-84"><span class="linenos"> 84</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimX</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimY</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-85"><a href="#Mask-85"><span class="linenos"> 85</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRectangleHole</span><span class="p">:</span>
+</span><span id="Mask-86"><a href="#Mask-86"><span class="linenos"> 86</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Rectangular holey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-87"><a href="#Mask-87"><span class="linenos"> 87</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimX</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimY</span><span class="si">}</span><span class="s2">, hole radius: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">radiushole</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-88"><a href="#Mask-88"><span class="linenos"> 88</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRectangleRectHole</span><span class="p">:</span>
+</span><span id="Mask-89"><a href="#Mask-89"><span class="linenos"> 89</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Rectangular holey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2"> with rectangular hole&quot;</span>
+</span><span id="Mask-90"><a href="#Mask-90"><span class="linenos"> 90</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimX</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">dimY</span><span class="si">}</span><span class="s2">, hole size: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">holeX</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">holeY</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-91"><a href="#Mask-91"><span class="linenos"> 91</span></a>            <span class="k">case</span> <span class="n">msup</span><span class="o">.</span><span class="n">SupportRoundHole</span><span class="p">:</span>
+</span><span id="Mask-92"><a href="#Mask-92"><span class="linenos"> 92</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Round holey </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-93"><a href="#Mask-93"><span class="linenos"> 93</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Radius: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">radius</span><span class="si">}</span><span class="s2">, hole radius: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">radiushole</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-94"><a href="#Mask-94"><span class="linenos"> 94</span></a>            <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+</span><span id="Mask-95"><a href="#Mask-95"><span class="linenos"> 95</span></a>                <span class="n">shape</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="Mask-96"><a href="#Mask-96"><span class="linenos"> 96</span></a>                <span class="n">size</span> <span class="o">=</span> <span class="s2">&quot;Custom shape&quot;</span>
+</span><span id="Mask-97"><a href="#Mask-97"><span class="linenos"> 97</span></a>        <span class="n">pretty_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="Mask-98"><a href="#Mask-98"><span class="linenos"> 98</span></a>        <span class="n">pretty_str</span><span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">-</span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="se">\n\t</span><span class="s2">-&quot;</span>
+</span><span id="Mask-99"><a href="#Mask-99"><span class="linenos"> 99</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positionned</span><span class="p">:</span>
+</span><span id="Mask-100"><a href="#Mask-100"><span class="linenos">100</span></a>            <span class="n">pretty_str</span><span class="o">+=</span><span class="sa">f</span><span class="s2">&quot;Position: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="Mask-101"><a href="#Mask-101"><span class="linenos">101</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Mask-102"><a href="#Mask-102"><span class="linenos">102</span></a>            <span class="n">pretty_str</span><span class="o">+=</span><span class="s2">&quot;Not positionned</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="Mask-103"><a href="#Mask-103"><span class="linenos">103</span></a>        <span class="n">pretty_str</span><span class="o">+=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">-&quot;</span>
+</span><span id="Mask-104"><a href="#Mask-104"><span class="linenos">104</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_oriented</span><span class="p">:</span>
+</span><span id="Mask-105"><a href="#Mask-105"><span class="linenos">105</span></a>            <span class="n">pretty_str</span><span class="o">+=</span><span class="sa">f</span><span class="s2">&quot;Orientation: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">orientation</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="Mask-106"><a href="#Mask-106"><span class="linenos">106</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Mask-107"><a href="#Mask-107"><span class="linenos">107</span></a>            <span class="n">pretty_str</span><span class="o">+=</span><span class="s2">&quot;Not oriented</span><span class="se">\n</span><span class="s2">&quot;</span>
+</span><span id="Mask-108"><a href="#Mask-108"><span class="linenos">108</span></a>        <span class="k">return</span> <span class="n">pretty_str</span>
+</span><span id="Mask-109"><a href="#Mask-109"><span class="linenos">109</span></a>
+</span><span id="Mask-110"><a href="#Mask-110"><span class="linenos">110</span></a>
+</span><span id="Mask-111"><a href="#Mask-111"><span class="linenos">111</span></a>    <span class="k">def</span> <span class="nf">_get_intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ray</span><span class="p">):</span>
+</span><span id="Mask-112"><a href="#Mask-112"><span class="linenos">112</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the intersection point between Ray and the xy-plane,</span>
+</span><span id="Mask-113"><a href="#Mask-113"><span class="linenos">113</span></a><span class="sd">        where rays do NOT hit the mask&#39;s support&quot;&quot;&quot;</span>
+</span><span id="Mask-114"><a href="#Mask-114"><span class="linenos">114</span></a>        <span class="n">t</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ray</span><span class="o">.</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span id="Mask-115"><a href="#Mask-115"><span class="linenos">115</span></a>        <span class="n">I</span> <span class="o">=</span> <span class="n">Ray</span><span class="o">.</span><span class="n">vector</span> <span class="o">*</span> <span class="n">t</span> <span class="o">+</span> <span class="n">Ray</span><span class="o">.</span><span class="n">point</span>
+</span><span id="Mask-116"><a href="#Mask-116"><span class="linenos">116</span></a>        <span class="k">if</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_IncludeSupport</span><span class="p">(</span><span class="n">I</span><span class="p">):</span>
+</span><span id="Mask-117"><a href="#Mask-117"><span class="linenos">117</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="n">I</span>
+</span><span id="Mask-118"><a href="#Mask-118"><span class="linenos">118</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Mask-119"><a href="#Mask-119"><span class="linenos">119</span></a>            <span class="n">PointIntersection</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="Mask-120"><a href="#Mask-120"><span class="linenos">120</span></a>
+</span><span id="Mask-121"><a href="#Mask-121"><span class="linenos">121</span></a>        <span class="k">return</span> <span class="n">PointIntersection</span>
+</span><span id="Mask-122"><a href="#Mask-122"><span class="linenos">122</span></a>
+</span><span id="Mask-123"><a href="#Mask-123"><span class="linenos">123</span></a>    <span class="k">def</span> <span class="nf">get_local_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
+</span><span id="Mask-124"><a href="#Mask-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return normal unit vector in point &#39;Point&#39; on the mask.&quot;&quot;&quot;</span>
+</span><span id="Mask-125"><a href="#Mask-125"><span class="linenos">125</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</span><span id="Mask-126"><a href="#Mask-126"><span class="linenos">126</span></a>        <span class="k">return</span> <span class="n">Normal</span>
+</span><span id="Mask-127"><a href="#Mask-127"><span class="linenos">127</span></a>
+</span><span id="Mask-128"><a href="#Mask-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Mask-129"><a href="#Mask-129"><span class="linenos">129</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return 3D coordinates of the point on the mask surface at the center of its support.&quot;&quot;&quot;</span>
+</span><span id="Mask-130"><a href="#Mask-130"><span class="linenos">130</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="Mask-131"><a href="#Mask-131"><span class="linenos">131</span></a>
+</span><span id="Mask-132"><a href="#Mask-132"><span class="linenos">132</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">NbPoint</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="Mask-133"><a href="#Mask-133"><span class="linenos">133</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask-134"><a href="#Mask-134"><span class="linenos">134</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points of the mask surface,</span>
+</span><span id="Mask-135"><a href="#Mask-135"><span class="linenos">135</span></a><span class="sd">        sampling the support in a number NbPoints of points. </span>
+</span><span id="Mask-136"><a href="#Mask-136"><span class="linenos">136</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Mask-137"><a href="#Mask-137"><span class="linenos">137</span></a>        <span class="n">E</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">]</span>
+</span><span id="Mask-138"><a href="#Mask-138"><span class="linenos">138</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Mask-139"><a href="#Mask-139"><span class="linenos">139</span></a>        <span class="n">contour</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">NbPoint</span><span class="p">))</span>
+</span><span id="Mask-140"><a href="#Mask-140"><span class="linenos">140</span></a>        <span class="n">contours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_Contour_points</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="Mask-141"><a href="#Mask-141"><span class="linenos">141</span></a>        <span class="k">if</span> <span class="n">E</span><span class="p">:</span>
+</span><span id="Mask-142"><a href="#Mask-142"><span class="linenos">142</span></a>            <span class="n">contours</span><span class="p">,</span> <span class="n">contour_edges</span> <span class="o">=</span> <span class="n">contours</span>
+</span><span id="Mask-143"><a href="#Mask-143"><span class="linenos">143</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="n">contours</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span> <span class="o">-</span> <span class="n">contour</span><span class="p">)</span>
+</span><span id="Mask-144"><a href="#Mask-144"><span class="linenos">144</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
+</span><span id="Mask-145"><a href="#Mask-145"><span class="linenos">145</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="Mask-146"><a href="#Mask-146"><span class="linenos">146</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">]))</span>
+</span><span id="Mask-147"><a href="#Mask-147"><span class="linenos">147</span></a>        <span class="k">if</span> <span class="n">E</span><span class="p">:</span>
+</span><span id="Mask-148"><a href="#Mask-148"><span class="linenos">148</span></a>            <span class="k">return</span> <span class="n">ListCoordXYZ</span><span class="p">,</span> <span class="n">contour_edges</span>
+</span><span id="Mask-149"><a href="#Mask-149"><span class="linenos">149</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>A mask: a plane surface of the shape of its <a href="ModuleSupport.html">Support</a>, which stops all rays that hit it,
+while all other rays continue their path unchanged. No diffraction effects.</p>
+
+<h2 id="attributes">Attributes</h2>
+
+<pre><code>support : [Support](ModuleSupport.html)-object
+
+type : str 'Mask'.
+</code></pre>
+
+<h2 id="methods">Methods</h2>
+
+<pre><code>get_local_normal(Point)
+
+get_centre()
+
+get_grid3D(NbPoints)
+</code></pre>
+</div>
+
+
+                            <div id="Mask.__init__" class="classattr">
+                                        <input id="Mask.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">Mask</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">Support</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span>)</span>
+
+                <label class="view-source-button" for="Mask.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mask.__init__"></a>
+            <div class="chroma pdoc-code"><pre><span></span><span id="Mask.__init__-48"><a href="#Mask.__init__-48"><span class="linenos">48</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Support</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="Mask.__init__-49"><a href="#Mask.__init__-49"><span class="linenos">49</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask.__init__-50"><a href="#Mask.__init__-50"><span class="linenos">50</span></a><span class="sd">        Parameters</span>
+</span><span id="Mask.__init__-51"><a href="#Mask.__init__-51"><span class="linenos">51</span></a><span class="sd">        ----------</span>
+</span><span id="Mask.__init__-52"><a href="#Mask.__init__-52"><span class="linenos">52</span></a><span class="sd">            Support : [Support](ModuleSupport.html)-object</span>
+</span><span id="Mask.__init__-53"><a href="#Mask.__init__-53"><span class="linenos">53</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Mask.__init__-54"><a href="#Mask.__init__-54"><span class="linenos">54</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;Mask&quot;</span>
+</span><span id="Mask.__init__-55"><a href="#Mask.__init__-55"><span class="linenos">55</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">support</span> <span class="o">=</span> <span class="n">Support</span>
+</span><span id="Mask.__init__-56"><a href="#Mask.__init__-56"><span class="linenos">56</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span>
+</span><span id="Mask.__init__-57"><a href="#Mask.__init__-57"><span class="linenos">57</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">curvature</span> <span class="o">=</span> <span class="n">mmirror</span><span class="o">.</span><span class="n">Curvature</span><span class="o">.</span><span class="n">FLAT</span>
+</span><span id="Mask.__init__-58"><a href="#Mask.__init__-58"><span class="linenos">58</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_positionned</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="Mask.__init__-59"><a href="#Mask.__init__-59"><span class="linenos">59</span></a>        <span class="k">if</span> <span class="s2">&quot;position&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+</span><span id="Mask.__init__-60"><a href="#Mask.__init__-60"><span class="linenos">60</span></a>            <span class="n">NewPosition</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;position&quot;</span><span class="p">]</span>
+</span><span id="Mask.__init__-61"><a href="#Mask.__init__-61"><span class="linenos">61</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">NewPosition</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">NewPosition</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+</span><span id="Mask.__init__-62"><a href="#Mask.__init__-62"><span class="linenos">62</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Defining position of spherical mirror during creation&quot;</span><span class="p">)</span>
+</span><span id="Mask.__init__-63"><a href="#Mask.__init__-63"><span class="linenos">63</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">NewPosition</span>
+</span><span id="Mask.__init__-64"><a href="#Mask.__init__-64"><span class="linenos">64</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_positionned</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="Mask.__init__-65"><a href="#Mask.__init__-65"><span class="linenos">65</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_orientation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quaternion</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="Mask.__init__-66"><a href="#Mask.__init__-66"><span class="linenos">66</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_oriented</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="Mask.__init__-67"><a href="#Mask.__init__-67"><span class="linenos">67</span></a>        <span class="k">if</span> <span class="s2">&quot;orientation&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+</span><span id="Mask.__init__-68"><a href="#Mask.__init__-68"><span class="linenos">68</span></a>            <span class="n">NewOrientation</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;orientation&quot;</span><span class="p">]</span>
+</span><span id="Mask.__init__-69"><a href="#Mask.__init__-69"><span class="linenos">69</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">NewOrientation</span><span class="p">)</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">quaternion</span><span class="p">:</span>
+</span><span id="Mask.__init__-70"><a href="#Mask.__init__-70"><span class="linenos">70</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Defining orientation of spherical mirror during creation&quot;</span><span class="p">)</span>
+</span><span id="Mask.__init__-71"><a href="#Mask.__init__-71"><span class="linenos">71</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_orientation</span> <span class="o">=</span> <span class="n">NewOrientation</span>
+</span><span id="Mask.__init__-72"><a href="#Mask.__init__-72"><span class="linenos">72</span></a>                <span class="bp">self</span><span class="o">.</span><span class="n">_oriented</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="Mask.__init__-73"><a href="#Mask.__init__-73"><span class="linenos">73</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">oe_frame_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+</span><span id="Mask.__init__-74"><a href="#Mask.__init__-74"><span class="linenos">74</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">oe_frame_majoraxis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</span><span id="Mask.__init__-75"><a href="#Mask.__init__-75"><span class="linenos">75</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><h2 id="parameters">Parameters</h2>
+
+<pre><code>Support : [Support](ModuleSupport.html)-object
+</code></pre>
+</div>
+
+
+                            </div>
+                            <div id="Mask.type" class="classattr">
+                                <div class="attr variable">
+            <span class="name">type</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Mask.type"></a>
+    
+    
+
+                            </div>
+                            <div id="Mask.support" class="classattr">
+                                <div class="attr variable">
+            <span class="name">support</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Mask.support"></a>
+    
+    
+
+                            </div>
+                            <div id="Mask.curvature" class="classattr">
+                                <div class="attr variable">
+            <span class="name">curvature</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Mask.curvature"></a>
+    
+    
+
+                            </div>
+                            <div id="Mask.oe_frame_normal" class="classattr">
+                                <div class="attr variable">
+            <span class="name">oe_frame_normal</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Mask.oe_frame_normal"></a>
+    
+    
+
+                            </div>
+                            <div id="Mask.oe_frame_majoraxis" class="classattr">
+                                <div class="attr variable">
+            <span class="name">oe_frame_majoraxis</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Mask.oe_frame_majoraxis"></a>
+    
+    
+
+                            </div>
+                            <div id="Mask.get_local_normal" class="classattr">
+                                        <input id="Mask.get_local_normal-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">get_local_normal</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">Point</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="Mask.get_local_normal-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mask.get_local_normal"></a>
+            <div class="chroma pdoc-code"><pre><span></span><span id="Mask.get_local_normal-123"><a href="#Mask.get_local_normal-123"><span class="linenos">123</span></a>    <span class="k">def</span> <span class="nf">get_local_normal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
+</span><span id="Mask.get_local_normal-124"><a href="#Mask.get_local_normal-124"><span class="linenos">124</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return normal unit vector in point &#39;Point&#39; on the mask.&quot;&quot;&quot;</span>
+</span><span id="Mask.get_local_normal-125"><a href="#Mask.get_local_normal-125"><span class="linenos">125</span></a>        <span class="n">Normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</span><span id="Mask.get_local_normal-126"><a href="#Mask.get_local_normal-126"><span class="linenos">126</span></a>        <span class="k">return</span> <span class="n">Normal</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Return normal unit vector in point 'Point' on the mask.</p>
+</div>
+
+
+                            </div>
+                            <div id="Mask.get_centre" class="classattr">
+                                        <input id="Mask.get_centre-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">get_centre</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="Mask.get_centre-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mask.get_centre"></a>
+            <div class="chroma pdoc-code"><pre><span></span><span id="Mask.get_centre-128"><a href="#Mask.get_centre-128"><span class="linenos">128</span></a>    <span class="k">def</span> <span class="nf">get_centre</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Mask.get_centre-129"><a href="#Mask.get_centre-129"><span class="linenos">129</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return 3D coordinates of the point on the mask surface at the center of its support.&quot;&quot;&quot;</span>
+</span><span id="Mask.get_centre-130"><a href="#Mask.get_centre-130"><span class="linenos">130</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Return 3D coordinates of the point on the mask surface at the center of its support.</p>
+</div>
+
+
+                            </div>
+                            <div id="Mask.get_grid3D" class="classattr">
+                                        <input id="Mask.get_grid3D-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">get_grid3D</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">NbPoint</span>, </span><span class="param"><span class="o">**</span><span class="n">kwargs</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="Mask.get_grid3D-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mask.get_grid3D"></a>
+            <div class="chroma pdoc-code"><pre><span></span><span id="Mask.get_grid3D-132"><a href="#Mask.get_grid3D-132"><span class="linenos">132</span></a>    <span class="k">def</span> <span class="nf">get_grid3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">NbPoint</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span id="Mask.get_grid3D-133"><a href="#Mask.get_grid3D-133"><span class="linenos">133</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Mask.get_grid3D-134"><a href="#Mask.get_grid3D-134"><span class="linenos">134</span></a><span class="sd">        Returns list of numpy-arrays containing the 3D-coordinates of points of the mask surface,</span>
+</span><span id="Mask.get_grid3D-135"><a href="#Mask.get_grid3D-135"><span class="linenos">135</span></a><span class="sd">        sampling the support in a number NbPoints of points. </span>
+</span><span id="Mask.get_grid3D-136"><a href="#Mask.get_grid3D-136"><span class="linenos">136</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Mask.get_grid3D-137"><a href="#Mask.get_grid3D-137"><span class="linenos">137</span></a>        <span class="n">E</span> <span class="o">=</span> <span class="s2">&quot;edges&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">]</span>
+</span><span id="Mask.get_grid3D-138"><a href="#Mask.get_grid3D-138"><span class="linenos">138</span></a>        <span class="n">ListCoordXYZ</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="Mask.get_grid3D-139"><a href="#Mask.get_grid3D-139"><span class="linenos">139</span></a>        <span class="n">contour</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">NbPoint</span><span class="p">))</span>
+</span><span id="Mask.get_grid3D-140"><a href="#Mask.get_grid3D-140"><span class="linenos">140</span></a>        <span class="n">contours</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_Contour_points</span><span class="p">(</span><span class="n">contour</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</span><span id="Mask.get_grid3D-141"><a href="#Mask.get_grid3D-141"><span class="linenos">141</span></a>        <span class="k">if</span> <span class="n">E</span><span class="p">:</span>
+</span><span id="Mask.get_grid3D-142"><a href="#Mask.get_grid3D-142"><span class="linenos">142</span></a>            <span class="n">contours</span><span class="p">,</span> <span class="n">contour_edges</span> <span class="o">=</span> <span class="n">contours</span>
+</span><span id="Mask.get_grid3D-143"><a href="#Mask.get_grid3D-143"><span class="linenos">143</span></a>        <span class="n">ListCoordXY</span> <span class="o">=</span> <span class="n">contours</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">_get_grid</span><span class="p">(</span><span class="n">NbPoint</span> <span class="o">-</span> <span class="n">contour</span><span class="p">)</span>
+</span><span id="Mask.get_grid3D-144"><a href="#Mask.get_grid3D-144"><span class="linenos">144</span></a>        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ListCoordXY</span><span class="p">:</span>
+</span><span id="Mask.get_grid3D-145"><a href="#Mask.get_grid3D-145"><span class="linenos">145</span></a>            <span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="Mask.get_grid3D-146"><a href="#Mask.get_grid3D-146"><span class="linenos">146</span></a>            <span class="n">ListCoordXYZ</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">]))</span>
+</span><span id="Mask.get_grid3D-147"><a href="#Mask.get_grid3D-147"><span class="linenos">147</span></a>        <span class="k">if</span> <span class="n">E</span><span class="p">:</span>
+</span><span id="Mask.get_grid3D-148"><a href="#Mask.get_grid3D-148"><span class="linenos">148</span></a>            <span class="k">return</span> <span class="n">ListCoordXYZ</span><span class="p">,</span> <span class="n">contour_edges</span>
+</span><span id="Mask.get_grid3D-149"><a href="#Mask.get_grid3D-149"><span class="linenos">149</span></a>        <span class="k">return</span> <span class="n">ListCoordXYZ</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Returns list of numpy-arrays containing the 3D-coordinates of points of the mask surface,
+sampling the support in a number NbPoints of points.</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="ModuleOpticalElement.html#OpticalElement">ARTcore.ModuleOpticalElement.OpticalElement</a></dt>
+                                <dd id="Mask.r" class="variable"><a href="ModuleOpticalElement.html#OpticalElement.r">r</a></dd>
+                <dd id="Mask.q" class="variable"><a href="ModuleOpticalElement.html#OpticalElement.q">q</a></dd>
+                <dd id="Mask.basepoint" class="variable"><a href="ModuleOpticalElement.html#OpticalElement.basepoint">basepoint</a></dd>
+                <dd id="Mask.centre" class="variable"><a href="ModuleOpticalElement.html#OpticalElement.centre">centre</a></dd>
+                <dd id="Mask.support_normal" class="variable"><a href="ModuleOpticalElement.html#OpticalElement.support_normal">support_normal</a></dd>
+                <dd id="Mask.majoraxis" class="variable"><a href="ModuleOpticalElement.html#OpticalElement.majoraxis">majoraxis</a></dd>
+                <dd id="Mask.rotate_pitch_by" class="function"><a href="ModuleOpticalElement.html#OpticalElement.rotate_pitch_by">rotate_pitch_by</a></dd>
+                <dd id="Mask.rotate_roll_by" class="function"><a href="ModuleOpticalElement.html#OpticalElement.rotate_roll_by">rotate_roll_by</a></dd>
+                <dd id="Mask.rotate_yaw_by" class="function"><a href="ModuleOpticalElement.html#OpticalElement.rotate_yaw_by">rotate_yaw_by</a></dd>
+                <dd id="Mask.rotate_random_by" class="function"><a href="ModuleOpticalElement.html#OpticalElement.rotate_random_by">rotate_random_by</a></dd>
+                <dd id="Mask.shift_along_normal" class="function"><a href="ModuleOpticalElement.html#OpticalElement.shift_along_normal">shift_along_normal</a></dd>
+                <dd id="Mask.shift_along_major" class="function"><a href="ModuleOpticalElement.html#OpticalElement.shift_along_major">shift_along_major</a></dd>
+                <dd id="Mask.shift_along_cross" class="function"><a href="ModuleOpticalElement.html#OpticalElement.shift_along_cross">shift_along_cross</a></dd>
+                <dd id="Mask.shift_along_random" class="function"><a href="ModuleOpticalElement.html#OpticalElement.shift_along_random">shift_along_random</a></dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="TransmitMaskRayList">
+                            <input id="TransmitMaskRayList-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">TransmitMaskRayList</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">Mask</span>, </span><span class="param"><span class="n">RayList</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="TransmitMaskRayList-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#TransmitMaskRayList"></a>
+            <div class="chroma pdoc-code"><pre><span></span><span id="TransmitMaskRayList-172"><a href="#TransmitMaskRayList-172"><span class="linenos">172</span></a><span class="k">def</span> <span class="nf">TransmitMaskRayList</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">RayList</span><span class="p">):</span>
+</span><span id="TransmitMaskRayList-173"><a href="#TransmitMaskRayList-173"><span class="linenos">173</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="TransmitMaskRayList-174"><a href="#TransmitMaskRayList-174"><span class="linenos">174</span></a><span class="sd">    Returns the the transmitted rays that pass the mask for the list of</span>
+</span><span id="TransmitMaskRayList-175"><a href="#TransmitMaskRayList-175"><span class="linenos">175</span></a><span class="sd">    incident rays ListRay.</span>
+</span><span id="TransmitMaskRayList-176"><a href="#TransmitMaskRayList-176"><span class="linenos">176</span></a>
+</span><span id="TransmitMaskRayList-177"><a href="#TransmitMaskRayList-177"><span class="linenos">177</span></a><span class="sd">    Rays that hit the support are not further propagated.</span>
+</span><span id="TransmitMaskRayList-178"><a href="#TransmitMaskRayList-178"><span class="linenos">178</span></a>
+</span><span id="TransmitMaskRayList-179"><a href="#TransmitMaskRayList-179"><span class="linenos">179</span></a><span class="sd">    Updates the reflected rays&#39; incidence angle and path.</span>
+</span><span id="TransmitMaskRayList-180"><a href="#TransmitMaskRayList-180"><span class="linenos">180</span></a>
+</span><span id="TransmitMaskRayList-181"><a href="#TransmitMaskRayList-181"><span class="linenos">181</span></a><span class="sd">    Parameters</span>
+</span><span id="TransmitMaskRayList-182"><a href="#TransmitMaskRayList-182"><span class="linenos">182</span></a><span class="sd">    ----------</span>
+</span><span id="TransmitMaskRayList-183"><a href="#TransmitMaskRayList-183"><span class="linenos">183</span></a><span class="sd">        Mask : Mask-object</span>
+</span><span id="TransmitMaskRayList-184"><a href="#TransmitMaskRayList-184"><span class="linenos">184</span></a>
+</span><span id="TransmitMaskRayList-185"><a href="#TransmitMaskRayList-185"><span class="linenos">185</span></a><span class="sd">        ListRay : list[Ray-object]</span>
+</span><span id="TransmitMaskRayList-186"><a href="#TransmitMaskRayList-186"><span class="linenos">186</span></a>
+</span><span id="TransmitMaskRayList-187"><a href="#TransmitMaskRayList-187"><span class="linenos">187</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="TransmitMaskRayList-188"><a href="#TransmitMaskRayList-188"><span class="linenos">188</span></a>    <span class="n">ListRayTransmitted</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="TransmitMaskRayList-189"><a href="#TransmitMaskRayList-189"><span class="linenos">189</span></a>    <span class="k">for</span> <span class="n">Ray</span> <span class="ow">in</span> <span class="n">RayList</span><span class="p">:</span>
+</span><span id="TransmitMaskRayList-190"><a href="#TransmitMaskRayList-190"><span class="linenos">190</span></a>        <span class="n">PointMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="o">.</span><span class="n">_get_intersection</span><span class="p">(</span><span class="n">Ray</span><span class="p">)</span>
+</span><span id="TransmitMaskRayList-191"><a href="#TransmitMaskRayList-191"><span class="linenos">191</span></a>
+</span><span id="TransmitMaskRayList-192"><a href="#TransmitMaskRayList-192"><span class="linenos">192</span></a>        <span class="k">if</span> <span class="n">PointMask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="TransmitMaskRayList-193"><a href="#TransmitMaskRayList-193"><span class="linenos">193</span></a>            <span class="n">RayTransmitted</span> <span class="o">=</span> <span class="n">_TransmitMaskRay</span><span class="p">(</span><span class="n">Mask</span><span class="p">,</span> <span class="n">PointMask</span><span class="p">,</span> <span class="n">Ray</span><span class="p">)</span>
+</span><span id="TransmitMaskRayList-194"><a href="#TransmitMaskRayList-194"><span class="linenos">194</span></a>            <span class="n">ListRayTransmitted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RayTransmitted</span><span class="p">)</span>
+</span><span id="TransmitMaskRayList-195"><a href="#TransmitMaskRayList-195"><span class="linenos">195</span></a>
+</span><span id="TransmitMaskRayList-196"><a href="#TransmitMaskRayList-196"><span class="linenos">196</span></a>    <span class="k">return</span> <span class="n">ListRayTransmitted</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Returns the the transmitted rays that pass the mask for the list of
+incident rays ListRay.</p>
+
+<p>Rays that hit the support are not further propagated.</p>
+
+<p>Updates the reflected rays' incidence angle and path.</p>
+
+<h2 id="parameters">Parameters</h2>
+
+<pre><code>Mask : Mask-object
+
+ListRay : list[Ray-object]
+</code></pre>
+</div>
+
+
+                </section>
+</div>
+
+
+<style>pre{line-height:125%;}span.linenos{color:inherit; background-color:transparent; padding-left:5px; padding-right:20px;}.pdoc-code .hll{background-color:#ffffcc}.pdoc-code{background:#f8f8f8;}.pdoc-code .c{color:#3D7B7B; font-style:italic}.pdoc-code .err{border:1px solid #FF0000}.pdoc-code .k{color:#008000; font-weight:bold}.pdoc-code .o{color:#666666}.pdoc-code .ch{color:#3D7B7B; font-style:italic}.pdoc-code .cm{color:#3D7B7B; font-style:italic}.pdoc-code .cp{color:#9C6500}.pdoc-code .cpf{color:#3D7B7B; font-style:italic}.pdoc-code .c1{color:#3D7B7B; font-style:italic}.pdoc-code .cs{color:#3D7B7B; font-style:italic}.pdoc-code .gd{color:#A00000}.pdoc-code .ge{font-style:italic}.pdoc-code .gr{color:#E40000}.pdoc-code .gh{color:#000080; font-weight:bold}.pdoc-code .gi{color:#008400}.pdoc-code .go{color:#717171}.pdoc-code .gp{color:#000080; font-weight:bold}.pdoc-code .gs{font-weight:bold}.pdoc-code .gu{color:#800080; font-weight:bold}.pdoc-code .gt{color:#0044DD}.pdoc-code .kc{color:#008000; font-weight:bold}.pdoc-code .kd{color:#008000; font-weight:bold}.pdoc-code .kn{color:#008000; font-weight:bold}.pdoc-code .kp{color:#008000}.pdoc-code .kr{color:#008000; font-weight:bold}.pdoc-code .kt{color:#B00040}.pdoc-code .m{color:#666666}.pdoc-code .s{color:#BA2121}.pdoc-code .na{color:#687822}.pdoc-code .nb{color:#008000}.pdoc-code .nc{color:#0000FF; font-weight:bold}.pdoc-code .no{color:#880000}.pdoc-code .nd{color:#AA22FF}.pdoc-code .ni{color:#717171; font-weight:bold}.pdoc-code .ne{color:#CB3F38; font-weight:bold}.pdoc-code .nf{color:#0000FF}.pdoc-code .nl{color:#767600}.pdoc-code .nn{color:#0000FF; font-weight:bold}.pdoc-code .nt{color:#008000; font-weight:bold}.pdoc-code .nv{color:#19177C}.pdoc-code .ow{color:#AA22FF; font-weight:bold}.pdoc-code .w{color:#bbbbbb}.pdoc-code .mb{color:#666666}.pdoc-code .mf{color:#666666}.pdoc-code .mh{color:#666666}.pdoc-code .mi{color:#666666}.pdoc-code .mo{color:#666666}.pdoc-code .sa{color:#BA2121}.pdoc-code .sb{color:#BA2121}.pdoc-code .sc{color:#BA2121}.pdoc-code .dl{color:#BA2121}.pdoc-code .sd{color:#BA2121; font-style:italic}.pdoc-code .s2{color:#BA2121}.pdoc-code .se{color:#AA5D1F; font-weight:bold}.pdoc-code .sh{color:#BA2121}.pdoc-code .si{color:#A45A77; font-weight:bold}.pdoc-code .sx{color:#008000}.pdoc-code .sr{color:#A45A77}.pdoc-code .s1{color:#BA2121}.pdoc-code .ss{color:#19177C}.pdoc-code .bp{color:#008000}.pdoc-code .fm{color:#0000FF}.pdoc-code .vc{color:#19177C}.pdoc-code .vg{color:#19177C}.pdoc-code .vi{color:#19177C}.pdoc-code .vm{color:#19177C}.pdoc-code .il{color:#666666}</style>
+<style>:root{--pdoc-background:#fff;}.pdoc{--text:#212529;--muted:#6c757d;--link:#3660a5;--link-hover:#1659c5;--code:#f8f8f8;--active:#fff598;--accent:#eee;--accent2:#c1c1c1;--nav-hover:rgba(255, 255, 255, 0.5);--name:#0066BB;--def:#008800;--annotation:#007020;}</style>
+<style>.pdoc{color:var(--text);box-sizing:border-box;line-height:1.5;background:none;}.pdoc .pdoc-button{cursor:pointer;display:inline-block;border:solid black 1px;border-radius:2px;font-size:.75rem;padding:calc(0.5em - 1px) 1em;transition:100ms all;}.pdoc .alert{padding:1rem 1rem 1rem calc(1.5rem + 24px);border:1px solid transparent;border-radius:.25rem;background-repeat:no-repeat;background-position:.75rem center;margin-bottom:1rem;}.pdoc .alert > em{display:none;}.pdoc .alert > *:last-child{margin-bottom:0;}.pdoc .alert.note {color:#084298;background-color:#cfe2ff;border-color:#b6d4fe;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23084298%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016zm.93-9.412-1%204.705c-.07.34.029.533.304.533.194%200%20.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703%200-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381%202.29-.287zM8%205.5a1%201%200%201%201%200-2%201%201%200%200%201%200%202z%22/%3E%3C/svg%3E");}.pdoc .alert.warning{color:#664d03;background-color:#fff3cd;border-color:#ffecb5;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23664d03%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.982%201.566a1.13%201.13%200%200%200-1.96%200L.165%2013.233c-.457.778.091%201.767.98%201.767h13.713c.889%200%201.438-.99.98-1.767L8.982%201.566zM8%205c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%205.995A.905.905%200%200%201%208%205zm.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2z%22/%3E%3C/svg%3E");}.pdoc .alert.danger{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.52.359A.5.5%200%200%201%206%200h4a.5.5%200%200%201%20.474.658L8.694%206H12.5a.5.5%200%200%201%20.395.807l-7%209a.5.5%200%200%201-.873-.454L6.823%209.5H3.5a.5.5%200%200%201-.48-.641l2.5-8.5z%22/%3E%3C/svg%3E");}.pdoc .visually-hidden{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important;}.pdoc h1, .pdoc h2, .pdoc h3{font-weight:300;margin:.3em 0;padding:.2em 0;}.pdoc > section:not(.module-info) h1{font-size:1.5rem;font-weight:500;}.pdoc > section:not(.module-info) h2{font-size:1.4rem;font-weight:500;}.pdoc > section:not(.module-info) h3{font-size:1.3rem;font-weight:500;}.pdoc > section:not(.module-info) h4{font-size:1.2rem;}.pdoc > section:not(.module-info) h5{font-size:1.1rem;}.pdoc a{text-decoration:none;color:var(--link);}.pdoc a:hover{color:var(--link-hover);}.pdoc blockquote{margin-left:2rem;}.pdoc pre{border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);margin-top:0;margin-bottom:1em;padding:.5rem 0 .5rem .5rem;overflow-x:auto;background-color:var(--code);}.pdoc code{color:var(--text);padding:.2em .4em;margin:0;font-size:85%;background-color:var(--accent);border-radius:6px;}.pdoc a > code{color:inherit;}.pdoc pre > code{display:inline-block;font-size:inherit;background:none;border:none;padding:0;}.pdoc > section:not(.module-info){margin-bottom:1.5rem;}.pdoc .modulename{margin-top:0;font-weight:bold;}.pdoc .modulename a{color:var(--link);transition:100ms all;}.pdoc .git-button{float:right;border:solid var(--link) 1px;}.pdoc .git-button:hover{background-color:var(--link);color:var(--pdoc-background);}.view-source-toggle-state,.view-source-toggle-state ~ .pdoc-code{display:none;}.view-source-toggle-state:checked ~ .pdoc-code{display:block;}.view-source-button{display:inline-block;float:right;font-size:.75rem;line-height:1.5rem;color:var(--muted);padding:0 .4rem 0 1.3rem;cursor:pointer;text-indent:-2px;}.view-source-button > span{visibility:hidden;}.module-info .view-source-button{float:none;display:flex;justify-content:flex-end;margin:-1.2rem .4rem -.2rem 0;}.view-source-button::before{position:absolute;content:"View Source";display:list-item;list-style-type:disclosure-closed;}.view-source-toggle-state:checked ~ .attr .view-source-button::before,.view-source-toggle-state:checked ~ .view-source-button::before{list-style-type:disclosure-open;}.pdoc .docstring{margin-bottom:1.5rem;}.pdoc section:not(.module-info) .docstring{margin-left:clamp(0rem, 5vw - 2rem, 1rem);}.pdoc .docstring .pdoc-code{margin-left:1em;margin-right:1em;}.pdoc h1:target,.pdoc h2:target,.pdoc h3:target,.pdoc h4:target,.pdoc h5:target,.pdoc h6:target,.pdoc .pdoc-code > pre > span:target{background-color:var(--active);box-shadow:-1rem 0 0 0 var(--active);}.pdoc .pdoc-code > pre > span:target{display:block;}.pdoc div:target > .attr,.pdoc section:target > .attr,.pdoc dd:target > a{background-color:var(--active);}.pdoc *{scroll-margin:2rem;}.pdoc .pdoc-code .linenos{user-select:none;}.pdoc .attr:hover{filter:contrast(0.95);}.pdoc section, .pdoc .classattr{position:relative;}.pdoc .headerlink{--width:clamp(1rem, 3vw, 2rem);position:absolute;top:0;left:calc(0rem - var(--width));transition:all 100ms ease-in-out;opacity:0;}.pdoc .headerlink::before{content:"#";display:block;text-align:center;width:var(--width);height:2.3rem;line-height:2.3rem;font-size:1.5rem;}.pdoc .attr:hover ~ .headerlink,.pdoc *:target > .headerlink,.pdoc .headerlink:hover{opacity:1;}.pdoc .attr{display:block;margin:.5rem 0 .5rem;padding:.4rem .4rem .4rem 1rem;background-color:var(--accent);overflow-x:auto;}.pdoc .classattr{margin-left:2rem;}.pdoc .name{color:var(--name);font-weight:bold;}.pdoc .def{color:var(--def);font-weight:bold;}.pdoc .signature{background-color:transparent;}.pdoc .param, .pdoc .return-annotation{white-space:pre;}.pdoc .signature.multiline .param{display:block;}.pdoc .signature.condensed .param{display:inline-block;}.pdoc .annotation{color:var(--annotation);}.pdoc .view-value-toggle-state,.pdoc .view-value-toggle-state ~ .default_value{display:none;}.pdoc .view-value-toggle-state:checked ~ .default_value{display:inherit;}.pdoc .view-value-button{font-size:.5rem;vertical-align:middle;border-style:dashed;margin-top:-0.1rem;}.pdoc .view-value-button:hover{background:white;}.pdoc .view-value-button::before{content:"show";text-align:center;width:2.2em;display:inline-block;}.pdoc .view-value-toggle-state:checked ~ .view-value-button::before{content:"hide";}.pdoc .inherited{margin-left:2rem;}.pdoc .inherited dt{font-weight:700;}.pdoc .inherited dt, .pdoc .inherited dd{display:inline;margin-left:0;margin-bottom:.5rem;}.pdoc .inherited dd:not(:last-child):after{content:", ";}.pdoc .inherited .class:before{content:"class ";}.pdoc .inherited .function a:after{content:"()";}.pdoc .search-result .docstring{overflow:auto;max-height:25vh;}.pdoc .search-result.focused > .attr{background-color:var(--active);}.pdoc .attribution{margin-top:2rem;display:block;opacity:0.5;transition:all 200ms;filter:grayscale(100%);}.pdoc .attribution:hover{opacity:1;filter:grayscale(0%);}.pdoc .attribution img{margin-left:5px;height:35px;vertical-align:middle;width:70px;transition:all 200ms;}.pdoc table{display:block;width:max-content;max-width:100%;overflow:auto;margin-bottom:1rem;}.pdoc table th{font-weight:600;}.pdoc table th, .pdoc table td{padding:6px 13px;border:1px solid var(--accent2);}</style>
+<style>.pdoc *{scroll-margin:4rem;}</style>

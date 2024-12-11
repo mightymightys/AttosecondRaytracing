@@ -1,0 +1,24 @@
+{{- $baseurl := urls.Parse site.BaseURL -}}
+{{- $destination := urls.Parse .Destination -}}
+{{- $getpage := site.GetPage .Destination -}}
+
+{{/* FILE TYPES */}}
+{{- $python := findRE "\\.py$" .Destination -}}
+{{- $svg := findRE "\\.svg$" .Destination -}}
+{{- $pdf := findRE "\\.pdf$" .Destination -}}
+{{- $obj := findRE "\\.obj$" .Destination -}}
+
+{{- $icon := "" -}}
+{{- if $python -}}{{ $icon = "python" }}
+{{- else if $svg -}}{{ $icon = "svg" }}
+{{- else if $pdf -}}{{ $icon = "pdf" }}
+{{- else if $obj -}}{{ $icon = "obj" }}
+{{- end -}}
+
+{{- $isFragment := strings.HasPrefix .Destination "#" -}}
+
+{{- if $isFragment }}
+<a href="{{ $destination }}"{{ with or .Title $getpage.LinkTitle .Text }} title="{{ . }}"{{ end }}{{ with $icon }} class="icon_{{ . }}"{{ end }}>{{ or .Text .Title $getpage.LinkTitle | safeHTML }}</a>
+{{- else }}
+<a href="/{{ $destination | safeURL }}"{{ with or .Title $getpage.LinkTitle .Text }} title="{{ . }}"{{ end }}{{ with $icon }} class="icon_{{ . }}"{{ end }}>{{ or .Text .Title $getpage.LinkTitle | safeHTML }}</a>
+{{- end }}

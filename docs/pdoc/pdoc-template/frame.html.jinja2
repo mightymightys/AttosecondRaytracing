@@ -18,8 +18,13 @@
 </div></nav></div>
 -->
 
+<!--
+We comment the TOC out because we want to integrate it into the page layout of Docsy
+-->
+
 
 <div class="pdoc">
+{% block module_info %}{% endblock %}
 {% block module_contents %}{% endblock %}
 </div>
 
@@ -28,5 +33,10 @@
         <style>{% include "syntax-highlighting.css" %}</style>
         <style>{% include "theme.css" %}</style>
         <style>{% include "content.css" %}</style>
+        <style>
+            .pdoc * {
+            scroll-margin:4rem;
+            }
+        </style>
     {% endblock %}
 {% endfilter %}

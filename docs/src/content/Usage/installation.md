@@ -1,15 +1,17 @@
 ---
 title: "Installation"
 linkTitle: "Installation"
+type: docs
 weight: 2
 ---
 
-## Dependencies
-The code requires Python 3.6 or newer and depends on the libraries [NumPy](https://numpy.org), 
-[Numpy-Quaternion](https://github.com/moble/quaternion),  [matplotlib](https://matplotlib.org),
-and for 3D-rendering of optical configurations and rays,  [PyVista](https://github.com/pyvista/pyvista).
-It also now requires SciPy ??
+The code is split into two Python packages:
+ - `AttosecondRayTracing-core` that provides the `ARTcore` module. It contains the actual ray-tracing code, the definitions of the mirrors, sources and detectors.
+ - `AttosecondRayTracing` that provides the `ART` module and requires `AttosecondRayTracing-core` as a dependency. It contains the plotting and visualisation functions as well as the analsysis functions. It's the most user-facing part of the codebase. 
 
+Unless you really only need the functionality of `AttosecondRayTracing-core`, we recommend installing `AttosecondRayTracing` that will pull in the required dependencies.
+
+## Basic installation
 ### Using `pip`
 If installing using `pip`, we recommend installing the dependencies in a virtual environment, for instance using 
 ```Shell
@@ -17,23 +19,22 @@ python -m venv <new_virtual_environment_folder>
 ```
 This lets you install and use the software without interfering with the system installation of Python.
 
-As for the installation of the dependencies:
+The installation of the package itself couldn't be easier:
 ```Shell
-pip install numpy numpy-quaternion matplotlib pyvista scipy colorcet
+pip install AttosecondRayTracing
 ```
 
 ### Using Anaconda
 Just as with `pip`, we recommend using a separate virtual environment to install and use ART. 
+TODO actual installation instructions.
 
-## Installation
+## Developper installation
+If you want to contribute to the development of ART or simply want to modify something for your own needs, you can directly download the source code from the github page.
 
-You can just download the code as a zip file from here. Or if you are using the git version control software,
-ou can clone the repository like so:
-
+For instance:
 ```Shell
 git clone https://github.com/mightymightys/AttosecondRaytracing.git
 ```
 
-You are welcome to fork the code and contribute to its further development
-
-
+### Contributing
+We appreciate any contributions to the code. The best way to do so is by making pull requests on Github.

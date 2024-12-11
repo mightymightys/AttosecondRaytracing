@@ -1,6 +1,7 @@
 ---
 title: "SourceProperties"
 weight: 2
+type: docs
 ---
 
 {{% alert title="Summary" color="primary" %}}

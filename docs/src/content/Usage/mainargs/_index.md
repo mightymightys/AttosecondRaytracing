@@ -1,6 +1,7 @@
 ---
 title: "Writing config file"
 weight: 4
+type: docs
 description: >
   See your project in action!
 ---

@@ -35,8 +35,8 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="2560"
-     inkscape:window-height="1360"
+     inkscape:window-width="1920"
+     inkscape:window-height="1000"
      id="namedview3957"
      showgrid="false"
      units="mm"
@@ -44,13 +44,13 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:zoom="2.3507069"
-     inkscape:cx="159.52648"
-     inkscape:cy="119.75121"
+     inkscape:zoom="4.7014138"
+     inkscape:cx="259.92181"
+     inkscape:cy="30.097329"
      inkscape:window-x="-9"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g518"
+     inkscape:current-layer="g2450"
      inkscape:document-rotation="0"
      inkscape:showpageshadow="0"
      inkscape:pagecheckerboard="0"
@@ -637,7 +637,7 @@
        id="path3537"
        inkscape:connector-curvature="0" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:0.74424356;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:2.23273079,0.74424356;stroke-dashoffset:0;stroke-opacity:1"
+       style="fill:none;stroke:#000000;stroke-width:0.5216;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:1.5648, 0.5216;stroke-dashoffset:0;stroke-opacity:1"
        d="m 0.23517255,14.040753 1.86328005,3.88672 1.82031,3.93359 1.90625,3.92969 1.85938,3.68359 1.8632804,3.76563 1.82031,3.51562 1.90235,3.35547 1.86328,3.51562 1.86328,3.1875 1.69531,3.1836 1.82031,3.14844 1.86328,2.97656 1.86329,3.02344 1.90234,2.73046 1.82031,2.8125 1.86328,2.60938 1.86328,2.64844 1.90235,2.39843 1.86328,2.39844 1.65234,2.23828 1.86328,2.23438 1.86329,2.0664 1.86328,2.02735 1.85937,1.86328 1.86328,1.86328 1.86328,1.69531 1.85938,1.65625 1.86328,1.48828 1.86328,1.49219 1.65625,1.32422 1.85938,1.28125 1.90234,1.32422 1.86328,1.07422 1.82031,0.953117 1.86329,0.95313 1.90234,0.70312 1.86328,0.7461 1.82031,0.74218 1.86328,0.58204 1.69532,0.37109 1.86328,0.37109 1.86328,0.16797 1.85937,0.20703 1.86329,0.20703 h 1.86328 l 1.86328,-0.20703 1.85937,-0.20703 1.86328,-0.16797 1.86329,-0.37109 1.69531,-0.37109 1.86328,-0.58204 1.82031,-0.74218 1.86328,-0.7461 1.902347,-0.70312 1.86328,-0.95313 1.82031,-0.953117 1.85938,-1.07422 1.86328,-1.32422 1.90625,-1.28125 1.65234,-1.32422 1.86328,-1.49219 1.86328,-1.48828 1.86328,-1.65625 1.85938,-1.69531 1.82031,-1.86328 1.90625,-1.86328 1.85938,-2.02735 1.86328,-2.0664 1.82031,-2.23438 1.69531,-2.23828 3.72657,-4.79687 1.90234,-2.64844 1.82031,-2.60938 1.86328,-2.8125 1.86328,-2.73046 1.90235,-3.02344 1.82031,-2.97656 1.86328,-3.14844 1.69531,-3.1836 1.86329,-3.1875 1.86328,-3.51562 1.82031,-3.35547 1.90234,-3.51562 1.86328,-3.76563 1.86329,-3.68359 1.85937,-3.92969 1.86328,-3.93359 1.86328,-3.88672"
        id="path3541"
        inkscape:connector-curvature="0"
@@ -720,7 +720,7 @@
        d="M 166.28606,104.91767 H 2.8882396"
        id="path2420" />
     <path
-       style="fill:none;stroke:#000000;stroke-width:2.23273068;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#000000;stroke-width:1.5616;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
        d="m 44.555483,85.173563 1.86328,1.86328 1.86328,1.69531 1.85938,1.65625 1.86328,1.48828 1.86328,1.49219 1.65625,1.32422 1.85938,1.28125 1.90234,1.32422 1.86328,1.07422 1.82031,0.953117 1.86329,0.95313"
        id="path2422"
        inkscape:connector-curvature="0"
@@ -761,9 +761,7 @@
            id="tspan2436"
            x="104.43986"
            y="216.09906"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:3.2481">4<tspan
-   style="font-style:italic"
-   id="tspan654">f</tspan></tspan></text>
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:3.2481">4f</tspan></text>
       <path
          style="fill:none;stroke:#000000;stroke-width:2.59848;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="M 103.47727,190.1094 H 139.574"
@@ -869,7 +867,7 @@
          id="tspan2619"
          x="83.573624"
          y="112.43407"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">O</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">S</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:7.88155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.800002"
@@ -880,25 +878,36 @@
          id="tspan2623"
          x="47.392384"
          y="100.64247"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">P</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">P</tspan></text>
     <rect
-       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.48;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="rect668"
-       width="7.2280993"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.479999;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect2637"
+       width="31.308653"
        height="10.588373"
        x="84.441505"
-       y="80.188774" />
+       y="62.327011" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:7.88155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.800002"
-       x="84.429398"
+       x="85.165939"
+       y="69.996071"
+       id="text2629"><tspan
+         sodipodi:role="line"
+         id="tspan2627"
+         x="85.165939"
+         y="69.996071"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">C=(0,2f)</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.88155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.800002"
+       x="85.173637"
        y="88.116035"
        id="text2633"><tspan
          sodipodi:role="line"
          id="tspan2631"
-         x="84.429398"
+         x="85.173637"
          y="88.116035"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">F</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">F=(0,f)</tspan></text>
     <path
        style="fill:none;stroke:#a20000;stroke-width:0.8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#TriangleOutM)"
        d="M 82.213199,103.76886 V 49.49557"
@@ -949,107 +958,5 @@
        d="m 57.726271,25.501683 1.57422,4.96485 1.53125,-4.96485"
        id="path3943"
        inkscape:connector-curvature="0" />
-    <path
-       style="fill:none;stroke:#000000;stroke-width:0.479998;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:1.91998, 0.95998, 0.479998, 0.95998;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 54.380881,95.27635 v 11.45483"
-       id="path666" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.88155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.800002"
-       x="49.159233"
-       y="111.2067"
-       id="text674"><tspan
-         sodipodi:role="line"
-         id="tspan672"
-         x="49.159233"
-         y="111.2067"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">-<tspan
-   style="font-style:italic"
-   id="tspan621">x</tspan><tspan
-   style="font-size:65%;baseline-shift:sub"
-   id="tspan676">c</tspan></tspan></text>
-    <rect
-       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.48;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="rect1366"
-       width="7.2280993"
-       height="10.588373"
-       x="84.441505"
-       y="62.643612" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:7.88155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.800002"
-       x="84.429398"
-       y="70.570885"
-       id="text1370"><tspan
-         sodipodi:role="line"
-         id="tspan1368"
-         x="84.429398"
-         y="70.570885"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002">C</tspan></text>
-    <g
-       id="g2902"
-       transform="translate(2.2327307)">
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:7.88155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.800002"
-         x="114.71717"
-         y="25.221483"
-         id="text2629"><tspan
-           sodipodi:role="line"
-           id="tspan2627"
-           x="114.71717"
-           y="25.221483"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002"><tspan
-   style="font-style:italic"
-   id="tspan623">OC</tspan>=<tspan
-   style="font-style:italic"
-   id="tspan662">p</tspan>=2<tspan
-   style="font-style:italic"
-   id="tspan660">f </tspan></tspan></text>
-      <path
-         style="fill:none;stroke:#000000;stroke-width:0.558183;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-         d="m 115.89691,18.699433 h 10.21048"
-         id="path732" />
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:7.88155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.800002"
-         x="114.71717"
-         y="35.640892"
-         id="text1307"><tspan
-           sodipodi:role="line"
-           id="tspan1305"
-           x="114.71717"
-           y="35.640892"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002"><tspan
-   style="font-style:italic"
-   id="tspan625">OF</tspan>=<tspan
-   style="font-style:italic"
-   id="tspan1303">f </tspan></tspan></text>
-      <path
-         style="fill:none;stroke:#000000;stroke-width:0.558183;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-         d="m 115.89691,29.118849 h 10.21048"
-         id="path1309" />
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:7.88155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.800002"
-         x="115.97506"
-         y="46.060303"
-         id="text2880"><tspan
-           sodipodi:role="line"
-           id="tspan2878"
-           x="115.97506"
-           y="46.060303"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';stroke-width:0.800002"><tspan
-   style="font-style:italic"
-   id="tspan627">PF</tspan>=<tspan
-   style="font-style:italic"
-   id="tspan2876">f<tspan
-   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'Bookman Old Style';-inkscape-font-specification:'Bookman Old Style';baseline-shift:sub"
-   id="tspan2884">eff</tspan> </tspan></tspan></text>
-      <path
-         style="fill:none;stroke:#000000;stroke-width:0.558183;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1"
-         d="m 116.60533,39.538265 h 9.52122"
-         id="path2882" />
-    </g>
   </g>
 </svg>

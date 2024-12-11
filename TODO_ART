@@ -1,0 +1,30 @@
+TODOLIST ART:
+
+Support is a class describing an arbitrary 2D shape
+
+Supports are used for the following:
+ - In OUR mirrors
+ - In OUR masks
+They don't actually have to be used if the user wishes to implement his own mirrors.
+
+That means that the responsibility for rendering them falls on the classes that
+actually use of the supports: Mirrors and Masks.
+
+BUT: we also want people to be able to implement their own completely different supports
+and for our mirrors and masks to be able to use them natively.
+
+For the actual ray casting, it's easy: __contains__ is a sufficient interface.
+However, the problem arises when we attempt to render.
+In fine, so far we have only two ways of using a support for rendering:
+ - generating a mesh
+ - generating points
+
+The first approach works for SDF-based supports as well as can be implemented by the
+author of the third-party mask class.
+
+The second approach can be used as a fallback. It requires nothing more than the __contains__
+method and preferably a sampling domain.
+But if the user wishes to improve performance without actually generating a mesh, they
+should have the ability to generate a set of points more efficiently.
+
+The thing is, we want the final class to control the rendering, be it Mirror or Mask or something else. So the support class must provide some way to tell the final class how to render while maintaining separation of concerns...
