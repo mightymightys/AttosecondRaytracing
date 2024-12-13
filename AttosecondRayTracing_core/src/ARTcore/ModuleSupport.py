@@ -12,7 +12,7 @@ The support will become an attribute of Mirror or Mask objects.
 
 Created in Sept 2020
 
-@author: Anthony Guillaume and Stefan Haessler
+@author: Anthony Guillaume and Stefan Haessler and André Kalouguine
 """
 
 # %%
@@ -102,10 +102,10 @@ class SupportRound(Support):
     
     def _get_edges(self, NbPoint=100):
         """
-        Return a list of 2D-numpy-arrays with the coordinates a number NbPoints of points.
+        Return a list of 2D-numpy-arrays with the coordinates of a number NbPoints of points.
 
         The points are distributed along the contour of the support so as to clearly define the edges.
-        The putpose is to use these points to draw a nicer mesh of the mirrors.
+        The purpose is to use these points to draw a nicer mesh of the mirrors.
         """
         return flatten_point_arrays(gen_circle_contour(self.radius, NbPoint), [])
 

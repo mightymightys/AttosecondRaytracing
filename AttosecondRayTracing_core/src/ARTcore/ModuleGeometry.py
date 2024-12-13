@@ -219,7 +219,7 @@ def IntersectionLinePlane(A, u, P, n):
 
 def IntersectionRayListZPlane(RayList, Z=np.array([0])):
     """
-    Return the intersection of a list of rays with a different planes with equiations z = Z[i]
+    Return the intersection of a list of rays with different planes with equiations z = Z[i]
     Basically, by default it returns the intersection of the rays with the Z=0 plane but you can 
     give it a few values of Z and it should be faster than calling it multiple times.
     This should let us quickly find the optimal position of the detector as well as trace the caustics.

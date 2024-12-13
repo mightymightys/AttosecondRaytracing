@@ -75,7 +75,7 @@ class Ray:
     
     def translate(self, t):
         """
-        Rotates the ray by the vector t
+        Translates the ray by the vector t
         """
         return Ray(
             self.point.translate(t),
@@ -226,7 +226,7 @@ class RayList:
     
     def translate(self, t):
         """
-        Rotates the ray by the vector t
+        Translates the ray by the vector t
         """
         return Ray(
             self.point.translate(t),
